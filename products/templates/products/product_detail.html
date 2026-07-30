@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ product.name }} - EcommerceIA
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            {% if product.image %}
+                <img
+                    src="{{ product.image.url }}"
+                    class="img-fluid rounded"
+                    alt="{{ product.name }}"
+                    style="max-height: 420px; object-fit: contain;"
+                >
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+
+            <p class="lead">
+                {{ product.description }}
+            </p>
+
+            <p class="fs-3 fw-bold">
+                {{ product.price }} €
+            </p>
+
+            <button class="btn btn-primary btn-lg">
+                Ajouter au panier
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
