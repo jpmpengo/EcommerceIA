@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404, render
 
-from .models import Product
+from .models import Category, Product
 
 
 def product_list(request):
@@ -24,4 +24,21 @@ def product_detail(request, product_id):
         request,
         "products/product_detail.html",
         {"product": product},
+    )
+
+def products_by_category(request, slug):
+    category = get_object_or_404(Category, slug=slug)
+
+    products = Product.objects.filter(
+        category=category,
+        is_available=True,
+    )
+
+    return render(
+        request,
+        "products/product_list.html",
+        {
+            "products": products,
+            "category": category,
+        },
     )

@@ -6,7 +6,11 @@ Produits - EcommerceIA
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4">Nos produits</h1>
+    {% if category %}
+        <h1>Produits : {{ category.name }}</h1>
+    {% else %}
+        <h1>Nos produits</h1>
+    {% endif %}
 
     <div class="row">
         {% for product in products %}

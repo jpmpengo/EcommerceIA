@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "core",
-    "products"
+    "products",
+    "cart",
+    "orders",
+    "accounts",
 ]
 
 MIDDLEWARE = [
@@ -63,6 +66,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "products.context_processors.categories",
+                "cart.context_processors.cart",
             ],
         },
     },
@@ -120,3 +125,15 @@ STATIC_URL = "static/"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+LOGIN_URL = "/compte/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
+STRIPE_PUBLISHABLE_KEY = "pk_test_51TzGOq0UEp9HGEGxjCS6D4NdPYN7w2bbSLjipDxb4DW6KvXqvXWIWlOjr2f92EvAlLzTnFVbw9fGH2Jr2IdLv6md00qQU0sfz5"
+STRIPE_SECRET_KEY = "STRIPE_SECRET_REMOVEDKuUFUzx4rQEzxuCPZbnrWMT6qHwecHPE8qvASr00IGvmxHTt"
+
+# Secret fourni par la commande :
+# stripe listen --forward-to http://127.0.0.1:8000/commande/stripe/webhook/
+STRIPE_WEBHOOK_SECRET = "whsec_91471e69011c2c27682f99f1fd4b5428ccdf30f65a0e10b3b73ca77b5d214fbc"
+

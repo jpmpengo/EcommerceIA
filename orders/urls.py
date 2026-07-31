@@ -1,0 +1,40 @@
+from django.urls import path
+
+from . import views
+
+
+app_name = "orders"
+
+urlpatterns = [
+    path(
+        "creer/",
+        views.order_create,
+        name="order_create",
+    ),
+    path(
+        "mes-commandes/",
+        views.order_list,
+        name="order_list",
+    ),
+    path(
+        "mes-commandes/<int:order_id>/",
+        views.order_detail,
+        name="order_detail",
+    ),
+    path(
+        "paiement/<int:order_id>/",
+        views.payment_create,
+        name="payment_create",
+    ),
+    path(
+        "paiement/succes/",
+        views.payment_success,
+        name="payment_success",
+    ),
+    path(
+        "stripe/webhook/",
+        views.stripe_webhook,
+        name="stripe_webhook",
+    ),
+]
+

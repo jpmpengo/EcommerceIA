@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Mon panier</h1>
+
+    {% if cart|length > 0 %}
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Prix</th>
+                        <th>Quantité</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in cart %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.price }} €</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="{% url 'cart:cart_decrease' item.product.id %}"
+                                        class="btn btn-sm btn-outline-secondary">
+                                        −
+                                    </a>
+
+                                    <span>{{ item.quantity }}</span>
+
+                                    <a href="{% url 'cart:cart_increase' item.product.id %}"
+                                         class="btn btn-sm btn-outline-secondary">
+                                         +
+                                    </a>
+                                </div>
+                            </td>
+                            <td>{{ item.total_price }} €</td>
+                            <td>
+                                <a href="{% url 'cart:cart_remove' item.product.id %}"
+                                    class="btn btn-sm btn-outline-danger">
+                                     Supprimer
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-end">
+            <div class="text-end mt-3">
+                <h4>Total : {{ cart.get_total_price }} €</h4>
+
+                <a
+                    href="{% url 'orders:order_create' %}"
+                    class="btn btn-success"
+                >
+                    Valider la commande
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Ton panier est vide.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

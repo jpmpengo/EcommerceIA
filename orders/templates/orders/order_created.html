@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="alert alert-success">
+        <h2>Commande enregistrée</h2>
+
+        <p>
+            Merci pour ta commande.
+            Ton numéro de commande est <strong>#{{ order.id }}</strong>.
+        </p>
+    </div>
+
+    {% if not order.paid %}
+        <a
+            href="{% url 'orders:payment_create' order.id %}"
+            class="btn btn-success btn-lg me-2"
+        >
+            Payer maintenant
+        </a>
+    {% else %}
+        <span class="badge bg-success">
+            Commande déjà payée
+        </span>
+    {% endif %}
+
+    <a
+        href="{% url 'products:product_list' %}"
+        class="btn btn-primary btn-lg"
+    >
+        Continuer mes achats
+    </a>
+
+</div>
+{% endblock %}
+

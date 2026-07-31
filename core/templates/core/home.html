@@ -14,9 +14,12 @@ Accueil - EcommerceIA
         Découvrez bientôt nos premiers produits.
     </p>
 
-    <button class="btn btn-primary btn-lg">
+    <a
+        href="{% url 'products:product_list' %}"
+        class="btn btn-primary btn-lg"
+    >
         Découvrir les produits
-    </button>
+    </a>
 </div>
 {% endblock %}
 

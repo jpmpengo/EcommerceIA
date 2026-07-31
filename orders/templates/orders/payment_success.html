@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="alert alert-success">
+        <h1 class="h3">Paiement réussi</h1>
+
+        <p class="mb-0">
+            Le paiement de la commande
+            <strong>#{{ order.id }}</strong>
+            a bien été accepté.
+        </p>
+    </div>
+
+    <a
+        href="{% url 'orders:order_detail' order.id %}"
+        class="btn btn-primary"
+    >
+        Voir ma commande
+    </a>
+
+    <a
+        href="{% url 'products:product_list' %}"
+        class="btn btn-outline-secondary"
+    >
+        Continuer mes achats
+    </a>
+
+</div>
+{% endblock %}

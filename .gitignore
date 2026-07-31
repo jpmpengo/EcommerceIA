@@ -5,11 +5,15 @@
 __pycache__/
 *.py[cod]
 
-# Base de données locale
-db.sqlite3
 
 # Fichiers utilisateurs
 media/
+
+# Variables d'environnement
+.env
+
+# Stripe CLI
+.stripe/
 
 # VS Code
 .vscode/

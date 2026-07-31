@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Commande #{{ order.id }}</h1>
+
+    <p>
+        Commandée le {{ order.created_at|date:"d/m/Y à H:i" }}
+    </p>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Produit</th>
+                    <th>Prix</th>
+                    <th>Quantité</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in order.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.price }} €</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.get_cost }} €</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-end">
+        <h4>Total : {{ order.get_total_price }} €</h4>
+    </div>
+
+    <a
+        href="{% url 'orders:order_list' %}"
+        class="btn btn-outline-secondary"
+    >
+        Retour à mes commandes
+    </a>
+</div>
+{% endblock %}
+
+
