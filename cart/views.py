@@ -34,10 +34,15 @@ def cart_add(request, product_id):
 def cart_detail(request):
     cart = Cart(request)
 
+    can_checkout = cart.has_sufficient_stock()
+
     return render(
         request,
         "cart/cart_detail.html",
-        {"cart": cart},
+        {
+            "cart": cart,
+            "can_checkout": can_checkout,
+        },
     )
 
 def cart_increase(request, product_id):

@@ -4,6 +4,51 @@
 <div class="container py-5">
     <h1 class="mb-4">Commande #{{ order.id }}</h1>
 
+    {% if order.status == "paid" %}
+    <div class="alert alert-success">
+        ✅ Payée
+    </div>
+
+    {% elif order.status == "pending" %}
+        <div class="alert alert-warning">
+            ⏳ En attente de paiement
+        </div>
+
+    {% elif order.status == "expired" %}
+        <div class="alert alert-secondary">
+            ⌛ Expirée
+        </div>
+
+    {% elif order.status == "cancelled" %}
+        <div class="alert alert-danger">
+            ❌ Annulée
+        </div>
+    {% endif %}
+
+    {% if order.status == "pending" %}
+        <div class="mb-4">
+            <a
+                href="{% url 'orders:payment_create' order.id %}"
+                class="btn btn-success"
+            >
+                💳 Payer maintenant
+            </a>
+            <form
+                method="post"
+                action="{% url 'orders:order_cancel' order.id %}"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="btn btn-outline-danger"
+                >
+                    Annuler la commande
+                </button>
+            </form>
+        </div>
+    {% endif %}
+
     <p>
         Commandée le {{ order.created_at|date:"d/m/Y à H:i" }}
     </p>

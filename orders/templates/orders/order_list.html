@@ -24,13 +24,24 @@
                             <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
                             <td>{{ order.get_total_price }} €</td>
                             <td>
-                                {% if order.paid %}
-                                    <span class="badge text-bg-success">
+                                {% if order.status == "paid" %}
+                                    <span class="badge bg-success">
                                         Payée
                                     </span>
-                                {% else %}
-                                    <span class="badge text-bg-warning">
-                                        Non payée
+
+                                {% elif order.status == "pending" %}
+                                    <span class="badge bg-warning text-dark">
+                                        En attente de paiement
+                                    </span>
+
+                                {% elif order.status == "expired" %}
+                                    <span class="badge bg-secondary">
+                                        Expirée
+                                    </span>
+
+                                {% elif order.status == "cancelled" %}
+                                    <span class="badge bg-danger">
+                                        Annulée
                                     </span>
                                 {% endif %}
                             </td>

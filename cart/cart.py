@@ -2,6 +2,10 @@ from decimal import Decimal
 
 from products.models import Product
 
+from orders.services.reservation_service import (
+    OrderReservationService,
+)
+
 
 class Cart:
     def __init__(self, request):
@@ -98,3 +102,21 @@ class Cart:
         if product_id in self.cart:
             del self.cart[product_id]
             self.save()
+
+    def has_sufficient_stock(self):
+        for item in self:
+            product = item["product"]
+            quantity = item["quantity"]
+
+            available_stock = (
+                OrderReservationService.get_available_stock(
+                    product
+                )
+            )
+
+            if quantity > available_stock:
+                return False
+
+        return True
+
+        

@@ -17,11 +17,13 @@ class OrderAdmin(admin.ModelAdmin):
         "email",
         "city",
         "paid",
+        "status",
         "created_at",
     ]
 
     list_filter = [
         "paid",
+        "status",
         "created_at",
     ]
 
@@ -32,4 +34,5 @@ class OrderAdmin(admin.ModelAdmin):
     ]
 
     inlines = [OrderItemInline]
+
     

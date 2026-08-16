@@ -36,5 +36,10 @@ urlpatterns = [
         views.stripe_webhook,
         name="stripe_webhook",
     ),
+    path(
+        "mes-commandes/<int:order_id>/annuler/",
+        views.order_cancel,
+        name="order_cancel",
+    ),
 ]
 

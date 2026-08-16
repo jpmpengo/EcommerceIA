@@ -1,0 +1,523 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ opportunity.name }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <a
+        href="{% url 'dashboard:home' %}"
+        class="btn btn-outline-secondary mb-4"
+    >
+        ← Revenir au briefing d'Emma
+    </a>
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow-sm">
+
+                <div class="card-body p-4">
+
+                    <h1 class="mb-3">
+                        🏆 {{ opportunity.name }}
+                    </h1>
+
+                    {% if is_restock %}
+
+                        <div class="alert alert-warning">
+                            <strong>
+                                📦 Opportunité de réapprovisionnement.
+                            </strong>
+                        </div>
+
+                    {% elif readiness.ready %}
+
+                        <div class="alert alert-success">
+                            <strong>
+                                ✅ Cette recommandation peut être publiée.
+                            </strong>
+                        </div>
+
+                    {% else %}
+
+                        <div class="alert alert-warning">
+                            <strong>
+                                📝 Opportunité approuvée —
+                                préparation nécessaire.
+                            </strong>
+                        </div>
+
+                    {% endif %}
+
+
+                    <h2 class="h4 mt-4">
+                        Pourquoi cette recommandation ?
+                    </h2>
+
+                    <ul>
+                        {% for reason in recommendation.reasons %}
+                            <li>
+                                {{ reason }}
+                            </li>
+                        {% empty %}
+                            <li>
+                                Aucune explication disponible.
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+
+                    {% if is_restock %}
+
+                        <div
+                            id="restock"
+                            class="alert alert-warning mt-4"
+                        >
+
+                            <h2 class="h4">
+                                📦 Réapprovisionnement
+                            </h2>
+
+                            <p>
+                                Ce produit existe déjà dans la boutique.
+                                Emma a détecté une nouvelle opportunité
+                                de réapprovisionnement.
+                            </p>
+
+                            <p>
+                                <strong>Produit :</strong>
+                                {{ restock_product.name }}
+                            </p>
+
+                            <p>
+                                <strong>Stock actuel :</strong>
+                                {{ restock_product.stock }}
+                            </p>
+
+                            {% if opportunity.supplier_offer %}
+
+                                <p>
+                                    <strong>
+                                        Stock fournisseur disponible :
+                                    </strong>
+                                    {{ opportunity.supplier_offer.stock }}
+                                </p>
+
+                            {% endif %}
+
+                            {% if suggested_stock %}
+
+                                <p>
+                                    <strong>
+                                        Quantité proposée par Emma :
+                                    </strong>
+                                    {{ suggested_stock }}
+                                </p>
+
+                            {% endif %}
+
+
+                            <form
+                                method="post"
+                                action="{% url 'recommendations:restock' opportunity.id %}"
+                            >
+                                {% csrf_token %}
+
+                                <div class="mb-3">
+
+                                    <label
+                                        for="restock-quantity"
+                                        class="form-label"
+                                    >
+                                        Quantité à ajouter
+                                    </label>
+
+                                    <input
+                                        id="restock-quantity"
+                                        type="number"
+                                        name="quantity"
+                                        min="1"
+                                        class="form-control"
+                                        value="{{ suggested_stock|default_if_none:'10' }}"
+                                        required
+                                    >
+
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-success"
+                                >
+                                    📦 Réapprovisionner
+                                </button>
+
+                            </form>
+
+                        </div>
+
+
+                    {% else %}
+
+
+                        {% if not readiness.ready %}
+
+                            <div
+                                id="preparation"
+                                class="mt-4"
+                            >
+
+                                <h2 class="h4">
+                                    📝 Préparation avant publication
+                                </h2>
+
+                                <p>
+                                    Emma a vérifié cette opportunité.
+                                    Il reste certaines informations
+                                    à compléter.
+                                </p>
+
+                                <ul>
+
+                                    {% for missing in readiness.missing %}
+
+                                        <li>
+                                            {{ missing.label }}
+                                        </li>
+
+                                    {% endfor %}
+
+                                </ul>
+
+
+                                {% if suggested_category %}
+
+                                    <div class="alert alert-info mt-3">
+
+                                        <p>
+                                            💡 Emma suggère la catégorie
+                                            <strong>
+                                                {{ suggested_category.name }}
+                                            </strong>.
+                                        </p>
+
+                                        <a
+                                            href="{% url 'recommendations:apply_category' opportunity.id %}"
+                                            class="btn btn-primary"
+                                        >
+                                            ✓ Utiliser cette catégorie
+                                        </a>
+
+                                    </div>
+
+                                {% endif %}
+
+
+                                {% if suggested_description %}
+
+                                    <div class="alert alert-info mt-3">
+
+                                        <p class="mb-2">
+                                            ✍️
+                                            <strong>
+                                                Emma propose une
+                                                description enrichie.
+                                            </strong>
+                                        </p>
+
+                                        <p>
+                                            {{ suggested_description }}
+                                        </p>
+
+                                        <a
+                                            href="{% url 'recommendations:apply_description' opportunity.id %}"
+                                            class="btn btn-primary"
+                                        >
+                                            ✓ Utiliser cette description
+                                        </a>
+
+                                    </div>
+
+                                {% endif %}
+
+                                {% if image_missing %}
+
+                                    <div class="alert alert-info">
+
+                                        <p>
+                                            <strong>🖼️ Ajoutez une image du produit.</strong>
+                                        </p>
+
+                                        <p>
+                                            Cette image sera utilisée pour présenter
+                                            le produit dans la boutique.
+                                        </p>
+
+                                        {% if suggested_image_url %}
+
+                                            <div class="mb-3">
+                                                <p>
+                                                    <strong>
+                                                        Image proposée par le fournisseur :
+                                                    </strong>
+                                                </p>
+
+                                                <img
+                                                    src="{{ suggested_image_url }}"
+                                                    alt="{{ opportunity.name }}"
+                                                    class="img-fluid rounded border"
+                                                    style="max-height: 320px;"
+                                                >
+
+                                                <p class="small text-muted mt-2">
+                                                    Cette image provient du fournisseur CJ.
+                                                </p>
+
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'recommendations:apply_supplier_image' opportunity.id %}"
+                                                    class="mb-3"
+                                                >
+                                                    {% csrf_token %}
+
+                                                        <button
+                                                            type="submit"
+                                                            class="btn btn-primary"
+                                                        >
+                                                            ✓ Utiliser cette image fournisseur
+                                                        </button>
+                                                </form>
+                                            </div>
+
+                                        {% endif %}
+
+                                        <hr>
+
+                                        <p>
+                                            <strong>Ou choisissez votre propre image :</strong>
+                                        </p>
+
+                                        <form
+                                            method="post"
+                                            enctype="multipart/form-data"
+                                            action="{% url 'recommendations:apply_image' opportunity.id %}"
+                                        >
+                                            {% csrf_token %}
+
+                                            <input
+                                                type="file"
+                                                name="image"
+                                                accept="image/*"
+                                                required
+                                                class="form-control mb-3"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-outline-primary"
+                                            >
+                                                Envoyer cette image
+                                            </button>
+                                        </form>
+
+                                    </div>
+
+                                {% endif %}
+
+                                {% if stock_missing %}
+
+                                    <div class="alert alert-info mt-3">
+
+                                        <p class="mb-2">
+                                            📦
+                                            <strong>
+                                                Définissez le stock initial.
+                                            </strong>
+                                        </p>
+
+                                        <p>
+                                            Indiquez la quantité disponible
+                                            au moment de la publication.
+                                        </p>
+
+                                        {% if suggested_stock %}
+
+                                            <p>
+                                                Emma propose un stock initial de
+                                                <strong>
+                                                    {{ suggested_stock }}
+                                                </strong>
+                                                unité(s), basé sur le stock
+                                                fournisseur disponible.
+                                            </p>
+
+                                        {% endif %}
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'recommendations:apply_stock' opportunity.id %}"
+                                        >
+                                            {% csrf_token %}
+
+                                            <div class="mb-3">
+
+                                                <input
+                                                    type="number"
+                                                    name="initial_stock"
+                                                    min="1"
+                                                    class="form-control"
+                                                    value="{{ suggested_stock|default_if_none:'' }}"
+                                                    required
+                                                >
+
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary"
+                                            >
+                                                ✓ Utiliser ce stock
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm">
+
+                <div class="card-body">
+
+                    <h2 class="h5">
+                        Analyse financière
+                    </h2>
+
+                    <hr>
+
+                    <h4 class="mb-3">
+                        Actions
+                    </h4>
+
+                    <div class="d-grid gap-2">
+
+                        {% if is_restock %}
+
+                            <a
+                                href="#restock"
+                                class="btn btn-success"
+                            >
+                                📦 Réapprovisionner
+                            </a>
+
+                        {% elif readiness.ready %}
+
+                            <a
+                                href="{% url 'recommendations:publish' opportunity.id %}"
+                                class="btn btn-success"
+                            >
+                                ✅ Publier
+                            </a>
+
+                        {% else %}
+
+                            <a
+                                href="#preparation"
+                                class="btn btn-primary"
+                            >
+                                📝 Compléter avant publication
+                            </a>
+
+                        {% endif %}
+
+
+                        <a
+                            href="{% url 'recommendations:postpone' opportunity.id %}"
+                            class="btn btn-warning"
+                        >
+                            ⏳ Reporter
+                        </a>
+
+                        <a
+                            href="{% url 'recommendations:reject' opportunity.id %}"
+                            class="btn btn-danger"
+                        >
+                            ❌ Rejeter
+                        </a>
+
+                    </div>
+
+                    <hr>
+
+                    <p>
+                        <strong>Prix fournisseur :</strong><br>
+                        {{ opportunity.supplier_price|floatformat:2 }} €
+                    </p>
+
+                    <p>
+                        <strong>Prix du marché :</strong><br>
+                        {{ opportunity.market_price|floatformat:2 }} €
+                    </p>
+
+                    <p>
+                        <strong>Frais de livraison :</strong><br>
+                        {{ opportunity.shipping_cost|floatformat:2 }} €
+                    </p>
+
+                    <p>
+                        <strong>Autres frais :</strong><br>
+                        {{ opportunity.other_costs|floatformat:2 }} €
+                    </p>
+
+                    <hr>
+
+                    <p>
+                        <strong>Marge estimée :</strong><br>
+                        {{ recommendation.estimated_margin|floatformat:2 }} €
+                    </p>
+
+                    <p>
+                        <strong>Taux de marge :</strong><br>
+                        {{ recommendation.margin_percent|floatformat:1 }} %
+                    </p>
+
+                    <p>
+                        <strong>Score :</strong><br>
+                        {{ recommendation.score }}/100
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+
+

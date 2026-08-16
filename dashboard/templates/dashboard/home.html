@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}
+Briefing d’Emma
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <section class="mb-4">
+        <h1>
+            {{ briefing.greeting.title }}
+        </h1>
+
+        <p class="lead">
+            {{ briefing.greeting.message }}
+        </p>
+    </section>
+
+    {% if briefing.progress %}
+        <section class="mb-4">
+            <div class="alert alert-success">
+                {% for item in briefing.progress %}
+                    <p class="mb-0">
+                        {{ item.icon }}
+                        {{ item.message }}
+                    </p>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if briefing.summary %}
+        <section class="mb-4">
+            <h2 class="h5">
+                {{ briefing.summary.title }}
+            </h2>
+
+            <p class="mb-0">
+                {{ briefing.summary.message }}
+            </p>
+        </section>
+    {% endif %}
+
+    {% if briefing.priorite %}
+        <section class="card border-0 shadow-sm p-4 mb-4">
+            <p class="mb-2">
+                <strong>
+                    🎯 Je vous conseille de commencer par...
+                </strong>
+            </p>
+
+            <h2 class="h4">
+                {{ briefing.priorite.title }}
+            </h2>
+
+            <p>
+                {{ briefing.priorite.message }}
+            </p>
+
+            {% if briefing.priorite.reasons %}
+                <p class="mb-2">
+                    <strong>
+                        Pourquoi je vous le conseille ?
+                    </strong>
+                </p>
+
+                <ul>
+                    {% for reason in briefing.priorite.reasons %}
+                        <li>{{ reason }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div>
+                <a
+                    href="{{ briefing.priorite.action_url }}"
+                    class="btn btn-dark"
+                >
+                    {{ briefing.priorite.action_label }}
+                </a>
+            </div>
+        </section>
+    {% endif %}
+
+    {% if briefing.alerts %}
+        <section class="mt-4">
+            <h2 class="h4 mb-3">
+                ⏳ À surveiller
+            </h2>
+
+            <div class="alert alert-warning">
+                {% for alert in briefing.alerts %}
+                    <div class="mb-2">
+                        <strong>
+                            {{ alert.icon }}
+                            {{ alert.title }}
+                        </strong>
+                    </div>
+
+                    <p class="mb-2">
+                        {{ alert.message }}
+                    </p>
+
+                    {% if alert.action_url %}
+                        <a
+                            href="{{ alert.action_url }}"
+                            class="btn btn-outline-dark btn-sm"
+                        >
+                            {{ alert.action_label }}
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if briefing.greeting.previous_visit %}
+        <section class="mt-4">
+            <h2 class="h4 mb-3">
+                ✨ Depuis votre dernière visite
+            </h2>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    {% for change in briefing.changes %}
+                        <p class="mb-2">
+                            {{ change.icon }}
+                            {{ change.message }}
+                        </p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    {% if review_opportunities %}
+        <section class="mt-4">
+            <h2 class="h4 mb-3">
+                Opportunités à vérifier
+                <span class="badge bg-secondary">
+                    {{ review_opportunities|length }}
+                </span>
+            </h2>
+
+            <div class="row g-3">
+                {% for opportunity in review_opportunities %}
+                    <div class="col-lg-6">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+
+                                <h3 class="h5">
+                                    {{ opportunity.name }}
+                                </h3>
+
+                                <p class="mb-1">
+                                    <strong>Score :</strong>
+                                    {{ opportunity.opportunity_score }}
+                                </p>
+
+                                <p class="mb-1">
+                                    <strong>Prix fournisseur :</strong>
+                                    {{ opportunity.supplier_price }}
+                                </p>
+
+                                <p class="mb-3">
+                                    <strong>Prix marché :</strong>
+                                    {{ opportunity.market_price }}
+                                </p>
+
+                                <div class="d-flex gap-2">
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'dashboard:approve_opportunity' opportunity.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-success"
+                                        >
+                                            Approuver
+                                        </button>
+                                    </form>
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'dashboard:reject_opportunity' opportunity.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-outline-danger"
+                                        >
+                                            Refuser
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+
+    {% if briefing.preparation %}
+        <section class="mt-4">
+            <h2 class="h4 mb-3">
+                📝 À préparer
+                <span class="badge bg-secondary">
+                    {{ briefing.preparation|length }}
+                </span>
+            </h2>
+
+            <div class="row g-3">
+                {% for item in briefing.preparation %}
+                    <div class="col-lg-5">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+
+                                <h3 class="h5">
+                                    {{ item.title }}
+                                </h3>
+
+                                <p class="mb-2">
+                                    <strong>
+                                        Étapes restantes
+                                    </strong>
+                                </p>
+
+                                <ul class="list-unstyled mb-3">
+                                    {% for missing in item.missing %}
+                                        <li class="mb-1">
+                                            📁 {{ missing.label }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+
+                                <a
+                                    href="{% url 'recommendations:detail' item.opportunity.id %}"
+                                    class="btn btn-primary"
+                                >
+                                    Préparer ce produit
+                                </a>
+
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    {% if briefing.restock %}
+        <section class="mt-4">
+            <h2 class="h4 mb-3">
+                📦 À réapprovisionner
+                <span class="badge bg-warning text-dark">
+                    {{ briefing.restock|length }}
+                </span>
+            </h2>
+
+            <div class="row g-3">
+
+                {% for item in briefing.restock %}
+
+                    <div class="col-lg-6">
+                        <div class="card h-100 shadow-sm">
+
+                            <div class="card-body">
+
+                                <h3 class="h5">
+                                    {{ item.title }}
+                                </h3>
+
+                                <p class="mb-1">
+                                    <strong>Stock actuel :</strong>
+                                    {{ item.current_stock }}
+                                </p>
+
+                                {% if item.supplier_stock is not None %}
+                                    <p class="mb-1">
+                                        <strong>Stock fournisseur :</strong>
+                                        {{ item.supplier_stock }}
+                                    </p>
+                                {% endif %}
+
+                                {% if item.suggested_stock %}
+                                    <p class="mb-3">
+                                        <strong>Quantité conseillée :</strong>
+                                        {{ item.suggested_stock }}
+                                    </p>
+                                {% endif %}
+
+                                <a
+                                    href="{% url 'recommendations:detail' item.opportunity.id %}"
+                                    class="btn btn-success"
+                                >
+                                    Voir le réapprovisionnement
+                                </a>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                {% endfor %}
+
+            </div>
+        </section>
+    {% endif %}
+
+
+    <section class="mt-5">
+        <h2 class="h4 mb-3">
+            📊 Votre activité
+        </h2>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h3 class="h5">
+                            Produits
+                        </h3>
+
+                        <p class="display-6 mb-0">
+                            {{ briefing.activity.products }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h3 class="h5">
+                            Commandes
+                        </h3>
+
+                        <p class="display-6 mb-0">
+                            {{ briefing.activity.orders }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <h3 class="h5">
+                            Opportunités
+                        </h3>
+
+                        <p class="display-6 mb-0">
+                            {{ briefing.activity.opportunities }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}
+
+
+
+

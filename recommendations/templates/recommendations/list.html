@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}
+Centre de recommandations
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <h1 class="mb-4">
+        🏆 Centre de recommandations
+    </h1>
+
+    <p class="lead">
+        EcommerceIA a sélectionné les meilleures recommandations.
+    </p>
+
+    {% if recommendations %}
+
+        <div class="row">
+
+            {% for item in recommendations %}
+
+                <div class="col-md-4 mb-4">
+
+                    <div class="card shadow-sm h-100">
+
+                        <div class="card-body">
+
+                            <h4>
+                                {{ item.opportunity.name }}
+                            </h4>
+
+                            <p>
+
+                                <strong>Priorité :</strong>
+
+                                {{ item.priority }}/100
+
+                            </p>
+
+                            <p>
+
+                                <strong>Marge estimée :</strong>
+
+                                {{ item.recommendation.estimated_margin|floatformat:2 }} €
+
+                            </p>
+
+                            <ul>
+
+                                {% for reason in item.recommendation.reasons %}
+
+                                    <li>{{ reason }}</li>
+
+                                {% endfor %}
+
+                            </ul>
+
+                            <p>
+
+                                <strong>
+
+                                    {{ item.recommendation.decision }}
+
+                                </strong>
+
+                            </p>
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                                <a
+                                    href="{% url 'recommendations:detail' item.opportunity.id %}"
+                                    class="btn btn-primary"
+                                >
+                                    Voir la recommandation
+                                </a>
+
+                                <form
+                                    method="post"
+                                    action="{% url 'recommendations:postpone' item.opportunity.id %}"
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-warning"
+                                    >
+                                        ⏳ Plus tard
+                                    </button>
+                                </form>
+
+                                <form
+                                    method="post"
+                                    action="{% url 'recommendations:reject' item.opportunity.id %}"
+                                    onsubmit="return confirm(
+                                        'Voulez-vous vraiment rejeter cette recommandation ?'
+                                    );"
+                                >
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                    >
+                                        ❌ Rejeter
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="alert alert-info">
+
+            Aucune recommandation disponible.
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+

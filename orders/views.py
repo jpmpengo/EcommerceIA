@@ -17,8 +17,13 @@ from django.urls import reverse
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from orders.services.payment_service import (
+    OrderPaymentService,
+)
 
-
+from orders.services.reservation_service import (
+    OrderReservationService,
+)
 
 def order_create(request):
     cart = Cart(request)
@@ -36,66 +41,88 @@ def order_create(request):
                 )
                 return redirect("cart:cart_detail")
 
-            with transaction.atomic():
-                locked_products = {}
+            try:
+                with transaction.atomic():
+                    locked_products = {}
 
-                # Vérification du stock avant de créer la commande
-                for item in cart_items:
-                    product = Product.objects.select_for_update().get(
-                        id=item["product"].id
-                    )
-
-                    locked_products[product.id] = product
-
-                    if (
-                        not product.is_available
-                        or item["quantity"] > product.stock
-                    ):
-                        messages.error(
-                            request,
-                            (
-                                f"Le produit « {product.name} » "
-                                "n'a plus assez de stock."
-                            ),
+                    # Verrouillage des produits.
+                    for item in cart_items:
+                        product = (
+                            Product.objects
+                            .select_for_update()
+                            .get(
+                                id=item["product"].id
+                            )
                         )
-                        return redirect("cart:cart_detail")
 
-                # Le stock est suffisant : création de la commande
-                order = form.save(commit=False)
+                        locked_products[product.id] = product
 
-                if request.user.is_authenticated:
-                    order.user = request.user
+                        # Vérification du stock physique.
+                        if (
+                            not product.is_available
+                            or item["quantity"] > product.stock
+                        ):
+                            raise ValueError(
+                                (
+                                    f"Le produit « {product.name} » "
+                                    "n'a plus assez de stock."
+                                )
+                            )
 
-                order.save()
-
-                # Création des lignes et diminution du stock
-                for item in cart_items:
-                    product = locked_products[item["product"].id]
-                    quantity = item["quantity"]
-
-                    OrderItem.objects.create(
-                        order=order,
-                        product=product,
-                        price=item["price"],
-                        quantity=quantity,
+                    # Création de la commande.
+                    order = form.save(
+                        commit=False
                     )
 
-                    product.stock -= quantity
-                    product.is_available = product.stock > 0
+                    if request.user.is_authenticated:
+                        order.user = request.user
 
-                    product.save(
+                    order.save()
+
+                    # Réservation valable 30 minutes.
+                    order.set_reservation_expiration()
+
+                    order.save(
                         update_fields=[
-                            "stock",
-                            "is_available",
+                            "reservation_expires_at",
                         ]
                     )
 
+                    # Création des lignes avec
+                    # contrôle du stock disponible.
+                    for item in cart_items:
+                        product = locked_products[
+                            item["product"].id
+                        ]
+
+                        quantity = item["quantity"]
+
+                        OrderReservationService.reserve(
+                            order=order,
+                            product=product,
+                            quantity=quantity,
+                        )
+
+            except ValueError as exc:
+                messages.error(
+                    request,
+                    str(exc),
+                )
+
+                return redirect(
+                    "cart:cart_detail"
+                )
+
+            # Seulement si toute la transaction
+            # a réellement réussi.
             cart.clear()
 
             return render(
                 request,
                 "orders/order_created.html",
-                {"order": order},
+                {
+                    "order": order,
+                },
             )
 
     else:
@@ -118,6 +145,39 @@ def payment_create(request, order_id):
         id=order_id,
         paid=False,
     )
+
+    if order.reservation_has_expired():
+        order.status = "expired"
+
+        order.save(
+            update_fields=[
+                "status",
+            ]
+        )
+
+        messages.error(
+            request,
+            (
+                "La réservation de cette commande a expiré. "
+                "Le paiement n'est plus disponible."
+            ),
+        )
+
+        return redirect(
+            "orders:order_detail",
+            order_id=order.id,
+        )
+
+    if order.status != "pending":
+        messages.error(
+            request,
+            "Cette commande ne peut plus être payée.",
+        )
+
+        return redirect(
+            "orders:order_detail",
+            order_id=order.id,
+        )
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -267,20 +327,45 @@ def stripe_webhook(request):
                 paid=False,
             ).first()
 
-            if order:
-                order.paid = True
-                order.stripe_checkout_session_id = session["id"]
-
-                order.save(
-                    update_fields=[
-                        "paid",
-                        "stripe_checkout_session_id",
-                    ]
-                )
-
-                print(
-                    f"Commande {order.id} marquée comme payée."
+            if order_id:
+                OrderPaymentService.confirm_payment(
+                    order_id=order_id,
+                    stripe_session_id=session["id"],
                 )
 
     return HttpResponse(status=200)
+
+@login_required
+def order_cancel(request, order_id):
+    order = get_object_or_404(
+        request.user.orders,
+        id=order_id,
+    )
+
+    if request.method != "POST":
+        return redirect(
+            "orders:order_detail",
+            order_id=order.id,
+        )
+
+    if order.status == "pending" and not order.paid:
+        order.status = "cancelled"
+
+        order.save(
+            update_fields=[
+                "status",
+            ]
+        )
+
+        messages.success(
+            request,
+            "Votre commande a été annulée.",
+        )
+
+    return redirect(
+        "orders:order_detail",
+        order_id=order.id,
+    )
+
+    
     

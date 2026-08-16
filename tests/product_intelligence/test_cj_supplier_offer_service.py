@@ -1,0 +1,285 @@
+from decimal import Decimal
+
+from django.test import TestCase
+
+from product_intelligence.models import Supplier
+from product_intelligence.services.cj_supplier_offer import (
+    CJSupplierOfferService,
+)
+
+
+class CJSupplierOfferServiceTests(TestCase):
+
+    def setUp(self):
+        self.supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        self.service = CJSupplierOfferService()
+
+    def test_creates_supplier_offer(self):
+        product = {
+            "external_id": "CJ-123",
+            "name": "Wireless Charger",
+            "image_url": "https://example.com/image.jpg",
+            "purchase_price": "8.75",
+            "product_url": "https://example.com/cj-product",
+            "stock": 42,
+            "shipping_cost": "3.20",
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertEqual(
+            offer.supplier,
+            self.supplier,
+        )
+
+        self.assertEqual(
+            offer.product_name,
+            "Wireless Charger",
+        )
+
+        self.assertEqual(
+            offer.purchase_price,
+            Decimal("8.75"),
+        )
+
+        self.assertEqual(
+            offer.shipping_cost,
+            Decimal("3.20"),
+        )
+
+        self.assertEqual(
+            offer.stock,
+            42,
+        )
+
+    def test_uses_zero_shipping_cost_when_missing(self):
+        product = {
+            "external_id": "CJ-123",
+            "name": "Wireless Charger",
+            "purchase_price": "8.75",
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertEqual(
+            offer.shipping_cost,
+            Decimal("0.00"),
+        )
+
+    def test_accepts_product_without_stock(self):
+        product = {
+            "external_id": "CJ-123",
+            "name": "Wireless Charger",
+            "purchase_price": "8.75",
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertIsNone(
+            offer.stock,
+        )
+
+    def test_creates_supplier_offer_with_currency(self):
+        product = {
+            "external_id": "CJ-123",
+            "name": "Wireless Charger",
+            "purchase_price": "8.75",
+            "currency": "USD",
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertEqual(
+            offer.currency,
+            "USD",
+        )
+
+    def test_uses_default_currency_when_currency_missing(self):
+        product = {
+            "external_id": "CJ-123",
+            "name": "Wireless Charger",
+            "purchase_price": "8.75",
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertEqual(
+            offer.currency,
+            "EUR",
+        )
+
+    def test_uses_default_currency_when_cj_currency_is_none(self):
+        product = {
+            "external_id": "CJ-123",
+            "name": "Wireless Charger",
+            "purchase_price": "5.10",
+            "currency": None,
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertEqual(
+            offer.currency,
+            "EUR",
+        )
+
+    def test_creates_offer_from_cj_variant_price_and_stock(self):
+        product = {
+            "external_id": "CJ-123",
+            "name": "Three in one wireless charger",
+            "currency": "USD",
+        }
+
+        variant = {
+            "vid": "1795624342437502976",
+            "variantSku": "CJXFLPCD00284-Rose Gold",
+            "variantNameEn": (
+                "Three in one wireless charger Rose Gold"
+            ),
+            "variantSellPrice": "7.30",
+            "variantWeight": 300.0,
+        }
+
+        stock = 14759
+
+        offer = self.service.create_offer_from_variant(
+            supplier=self.supplier,
+            product=product,
+            variant=variant,
+            stock=stock,
+        )
+
+        self.assertEqual(
+            offer.supplier,
+            self.supplier,
+        )
+
+        self.assertEqual(
+            offer.product_name,
+            "Three in one wireless charger Rose Gold",
+        )
+
+        self.assertEqual(
+            offer.purchase_price,
+            Decimal("7.30"),
+        )
+
+        self.assertEqual(
+            offer.stock,
+            14759,
+        )
+
+        self.assertEqual(
+            offer.currency,
+            "USD",
+        )
+
+    def test_create_offer_keeps_supplier_product_id(self):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+
+        product = {
+            "external_id": "CJ-PRODUCT-123",
+            "name": "Wireless Charger",
+            "purchase_price": "4.53",
+            "currency": "EUR",
+            "stock": 250,
+        }
+
+        service = CJSupplierOfferService()
+
+        offer = service.create_offer(
+            supplier=supplier,
+            product=product,
+        )
+
+        self.assertEqual(
+            offer.supplier_product_id,
+            "CJ-PRODUCT-123",
+        )
+
+    def test_create_offer_keeps_supplier_image_url(self):
+        product = {
+            "external_id": "CJ-IMAGE-001",
+            "name": "Wireless Charger",
+            "purchase_price": "4.53",
+            "currency": "EUR",
+            "stock": 250,
+            "image_url": (
+                "https://example.com/"
+                "wireless-charger.jpg"
+            ),
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertEqual(
+            offer.image_url,
+            (
+                "https://example.com/"
+                "wireless-charger.jpg"
+            ),
+        )
+
+    def test_create_offer_from_variant_keeps_supplier_image_url(self):
+        product = {
+            "external_id": "CJ-IMAGE-002",
+            "name": "Wireless Charger",
+            "currency": "USD",
+            "image_url": (
+                "https://example.com/"
+                "wireless-charger-variant.jpg"
+            ),
+        }
+
+        variant = {
+            "pid": "CJ-IMAGE-002",
+            "variantNameEn": "Wireless Charger Black",
+            "variantSellPrice": "5.25",
+        }
+
+        offer = self.service.create_offer_from_variant(
+            supplier=self.supplier,
+            product=product,
+            variant=variant,
+            stock=100,
+        )
+
+        self.assertEqual(
+            offer.image_url,
+            (
+                "https://example.com/"
+                "wireless-charger-variant.jpg"
+            ),
+        )

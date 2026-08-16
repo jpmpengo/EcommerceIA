@@ -54,12 +54,28 @@
             <div class="text-end mt-3">
                 <h4>Total : {{ cart.get_total_price }} €</h4>
 
-                <a
-                    href="{% url 'orders:order_create' %}"
-                    class="btn btn-success"
-                >
-                    Valider la commande
-                </a>
+                {% if can_checkout %}
+                    <a
+                        href="{% url 'orders:order_create' %}"
+                        class="btn btn-success"
+                    >
+                        Valider la commande
+                    </a>
+
+                {% else %}
+                    <div class="alert alert-warning mb-3">
+                        Ce produit est temporairement réservé par un autre client.
+                        Il pourra redevenir disponible si la commande n'est pas finalisée.
+                    </div>
+
+                    <a
+                        href="{% url 'products:product_list' %}"
+                        class="btn btn-primary"
+                    >
+                        Continuer mes achats
+                    </a>
+                {% endif %}   
+
             </div>
         </div>
     {% else %}

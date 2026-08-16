@@ -10,11 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -42,6 +47,9 @@ INSTALLED_APPS = [
     "cart",
     "orders",
     "accounts",
+    "product_intelligence",
+    "dashboard",
+    "recommendations",
 ]
 
 MIDDLEWARE = [
@@ -135,5 +143,6 @@ STRIPE_SECRET_KEY = "STRIPE_SECRET_REMOVEDKuUFUzx4rQEzxuCPZbnrWMT6qHwecHPE8qvASr
 
 # Secret fourni par la commande :
 # stripe listen --forward-to http://127.0.0.1:8000/commande/stripe/webhook/
-STRIPE_WEBHOOK_SECRET = "whsec_91471e69011c2c27682f99f1fd4b5428ccdf30f65a0e10b3b73ca77b5d214fbc"
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
 
