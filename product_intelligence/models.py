@@ -356,6 +356,11 @@ class SupplierOffer(models.Model):
         blank=True,
     )
 
+    is_available = models.BooleanField(
+        null=True,
+        blank=True,
+    )
+
     product_url = models.URLField(
         blank=True,
     )

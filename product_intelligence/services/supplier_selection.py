@@ -66,8 +66,9 @@ class SupplierSelectionService:
             offer
             for offer in offers
             if (
-                offer.stock is not None
-                and offer.stock > 0
+                self._is_offer_available(
+                    offer
+                )
                 and (
                     self.max_shipping_days is None
                     or (
@@ -102,7 +103,9 @@ class SupplierSelectionService:
                     self._shipping_country_sort_value(
                         offer
                     ),
-                    -offer.stock,
+                    self._stock_sort_value(
+                        offer
+                    ),
                 ),
             )
 
@@ -129,7 +132,9 @@ class SupplierSelectionService:
                 self._shipping_country_sort_value(
                     offer
                 ),
-                -offer.stock,
+                self._stock_sort_value(
+                    offer
+                ),
             ),
         )
 
@@ -215,6 +220,36 @@ class SupplierSelectionService:
             return 0
 
         return 1
+
+    @staticmethod
+    def _is_offer_available(
+        offer,
+    ):
+        if offer.is_available is False:
+            return False
+
+        if (
+            offer.stock is not None
+            and offer.stock > 0
+        ):
+            return True
+
+        if (
+            offer.stock is None
+            and offer.is_available is True
+        ):
+            return True
+
+        return False
+
+    @staticmethod
+    def _stock_sort_value(
+        offer,
+    ):
+        if offer.stock is None:
+            return 0
+
+        return -offer.stock
 
 
 

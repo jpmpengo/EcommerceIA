@@ -941,3 +941,34 @@ class SupplierSelectionServiceTests(TestCase):
             best_offer,
             cj_offer,
         )
+
+    def test_accepts_available_offer_when_stock_quantity_is_unknown(
+        self,
+    ):
+        printful = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        printful_offer = SupplierOffer.objects.create(
+            supplier=printful,
+            product_name="Gaming Mouse Pad",
+            purchase_price=Decimal("11.72"),
+            shipping_cost=Decimal("0.00"),
+            currency="USD",
+            stock=None,
+            is_available=True,
+        )
+
+        service = SupplierSelectionService()
+
+        best_offer = service.select_best_offer(
+            SupplierOffer.objects.all()
+        )
+
+        self.assertEqual(
+            best_offer,
+            printful_offer,
+        )
