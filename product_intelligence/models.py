@@ -335,6 +335,11 @@ class SupplierOffer(models.Model):
         default=0,
     )
 
+    shipping_days = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
+
     currency = models.CharField(
         max_length=3,
         default="EUR",

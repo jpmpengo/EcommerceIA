@@ -5,6 +5,7 @@ class SupplierSelectionService:
         currency_conversion_service=None,
         exchange_rate_client=None,
         target_currency=None,
+        max_shipping_days=None,
     ):
         self.currency_conversion_service = (
             currency_conversion_service
@@ -16,6 +17,10 @@ class SupplierSelectionService:
 
         self.target_currency = (
             target_currency
+        )
+
+        self.max_shipping_days = (
+            max_shipping_days
         )
 
         self._exchange_rate_cache = {}
@@ -58,6 +63,14 @@ class SupplierSelectionService:
             if (
                 offer.stock is not None
                 and offer.stock > 0
+                and (
+                    self.max_shipping_days is None
+                    or (
+                        offer.shipping_days is not None
+                        and offer.shipping_days
+                        <= self.max_shipping_days
+                    )
+                )
             )
         ]
 
@@ -76,6 +89,9 @@ class SupplierSelectionService:
                 eligible_offers,
                 key=lambda offer: (
                     self._raw_total_cost(
+                        offer
+                    ),
+                    self._shipping_days_sort_value(
                         offer
                     ),
                     -offer.stock,
@@ -99,9 +115,21 @@ class SupplierSelectionService:
                 self._comparable_total_cost(
                     offer
                 ),
+                self._shipping_days_sort_value(
+                    offer
+                ),
                 -offer.stock,
             ),
         )
+
+    @staticmethod
+    def _shipping_days_sort_value(
+        offer,
+    ):
+        if offer.shipping_days is None:
+            return float("inf")
+
+        return offer.shipping_days
 
     @staticmethod
     def _raw_total_cost(
