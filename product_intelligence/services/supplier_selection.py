@@ -1,11 +1,12 @@
 class SupplierSelectionService:
-
+    
     def __init__(
         self,
         currency_conversion_service=None,
         exchange_rate_client=None,
         target_currency=None,
         max_shipping_days=None,
+        target_shipping_country=None,
     ):
         self.currency_conversion_service = (
             currency_conversion_service
@@ -21,6 +22,10 @@ class SupplierSelectionService:
 
         self.max_shipping_days = (
             max_shipping_days
+        )   
+
+        self.target_shipping_country = (
+            target_shipping_country
         )
 
         self._exchange_rate_cache = {}
@@ -94,6 +99,9 @@ class SupplierSelectionService:
                     self._shipping_days_sort_value(
                         offer
                     ),
+                    self._shipping_country_sort_value(
+                        offer
+                    ),
                     -offer.stock,
                 ),
             )
@@ -116,6 +124,9 @@ class SupplierSelectionService:
                     offer
                 ),
                 self._shipping_days_sort_value(
+                    offer
+                ),
+                self._shipping_country_sort_value(
                     offer
                 ),
                 -offer.stock,
@@ -189,6 +200,21 @@ class SupplierSelectionService:
                 exchange_rate=exchange_rate,
             )
         )
+
+    def _shipping_country_sort_value(
+        self,
+        offer,
+    ):
+        if not self.target_shipping_country:
+            return 0
+
+        if (
+            offer.shipping_country
+            == self.target_shipping_country
+        ):
+            return 0
+
+        return 1
 
 
 

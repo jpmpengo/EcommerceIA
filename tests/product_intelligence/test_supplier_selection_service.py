@@ -780,3 +780,164 @@ class SupplierSelectionServiceTests(TestCase):
             best_offer,
             cj_offer,
         )
+
+    def test_prefers_offer_shipping_from_target_country_when_cost_is_equal(
+        self,
+    ):
+        cj = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        bigbuy = Supplier.objects.create(
+            name="BigBuy",
+            country="ES",
+            website="https://www.bigbuy.eu",
+            supplier_type="dropshipper",
+        )
+
+        SupplierOffer.objects.create(
+            supplier=cj,
+            product_name="Wireless Charger",
+            purchase_price=Decimal("8.00"),
+            shipping_cost=Decimal("1.00"),
+            shipping_days=5,
+            shipping_country="CN",
+            currency="EUR",
+            stock=20000,
+        )
+
+        bigbuy_offer = SupplierOffer.objects.create(
+            supplier=bigbuy,
+            product_name="Wireless Charger",
+            purchase_price=Decimal("8.50"),
+            shipping_cost=Decimal("0.50"),
+            shipping_days=5,
+            shipping_country="FR",
+            currency="EUR",
+            stock=500,
+        )
+
+        service = SupplierSelectionService(
+            target_currency="EUR",
+            max_shipping_days=10,
+            target_shipping_country="FR",
+        )
+
+        best_offer = service.select_best_offer(
+            SupplierOffer.objects.all()
+        )
+
+        self.assertEqual(
+            best_offer,
+            bigbuy_offer,
+        )
+
+    def test_ignores_shipping_country_when_target_country_is_not_set(
+        self,
+    ):
+        cj = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        bigbuy = Supplier.objects.create(
+            name="BigBuy",
+            country="ES",
+            website="https://www.bigbuy.eu",
+            supplier_type="dropshipper",
+        )
+
+        cj_offer = SupplierOffer.objects.create(
+            supplier=cj,
+            product_name="Wireless Charger",
+            purchase_price=Decimal("8.00"),
+            shipping_cost=Decimal("1.00"),
+            shipping_days=5,
+            shipping_country="CN",
+            currency="EUR",
+            stock=20000,
+        )
+
+        SupplierOffer.objects.create(
+            supplier=bigbuy,
+            product_name="Wireless Charger",
+            purchase_price=Decimal("8.50"),
+            shipping_cost=Decimal("0.50"),
+            shipping_days=5,
+            shipping_country="FR",
+            currency="EUR",
+            stock=500,
+        )
+
+        service = SupplierSelectionService(
+            target_currency="EUR",
+            max_shipping_days=10,
+        )
+
+        best_offer = service.select_best_offer(
+            SupplierOffer.objects.all()
+        )
+
+        self.assertEqual(
+            best_offer,
+            cj_offer,
+        )
+
+    def test_uses_offer_shipping_country_not_supplier_country(
+        self,
+    ):
+        cj = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        bigbuy = Supplier.objects.create(
+            name="BigBuy",
+            country="ES",
+            website="https://www.bigbuy.eu",
+            supplier_type="dropshipper",
+        )
+
+        cj_offer = SupplierOffer.objects.create(
+            supplier=cj,
+            product_name="Wireless Charger",
+            purchase_price=Decimal("8.00"),
+            shipping_cost=Decimal("1.00"),
+            shipping_days=5,
+            shipping_country="FR",
+            currency="EUR",
+            stock=500,
+        )   
+
+        SupplierOffer.objects.create(
+            supplier=bigbuy,
+            product_name="Wireless Charger",
+            purchase_price=Decimal("8.50"),
+            shipping_cost=Decimal("0.50"),
+            shipping_days=5,
+            shipping_country="ES",
+            currency="EUR",
+            stock=20000,
+        )
+
+        service = SupplierSelectionService(
+            target_currency="EUR",
+            max_shipping_days=10,
+            target_shipping_country="FR",       
+        )
+
+        best_offer = service.select_best_offer(
+            SupplierOffer.objects.all()
+        )
+
+        self.assertEqual(
+            best_offer,
+            cj_offer,
+        )

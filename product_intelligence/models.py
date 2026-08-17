@@ -340,6 +340,12 @@ class SupplierOffer(models.Model):
         blank=True,
     )
 
+    shipping_country = models.CharField(
+        max_length=2,
+        blank=True,
+        default="",
+    )
+
     currency = models.CharField(
         max_length=3,
         default="EUR",
