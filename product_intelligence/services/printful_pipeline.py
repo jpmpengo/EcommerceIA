@@ -37,4 +37,18 @@ class PrintfulPipelineService:
             variant=variant,
         )
 
+    def build_supplier_offer_from_variant(
+        self,
+        supplier,
+        product,
+        variant,
+    ):
+        return self.offer_service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+        )
+
+        
+
         

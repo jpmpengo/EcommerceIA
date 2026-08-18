@@ -14,7 +14,7 @@ class CJSupplierOfferService:
             ),
             product_name=product["name"],
             purchase_price=Decimal(
-                product["purchase_price"]
+                str(product["purchase_price"])
             ),
             shipping_cost=Decimal(
                 product.get(
@@ -44,7 +44,8 @@ class CJSupplierOfferService:
         return SupplierOffer.objects.create(
             supplier=supplier,
             supplier_product_id=(
-                variant.get("pid")
+                variant.get("vid")
+                or variant.get("pid")
                 or product.get("external_id")
                 or ""
             ),
@@ -53,7 +54,7 @@ class CJSupplierOfferService:
                 or product["name"]
             ),
             purchase_price=Decimal(
-                variant["variantSellPrice"]
+                str(variant["variantSellPrice"])
             ),
             shipping_cost=Decimal("0.00"),
             currency=product.get("currency") or "USD",

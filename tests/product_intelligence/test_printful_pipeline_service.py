@@ -14,6 +14,8 @@ from product_intelligence.services.printful_supplier_offer import (
     PrintfulSupplierOfferService,
 )
 
+from unittest.mock import Mock
+
 
 class FakePrintfulClient:
 
@@ -145,3 +147,63 @@ class PrintfulPipelineServiceTests(TestCase):
                 supplier=supplier,
                 product_id=583,
             )
+
+    def test_build_supplier_offer_from_variant_uses_requested_variant(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        product = {
+            "id": 583,
+            "title": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "id": 14942,
+            "product_id": 583,
+            "name": (
+                "Gaming Mouse Pad "
+                "(White / 36″×18″)"
+            ),
+            "price": "19.33",
+            "in_stock": True,
+            "image": "https://example.com/14942.jpg",
+        }
+
+        offer_service = Mock()
+
+        expected_offer = object()
+
+        offer_service.create_offer_from_variant.return_value = (
+            expected_offer
+        )
+
+        service = PrintfulPipelineService(
+            client=Mock(),
+            offer_service=offer_service,
+        )
+
+        result = (
+            service.build_supplier_offer_from_variant(
+                supplier=supplier,
+                product=product,
+                variant=variant,
+            )
+        )
+
+        self.assertIs(
+            result,
+            expected_offer,
+        )
+
+        offer_service.create_offer_from_variant.assert_called_once_with(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+        )

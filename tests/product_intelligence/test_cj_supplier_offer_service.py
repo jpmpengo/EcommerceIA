@@ -283,3 +283,81 @@ class CJSupplierOfferServiceTests(TestCase):
                 "wireless-charger-variant.jpg"
             ),
         )
+
+    def test_create_offer_from_variant_keeps_variant_id(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        product = {
+            "external_id": "CJ-PRODUCT-123",
+            "name": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "vid": "CJ-VARIANT-456",
+            "pid": "CJ-PRODUCT-123",
+            "variantNameEn": (
+                "Gaming Mouse Pad Black 80x40x2cm"
+            ),
+            "variantSellPrice": "7.33",
+        }
+
+        service = CJSupplierOfferService()
+
+        offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            stock=100,
+        )
+
+        self.assertEqual(
+            offer.supplier_product_id,
+            "CJ-VARIANT-456",
+        )
+
+    def test_create_offer_from_variant_converts_float_price_cleanly(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        product = {
+            "external_id": "CJ-PRODUCT-123",
+            "name": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "vid": "CJ-VARIANT-456",
+            "pid": "CJ-PRODUCT-123",
+            "variantNameEn": (
+                "Gaming Mouse Pad Black 80x40x2cm"
+            ),
+            "variantSellPrice": 7.33,
+        }
+
+        service = CJSupplierOfferService()
+
+        offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            stock=40000,
+        )
+
+        self.assertEqual(
+            offer.purchase_price,
+            Decimal("7.33"),
+        )
