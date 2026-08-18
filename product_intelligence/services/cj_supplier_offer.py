@@ -1,11 +1,25 @@
 from decimal import Decimal
 
-from product_intelligence.models import SupplierOffer
+from product_intelligence.models import (
+    SupplierOffer,
+)
 
 
 class CJSupplierOfferService:
 
-    def create_offer(self, supplier, product):
+    def __init__(
+        self,
+        variant_features_service=None,
+    ):
+        self.variant_features_service = (
+            variant_features_service
+        )
+
+    def create_offer(
+        self,
+        supplier,
+        product,
+    ):
         return SupplierOffer.objects.create(
             supplier=supplier,
             supplier_product_id=product.get(
@@ -17,12 +31,17 @@ class CJSupplierOfferService:
                 str(product["purchase_price"])
             ),
             shipping_cost=Decimal(
-                product.get(
-                    "shipping_cost",
-                    "0.00",
+                str(
+                    product.get(
+                        "shipping_cost",
+                        "0.00",
+                    )
                 )
             ),
-            currency=product.get("currency") or "EUR",
+            currency=(
+                product.get("currency")
+                or "EUR"
+            ),
             stock=product.get("stock"),
             product_url=product.get(
                 "product_url",
@@ -41,6 +60,26 @@ class CJSupplierOfferService:
         variant,
         stock,
     ):
+        variant_features = {}
+
+        if self.variant_features_service is not None:
+            extracted_features = (
+                self.variant_features_service.extract(
+                    variant=variant,
+                )
+            )
+
+            variant_features = {
+                key: (
+                    list(value)
+                    if isinstance(value, tuple)
+                    else value
+                )
+                for key, value
+                in extracted_features.items()
+                if value is not None
+            }
+
         return SupplierOffer.objects.create(
             supplier=supplier,
             supplier_product_id=(
@@ -54,21 +93,36 @@ class CJSupplierOfferService:
                 or product["name"]
             ),
             purchase_price=Decimal(
-                str(variant["variantSellPrice"])
+                str(
+                    variant[
+                        "variantSellPrice"
+                    ]
+                )
             ),
-            shipping_cost=Decimal("0.00"),
-            currency=product.get("currency") or "USD",
+            shipping_cost=Decimal(
+                "0.00"
+            ),
+            currency=(
+                product.get("currency")
+                or "USD"
+            ),
             stock=stock,
             product_url=product.get(
                 "product_url",
                 "",
             ),
-            image_url=product.get(
-                "image_url",
-                "",
+            image_url=(
+                variant.get("variantImage")
+                or product.get(
+                    "image_url",
+                    "",
+                )
+            ),
+            variant_features=(
+                variant_features
             ),
         )
-
+        
         
 
         

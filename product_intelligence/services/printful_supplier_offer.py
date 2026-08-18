@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 
 from product_intelligence.models import (
@@ -8,12 +7,40 @@ from product_intelligence.models import (
 
 class PrintfulSupplierOfferService:
 
+    def __init__(
+        self,
+        variant_features_service=None,
+    ):
+        self.variant_features_service = (
+            variant_features_service
+        )
+
     def create_offer_from_variant(
         self,
         supplier,
         product,
         variant,
     ):
+        variant_features = {}
+
+        if self.variant_features_service is not None:
+            extracted_features = (
+                self.variant_features_service.extract(
+                    variant=variant,
+                )
+            )
+
+            variant_features = {
+                key: (
+                    list(value)
+                    if isinstance(value, tuple)
+                    else value
+                )
+                for key, value
+                in extracted_features.items()
+                if value is not None
+            }
+
         return SupplierOffer.objects.create(
             supplier=supplier,
             supplier_product_id=str(
@@ -43,6 +70,11 @@ class PrintfulSupplierOfferService:
                 or product.get("image")
                 or ""
             ),
+            variant_features=(
+                variant_features
+            ),
         )
+
+        
 
         

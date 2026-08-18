@@ -10,6 +10,10 @@ from product_intelligence.services.printful_supplier_offer import (
     PrintfulSupplierOfferService,
 )
 
+from product_intelligence.services.variant_features import (
+    VariantFeaturesService,
+)
+
 
 class PrintfulSupplierOfferServiceTests(TestCase):
 
@@ -173,4 +177,56 @@ class PrintfulSupplierOfferServiceTests(TestCase):
 
         self.assertIsNone(
             offer.stock
+        )
+
+    def test_create_offer_stores_variant_features(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        product = {
+            "id": 583,
+            "title": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "id": 14942,
+            "product_id": 583,
+            "name": (
+                "Gaming Mouse Pad "
+                "(White / 36″×18″)"
+            ),
+            "size": "36″×18″",
+            "color": "White",
+            "price": "19.33",
+            "in_stock": True,
+        }
+
+        service = PrintfulSupplierOfferService(
+            variant_features_service=(
+                VariantFeaturesService()
+            ),
+        )
+
+        offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+        )
+
+        self.assertEqual(
+            offer.variant_features,
+            {
+                "dimensions_mm": [
+                    914,
+                    457,
+                ],
+                "color": "White",
+            },
         )

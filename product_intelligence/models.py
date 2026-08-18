@@ -381,6 +381,10 @@ class SupplierOffer(models.Model):
         default="",
     )
 
+    variant_features = models.JSONField(
+        default=dict,
+        blank=True,
+    )
     
     def __str__(self):
         return f"{self.supplier} - {self.product_name}"

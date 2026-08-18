@@ -7,6 +7,9 @@ from product_intelligence.services.cj_supplier_offer import (
     CJSupplierOfferService,
 )
 
+from product_intelligence.services.variant_features import (
+    VariantFeaturesService,
+)
 
 class CJSupplierOfferServiceTests(TestCase):
 
@@ -361,3 +364,56 @@ class CJSupplierOfferServiceTests(TestCase):
             offer.purchase_price,
             Decimal("7.33"),
         )
+
+    def test_create_offer_from_variant_stores_variant_features(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        product = {
+            "external_id": "CJ-PRODUCT-123",
+            "name": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "vid": "CJ-VARIANT-456",
+            "pid": "CJ-PRODUCT-123",
+            "variantNameEn": (
+                "Competitive Gaming Office "
+                "Waterproof Mouse Pad "
+                "Black 80x40x2cm"
+            ),
+            "variantSellPrice": 7.33,
+        }
+
+        service = CJSupplierOfferService(
+            variant_features_service=(
+                VariantFeaturesService()
+            ),
+        )
+
+        offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            stock=40000,
+        )
+
+        self.assertEqual(
+            offer.variant_features,
+            {
+                "dimensions_mm": [
+                    800,
+                    400,
+                ],
+                "color": "Black",
+            },
+        )
+
+    

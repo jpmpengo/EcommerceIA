@@ -487,4 +487,170 @@ class SupplierOfferComparisonServiceTests(TestCase):
         self.assertEqual(
             best_offer,
             cj_offer,
-        )   
+        )  
+
+    def test_uses_persisted_variant_features_for_matching(
+        self,
+    ):
+        cj = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        printful = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        cj_offer = SupplierOffer.objects.create(
+            supplier=cj,
+            product_name=(
+                "Competitive Gaming Office "
+                "Waterproof Mouse Pad "
+                "Black 80x40x2cm"
+            ),
+            purchase_price=Decimal("7.33"),
+            shipping_cost=Decimal("0.00"),
+            currency="USD",
+            stock=40000,
+            variant_features={
+                "dimensions_mm": [
+                    800,
+                    400,
+                ],
+                "color": "Black",
+            },
+        )
+
+        printful_offer = SupplierOffer.objects.create(
+            supplier=printful,
+            product_name=(
+                "Gaming Mouse Pad "
+                "(White / 36″×18″)"
+            ),
+            purchase_price=Decimal("19.33"),
+            shipping_cost=Decimal("0.00"),
+            currency="USD",
+            stock=None,
+            is_available=True,
+            variant_features={
+                "dimensions_mm": [
+                    914,
+                    457,
+                ],
+                "color": "White",
+            },
+        )
+
+        service = SupplierOfferComparisonService(
+            matching_service=(
+                SupplierProductMatchingService()
+            ),
+            selection_service=(
+                SupplierSelectionService()
+            ),
+        )
+
+        best_offer = service.select_best_comparable_offer(
+            offers=[
+                cj_offer,
+                printful_offer,
+            ],
+            target_name=printful_offer.product_name,
+            target_dimensions=tuple(
+                printful_offer.variant_features[
+                    "dimensions_mm"
+                ]
+            ),
+        )
+
+        self.assertEqual(
+            best_offer,
+            cj_offer,
+        ) 
+
+    def test_uses_target_offer_variant_features_automatically(
+        self,
+    ):
+        cj = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        printful = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        cj_offer = SupplierOffer.objects.create(
+            supplier=cj,
+            product_name=(
+                "Competitive Gaming Office "
+                "Waterproof Mouse Pad "
+                "Black 80x40x2cm"
+            ),
+            purchase_price=Decimal("7.33"),
+            shipping_cost=Decimal("0.00"),
+            currency="USD",
+            stock=40000,
+            variant_features={
+                "dimensions_mm": [
+                    800,
+                    400,
+                ],
+                "color": "Black",
+            },
+        )
+
+        printful_offer = SupplierOffer.objects.create(
+            supplier=printful,
+            product_name=(
+                "Gaming Mouse Pad "
+                "(White / 36″×18″)"
+            ),
+            purchase_price=Decimal("19.33"),
+            shipping_cost=Decimal("0.00"),
+            currency="USD",
+            stock=None,
+            is_available=True,
+            variant_features={
+                "dimensions_mm": [
+                    914,
+                    457,
+                ],
+                "color": "White",
+            },
+        )
+
+        service = SupplierOfferComparisonService(
+            matching_service=(
+                SupplierProductMatchingService()
+            ),
+            selection_service=(
+                SupplierSelectionService()
+            ),
+        )
+
+        best_offer = service.select_best_comparable_offer(
+            offers=[
+                cj_offer,
+                printful_offer,
+            ],
+            target_offer=printful_offer,
+        )
+
+        self.assertEqual(
+            best_offer,
+            cj_offer,
+        )
+
+
+    
