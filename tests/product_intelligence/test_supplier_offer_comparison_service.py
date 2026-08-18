@@ -21,6 +21,10 @@ from product_intelligence.services.supplier_selection import (
 
 from unittest.mock import Mock
 
+from product_intelligence.services.variant_features import (
+    VariantFeaturesService,
+)
+
 
 class SupplierOfferComparisonServiceTests(TestCase):
 
@@ -386,3 +390,101 @@ class SupplierOfferComparisonServiceTests(TestCase):
             best_offer,
             printful_offer,
         )
+
+    def test_extracts_variant_dimensions_automatically_before_matching(
+        self,
+    ):
+        cj = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        printful = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        cj_offer = SupplierOffer.objects.create(
+            supplier=cj,
+            product_name=(
+                "Competitive Gaming Office "
+                "Waterproof Mouse Pad "
+                "Black 80x40x2cm"
+            ),
+            purchase_price=Decimal("7.33"),
+            shipping_cost=Decimal("0.00"),
+            currency="USD",
+            stock=40000,
+            is_available=None,
+        )
+
+        printful_offer = SupplierOffer.objects.create(
+            supplier=printful,
+            product_name=(
+                "Gaming Mouse Pad "
+                "(White / 36″×18″)"
+            ),
+            purchase_price=Decimal("19.33"),
+            shipping_cost=Decimal("0.00"),
+            currency="USD",
+            stock=None,
+            is_available=True,
+        )
+
+        variant_data_by_offer = {
+            cj_offer.id: {
+                "variantNameEn": (
+                    "Competitive Gaming Office "
+                    "Waterproof Mouse Pad "
+                    "Black 80x40x2cm"
+                ),
+            },
+            printful_offer.id: {
+                "name": (
+                    "Gaming Mouse Pad "
+                    "(White / 36″×18″)"
+                ),
+                "size": "36″×18″",
+                "color": "White",
+            },
+        }
+
+        service = SupplierOfferComparisonService(
+            matching_service=(
+                SupplierProductMatchingService()
+            ),
+            selection_service=(
+                SupplierSelectionService()
+            ),
+            variant_features_service=(
+                VariantFeaturesService()
+            ),
+        )
+
+        best_offer = service.select_best_comparable_offer(
+            offers=[
+                cj_offer,
+                printful_offer,
+            ],
+            target_name="Gaming Mouse Pad",
+            target_variant_data={
+                "name": (
+                    "Gaming Mouse Pad "
+                    "(White / 36″×18″)"
+                ),
+                "size": "36″×18″",
+                "color": "White",
+            },
+            variant_data_by_offer=(
+                variant_data_by_offer
+            ),
+        )
+
+        self.assertEqual(
+            best_offer,
+            cj_offer,
+        )   
