@@ -80,48 +80,61 @@ class CJSupplierOfferService:
                 if value is not None
             }
 
-        return SupplierOffer.objects.create(
-            supplier=supplier,
-            supplier_product_id=(
-                variant.get("vid")
-                or variant.get("pid")
-                or product.get("external_id")
-                or ""
-            ),
-            product_name=(
-                variant.get("variantNameEn")
-                or product["name"]
-            ),
-            purchase_price=Decimal(
-                str(
-                    variant[
-                        "variantSellPrice"
-                    ]
-                )
-            ),
-            shipping_cost=Decimal(
-                "0.00"
-            ),
-            currency=(
-                product.get("currency")
-                or "USD"
-            ),
-            stock=stock,
-            product_url=product.get(
-                "product_url",
-                "",
-            ),
-            image_url=(
-                variant.get("variantImage")
-                or product.get(
-                    "image_url",
-                    "",
-                )
-            ),
-            variant_features=(
-                variant_features
-            ),
+        variant_id = (
+            variant.get("vid")
+            or variant.get("pid")
+            or product.get("external_id")
+            or ""
         )
+
+        offer, _ = (
+            SupplierOffer.objects.update_or_create(
+                supplier=supplier,
+                supplier_product_id=variant_id,
+                defaults={
+                    "product_name": (
+                        variant.get(
+                            "variantNameEn"
+                        )
+                        or product["name"]
+                    ),
+                    "purchase_price": Decimal(
+                        str(
+                            variant[
+                                "variantSellPrice"
+                            ]
+                        )
+                    ),
+                    "shipping_cost": Decimal(
+                        "0.00"
+                    ),
+                    "currency": (
+                        product.get("currency")
+                        or "USD"
+                    ),
+                    "stock": stock,
+                    "product_url": product.get(
+                        "product_url",
+                        "",
+                    ),
+                    "image_url": (
+                        variant.get(
+                            "variantImage"
+                        )
+                        or product.get(
+                            "image_url",
+                            "",
+                        )
+                    ),
+                    "variant_features": (
+                        variant_features
+                    ),
+                },
+            )
+        )
+
+        return offer
+
         
         
 

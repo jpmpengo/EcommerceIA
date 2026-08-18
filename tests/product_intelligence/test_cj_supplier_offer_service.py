@@ -11,6 +11,11 @@ from product_intelligence.services.variant_features import (
     VariantFeaturesService,
 )
 
+from product_intelligence.models import (
+    Supplier,
+    SupplierOffer,
+)
+
 class CJSupplierOfferServiceTests(TestCase):
 
     def setUp(self):
@@ -414,6 +419,75 @@ class CJSupplierOfferServiceTests(TestCase):
                 ],
                 "color": "Black",
             },
+        )
+
+    def test_create_offer_from_variant_updates_existing_offer(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        service = CJSupplierOfferService(
+            variant_features_service=(
+                VariantFeaturesService()
+            ),
+        )
+
+        product = {
+            "external_id": "P1",
+            "name": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "vid": "V1",
+            "pid": "P1",
+            "variantNameEn": (
+                "Gaming Mouse Pad Black 80x40cm"
+            ),
+            "variantSellPrice": "7.33",
+        }
+
+        first_offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            stock=100,
+        )
+
+        variant["variantSellPrice"] = "6.99"
+
+        second_offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            stock=250,
+        )
+
+        self.assertEqual(
+            first_offer.id,
+            second_offer.id,
+        )
+
+        self.assertEqual(
+            SupplierOffer.objects.count(),
+            1,
+        )
+
+        second_offer.refresh_from_db()
+
+        self.assertEqual(
+            second_offer.purchase_price,
+            Decimal("6.99"),
+        )
+
+        self.assertEqual(
+            second_offer.stock,
+            250,
         )
 
     

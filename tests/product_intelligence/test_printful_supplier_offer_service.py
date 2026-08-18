@@ -2,10 +2,6 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from product_intelligence.models import (
-    Supplier,
-)
-
 from product_intelligence.services.printful_supplier_offer import (
     PrintfulSupplierOfferService,
 )
@@ -14,6 +10,10 @@ from product_intelligence.services.variant_features import (
     VariantFeaturesService,
 )
 
+from product_intelligence.models import (
+    Supplier,
+    SupplierOffer,
+)
 
 class PrintfulSupplierOfferServiceTests(TestCase):
 
@@ -229,4 +229,75 @@ class PrintfulSupplierOfferServiceTests(TestCase):
                 ],
                 "color": "White",
             },
+        )
+
+    def test_create_offer_from_variant_updates_existing_offer(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        service = PrintfulSupplierOfferService(
+            variant_features_service=(
+                VariantFeaturesService()
+            ),
+        )
+
+        product = {
+            "id": 583,
+            "title": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "id": 14942,
+            "product_id": 583,
+            "name": (
+                "Gaming Mouse Pad "
+                "(White / 36″×18″)"
+            ),
+            "size": "36″×18″",
+            "color": "White",
+            "price": "19.33",
+            "in_stock": True,
+        }
+
+        first_offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+        )
+
+        variant["price"] = "18.99"
+        variant["in_stock"] = False
+
+        second_offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+        )
+
+        self.assertEqual(
+            first_offer.id,
+            second_offer.id,
+        )
+
+        self.assertEqual(
+            SupplierOffer.objects.count(),
+            1,
+        )
+
+        second_offer.refresh_from_db()
+
+        self.assertEqual(
+            second_offer.purchase_price,
+            Decimal("18.99"),
+        )
+
+        self.assertFalse(
+            second_offer.is_available,
         )
