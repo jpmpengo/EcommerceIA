@@ -3,11 +3,22 @@ import re
 
 class SupplierProductMatchingService:
 
-    PRODUCT_TYPES = (
-        "mouse pad",
-        "mouse mat",
-        "desk mat",
-    )
+    PRODUCT_TYPES = {
+        "mouse_pad": (
+            "mouse pad",
+            "mouse mat",
+            "desk mat",
+        ),
+        "ceramic_mug": (
+            "ceramic mug",
+            "coffee mug",
+            "glossy mug",
+        ),
+        "tote_bag": (
+            "tote bag",
+            "cotton bag",
+        ),
+    }
 
     @staticmethod
     def _normalize_name(
@@ -36,9 +47,13 @@ class SupplierProductMatchingService:
             name
         )
 
-        for product_type in self.PRODUCT_TYPES:
-            if product_type in normalized:
-                return "mouse_pad"
+        for (
+            product_family,
+            product_types,
+        ) in self.PRODUCT_TYPES.items():
+            for product_type in product_types:
+                if product_type in normalized:
+                    return product_family
 
         return None
 

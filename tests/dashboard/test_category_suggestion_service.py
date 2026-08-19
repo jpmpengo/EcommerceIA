@@ -105,3 +105,83 @@ class CategorySuggestionServiceTests(TestCase):
             category,
             electronics,
         )
+
+    def test_suggests_informatique_for_gaming_mouse_pad(
+        self,
+    ):
+        opportunity = ProductOpportunity.objects.create(
+            name=(
+                "Table Pad Line Gaming Mouse Mat "
+                "300x800x2MM FW6"
+            ),
+            source_name="CJdropshipping",
+            supplier_price=Decimal("0.85"),
+            market_price=Decimal("51.96"),
+            description="",
+        )
+
+        category = (
+            CategorySuggestionService.suggest(
+                opportunity
+            )
+        )
+
+        self.assertEqual(
+            category,
+            self.category,
+        )
+
+    def test_suggests_home_and_kitchen_for_ceramic_mug(
+        self,
+    ):
+        home_and_kitchen = Category.objects.get(
+            name="Maison & Cuisine",
+        )
+
+        opportunity = ProductOpportunity.objects.create(
+            name=(
+                "Ceramic Coffee Cup Ceramic Mug "
+                "Blue And Brown 200ml"
+            ),
+            source_name="CJdropshipping",
+            supplier_price=Decimal("2.81"),
+            market_price=Decimal("17.00"),
+            description="",
+        )
+
+        category = (
+            CategorySuggestionService.suggest(
+                opportunity
+            )
+        )
+
+        self.assertEqual(
+            category,
+            home_and_kitchen,
+        )
+
+    def test_suggests_fashion_for_canvas_tote_bag(
+        self,
+    ):
+        fashion = Category.objects.get(
+            name="Mode & Accessoires",
+        )
+
+        opportunity = ProductOpportunity.objects.create(
+            name="Cotton Canvas Tote Bag 15 x 16 in",
+            source_name="Printful",
+            supplier_price=Decimal("9.00"),
+            market_price=Decimal("17.90"),
+            description="",
+        )
+
+        category = (
+            CategorySuggestionService.suggest(
+                opportunity
+            )
+        )
+
+        self.assertEqual(
+            category,
+            fashion,
+        )

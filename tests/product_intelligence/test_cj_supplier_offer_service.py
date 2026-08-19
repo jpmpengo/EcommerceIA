@@ -12,6 +12,7 @@ from product_intelligence.services.variant_features import (
 )
 
 from product_intelligence.models import (
+    MarketObservation,
     Supplier,
     SupplierOffer,
 )
@@ -488,6 +489,88 @@ class CJSupplierOfferServiceTests(TestCase):
         self.assertEqual(
             second_offer.stock,
             250,
+        )
+
+    def test_keeps_separate_variant_offer_per_market_observation(
+        self,
+    ):
+        first_observation = (
+            MarketObservation.objects.create(
+                source="woocommerce",
+                external_id="WC-A",
+                name="Gaming Mouse Pad",
+                observed_price=Decimal("49.90"),
+                currency="EUR",
+                product_url="http://localhost/wc-a",
+            )
+        )
+
+        second_observation = (
+            MarketObservation.objects.create(
+                source="etsy",
+                external_id="ETSY-A1",
+                name="Gaming Mouse Pad",
+                observed_price=Decimal("51.96"),
+                currency="EUR",
+                product_url="https://etsy.com/a1",
+            )
+        )
+
+        product = {
+            "external_id": "CJ-PRODUCT-123",
+            "name": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "vid": "CJ-VARIANT-456",
+            "variantNameEn": (
+                "Gaming Mouse Pad 90x40"
+            ),
+            "variantSellPrice": "7.33",
+        }
+
+        first_offer = (
+            self.service.create_offer_from_variant(
+                supplier=self.supplier,
+                product=product,
+                variant=variant,
+                stock=100,
+                market_observation=(
+                    first_observation
+                ),
+            )
+        )
+
+        second_offer = (
+            self.service.create_offer_from_variant(
+                supplier=self.supplier,
+                product=product,
+                variant=variant,
+                stock=100,
+                market_observation=(
+                    second_observation
+                ),
+            )
+        )
+
+        self.assertNotEqual(
+            first_offer.id,
+            second_offer.id,
+        )
+
+        self.assertEqual(
+            first_offer.market_observation,
+            first_observation,
+        )
+        self.assertEqual(
+            second_offer.market_observation,
+            second_observation,
+        )
+
+        self.assertEqual(
+            SupplierOffer.objects.count(),
+            2,
         )
 
     

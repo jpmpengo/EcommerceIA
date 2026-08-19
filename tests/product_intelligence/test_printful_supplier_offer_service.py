@@ -11,9 +11,11 @@ from product_intelligence.services.variant_features import (
 )
 
 from product_intelligence.models import (
+    MarketObservation,
     Supplier,
     SupplierOffer,
 )
+
 
 class PrintfulSupplierOfferServiceTests(TestCase):
 
@@ -300,4 +302,82 @@ class PrintfulSupplierOfferServiceTests(TestCase):
 
         self.assertFalse(
             second_offer.is_available,
+        )
+
+    def test_keeps_separate_variant_offer_per_market_observation(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        first_observation = MarketObservation.objects.create(
+            source="woocommerce",
+            external_id="WC-PRINTFUL-001",
+            name="Gaming Mouse Pad",
+            observed_price=Decimal("49.90"),
+            currency="EUR",
+            product_url="https://example.com/woo-mouse-pad",
+        )
+
+        second_observation = MarketObservation.objects.create(
+            source="etsy",
+            external_id="ETSY-PRINTFUL-001",
+            name="Gaming Mouse Pad",
+            observed_price=Decimal("51.96"),
+            currency="EUR",
+            product_url="https://example.com/etsy-mouse-pad",
+        )
+
+        service = PrintfulSupplierOfferService()
+
+        product = {
+            "id": 583,
+            "title": "Gaming Mouse Pad",
+            "currency": "USD",
+        }
+
+        variant = {
+            "id": 14942,
+            "product_id": 583,
+            "name": "Gaming Mouse Pad (White / 36x18)",
+            "price": "19.33",
+            "in_stock": True,
+        }
+
+        first_offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            market_observation=first_observation,
+        )
+
+        second_offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            market_observation=second_observation,
+        )
+
+        self.assertNotEqual(
+            first_offer.id,
+            second_offer.id,
+        )
+
+        self.assertEqual(
+            SupplierOffer.objects.count(),
+            2,
+        )
+
+        self.assertEqual(
+            first_offer.market_observation,
+            first_observation,
+        )
+
+        self.assertEqual(
+            second_offer.market_observation,
+            second_observation,
         )

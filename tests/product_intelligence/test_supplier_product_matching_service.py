@@ -166,3 +166,65 @@ class SupplierProductMatchingServiceTests(
         )
 
         self.assertFalse(result)
+
+    def test_matches_similar_ceramic_mug_names(
+        self,
+    ):
+        service = (
+            SupplierProductMatchingService()
+        )
+
+        result = service.are_products_comparable(
+            first_name=(
+                "Ceramic Coffee Cup Ceramic Mug"
+            ),
+            second_name=(
+                "White Glossy Mug 11 oz"
+            ),
+        )
+
+        self.assertTrue(
+            result
+        )
+
+    def test_matches_similar_cotton_tote_bag_names(
+        self,
+    ):
+        service = (
+            SupplierProductMatchingService()
+        )
+
+        result = service.are_products_comparable(
+            first_name=(
+                "Women's Canvas Large Capacity "
+                "Versatile Tote Bag"
+            ),
+            second_name=(
+                "Cotton Canvas Tote Bag 15 x 16 in"
+            ),
+        )
+
+        self.assertTrue(
+            result
+        )
+
+    def test_does_not_match_canvas_bag_strap_with_tote_bag(
+        self,
+    ):
+        service = (
+            SupplierProductMatchingService()
+        )
+
+        result = service.are_products_comparable(
+            first_name=(
+                "Extension Strap Wash Canvas Bag "
+                "Strap Accessories"
+            ),
+            second_name=(
+                "Cotton Canvas Tote Bag"
+            ),
+        )
+
+        self.assertFalse(
+            result
+        )

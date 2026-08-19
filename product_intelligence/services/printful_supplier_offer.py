@@ -20,6 +20,7 @@ class PrintfulSupplierOfferService:
         supplier,
         product,
         variant,
+        market_observation=None,
     ):
         variant_features = {}
 
@@ -45,10 +46,19 @@ class PrintfulSupplierOfferService:
             variant["id"]
         )
 
+        lookup = {
+            "supplier": supplier,
+            "supplier_product_id": variant_id,
+        }
+
+        if market_observation is not None:
+            lookup["market_observation"] = (
+                market_observation
+            )
+
         offer, _ = (
             SupplierOffer.objects.update_or_create(
-                supplier=supplier,
-                supplier_product_id=variant_id,
+                **lookup,
                 defaults={
                     "product_name": (
                         variant.get("name")
@@ -82,9 +92,3 @@ class PrintfulSupplierOfferService:
         )
 
         return offer
-
-        
-
-        
-
-        

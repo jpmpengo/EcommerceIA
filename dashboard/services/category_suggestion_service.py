@@ -18,6 +18,9 @@ class CategorySuggestionService:
                     "souris",
                     "clavier",
                     "informatique",
+                    "mouse pad",
+                    "mouse mat",
+                    "desk mat",
                 ],
                 "Informatique",
             ),
@@ -40,6 +43,24 @@ class CategorySuggestionService:
                     "charging",
                 ],
                 "Électronique",
+            ),
+            (
+                [
+                    "mug",
+                    "coffee cup",
+                    "ceramic cup",
+                    "tasse",
+                ],
+                "Maison & Cuisine",
+            ),
+            (
+                [
+                    "tote bag",
+                    "canvas tote",
+                    "cotton bag",
+                    "sac cabas",
+                ],
+                "Mode & Accessoires",
             ),
         ]
 
