@@ -972,3 +972,104 @@ class SupplierSelectionServiceTests(TestCase):
             best_offer,
             printful_offer,
         )
+
+    def test_estimates_shipping_before_selecting_best_offer(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        cheaper_product = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Gaming Mouse Pad A",
+            purchase_price=Decimal("5.00"),
+            shipping_cost=None,
+            currency="USD",
+            stock=100,
+        )
+
+        better_total_cost = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Gaming Mouse Pad B",
+            purchase_price=Decimal("7.00"),
+            shipping_cost=None,
+            currency="USD",
+            stock=100,
+        )
+
+        shipping_service = Mock()
+
+        def estimate(
+            offer,
+            destination_country,
+            quantity,
+        ):
+            if offer == cheaper_product:
+                return {
+                    "cost": Decimal("10.00"),
+                    "currency": "USD",
+                    "shipping_days": 12,
+                    "shipping_country": "FR",
+                }
+
+            return {
+                "cost": Decimal("2.00"),
+                "currency": "USD",
+                "shipping_days": 8,
+                "shipping_country": "FR",
+            }
+
+        shipping_service.estimate.side_effect = (
+            estimate
+        )
+
+        service = SupplierSelectionService(
+            shipping_estimation_service=(
+                shipping_service
+            ),
+            target_shipping_country="FR",
+        )
+
+        selected_offer = service.select_best_offer(
+            [
+                cheaper_product,
+                better_total_cost,
+            ]
+        )
+
+        self.assertEqual(
+            selected_offer,
+            better_total_cost,
+        )
+
+        self.assertEqual(
+            shipping_service.estimate.call_count,
+            2,
+        )
+
+        cheaper_product.refresh_from_db()
+        better_total_cost.refresh_from_db()
+
+        self.assertEqual(
+            cheaper_product.shipping_cost,
+            Decimal("10.00"),
+        )
+
+        self.assertEqual(
+            better_total_cost.shipping_cost,
+            Decimal("2.00"),
+        )
+
+        self.assertEqual(
+            better_total_cost.shipping_days,
+            8,
+        )
+
+        self.assertEqual(
+            better_total_cost.shipping_country,
+            "FR",
+        )

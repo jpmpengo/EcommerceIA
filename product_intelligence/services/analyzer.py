@@ -67,7 +67,10 @@ class OpportunityAnalyzer:
         if opportunity.demand_score >= 80:
             score += 30
 
-        if opportunity.competition_score <= 50:
+        if (
+            opportunity.competition_score > 0
+            and opportunity.competition_score <= 50
+        ):
             score += 20
 
         return min(score, 100)

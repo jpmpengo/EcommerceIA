@@ -68,4 +68,58 @@ class PrintfulClient:
 
         return result
 
-        
+    def get_shipping_rates(
+        self,
+        variant_id,
+        destination_country,
+        quantity=1,
+        currency="USD",
+    ):
+        url = (
+            f"{self.BASE_URL}"
+            "/v2/shipping-rates"
+        )
+
+        payload = {
+            "recipient": {
+                "country_code": (
+                    destination_country
+                ),
+            },
+            "order_items": [
+                {
+                    "source": "catalog",
+                    "catalog_variant_id": (
+                        variant_id
+                    ),
+                    "quantity": quantity,
+                },
+            ],
+            "currency": currency,
+        }
+
+        response = self.http_client.post(
+            url,
+            json=payload,
+            headers=self._headers(),
+        )
+
+        data = response.json()
+
+        if not isinstance(
+            data,
+            dict,
+        ):
+            return []
+
+        rates = data.get(
+            "data"
+        )
+
+        if not isinstance(
+            rates,
+            list,
+        ):
+            return []
+
+        return rates

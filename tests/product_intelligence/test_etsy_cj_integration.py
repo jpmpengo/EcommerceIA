@@ -202,6 +202,21 @@ class EtsyCJIntegrationTests(TestCase):
             def get_variant_stock(self, variant_id):
                 return 250
 
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": "Test Free Shipping",
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
+
         class FakeExchangeRateClient:
 
             def get_rate(

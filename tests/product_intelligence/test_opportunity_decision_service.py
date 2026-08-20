@@ -19,7 +19,7 @@ class OpportunityDecisionServiceTests(TestCase):
             market_price=Decimal("20.00"),
             shipping_cost=Decimal("0.00"),
             demand_score=0,
-            competition_score=0,
+            competition_score=40,
         )
 
         self.assertEqual(

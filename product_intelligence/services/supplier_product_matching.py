@@ -96,6 +96,8 @@ class SupplierProductMatchingService:
         second_name,
         first_dimensions=None,
         second_dimensions=None,
+        first_capacity_ml=None,
+        second_capacity_ml=None,
     ):
         first_type = self._product_type(
             first_name
@@ -113,6 +115,107 @@ class SupplierProductMatchingService:
 
         if first_type != second_type:
             return False
+
+        if (
+            second_dimensions is not None
+            and first_dimensions is None
+        ):
+            return False
+
+        if (
+            second_capacity_ml is not None
+            and first_capacity_ml is None
+        ):
+            return False
+
+        if (
+            first_dimensions is not None
+            and second_dimensions is not None
+        ):
+            normalized_first_dimensions = (
+                self._normalize_dimensions(
+                    first_dimensions
+                )
+            )
+
+            normalized_second_dimensions = (
+                self._normalize_dimensions(
+                    second_dimensions
+                )
+            )
+
+            if (
+                normalized_first_dimensions
+                is None
+                or normalized_second_dimensions
+                is None
+            ):
+                return False
+
+            first_width, first_length = (
+                normalized_first_dimensions
+            )
+
+            second_width, second_length = (
+                normalized_second_dimensions
+            )
+
+            width_ratio = (
+                min(
+                    first_width,
+                    second_width,
+                )
+                / max(
+                    first_width,
+                    second_width,
+                )
+            )
+
+            length_ratio = (
+                min(
+                    first_length,
+                    second_length,
+                )
+                / max(
+                    first_length,
+                    second_length,
+                )
+            )
+
+            if (
+                width_ratio < 0.80
+                or length_ratio < 0.80
+            ):
+                return False
+
+        if (
+            first_capacity_ml is not None
+            and second_capacity_ml is not None
+        ):
+            try:
+                if (
+                    first_capacity_ml <= 0
+                    or second_capacity_ml <= 0
+                ):
+                    return False
+
+                capacity_ratio = (
+                    min(
+                        first_capacity_ml,
+                        second_capacity_ml,
+                    )
+                    / max(
+                        first_capacity_ml,
+                        second_capacity_ml,
+                    )
+                )
+            except TypeError:
+                return False
+
+            if capacity_ratio < 0.80:
+                return False
+
+        return True
 
         # Si aucune dimension n'est fournie
         # pour l'un des produits, on reste
@@ -177,6 +280,3 @@ class SupplierProductMatchingService:
             width_ratio >= 0.80
             and length_ratio >= 0.80
         )
-
-        
- 

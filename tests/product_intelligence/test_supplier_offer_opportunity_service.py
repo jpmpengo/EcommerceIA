@@ -191,7 +191,7 @@ class SupplierOfferOpportunityServiceTests(TestCase):
 
         self.assertEqual(
             opportunity.opportunity_score,
-            60,
+            40,
         )
     
     def test_does_not_create_opportunity_below_minimum_margin(self):
@@ -322,7 +322,7 @@ class SupplierOfferOpportunityServiceTests(TestCase):
         )
 
         service = SupplierOfferOpportunityService(
-            minimum_score=60,
+            minimum_score=40,
         )
 
         result = service.create_opportunity(
@@ -339,7 +339,7 @@ class SupplierOfferOpportunityServiceTests(TestCase):
 
         self.assertEqual(
             result.opportunity_score,
-            60,
+            40,
         )
 
     def test_does_not_keep_opportunity_below_minimum_stock(self):
@@ -537,4 +537,39 @@ class SupplierOfferOpportunityServiceTests(TestCase):
         self.assertEqual(
             opportunity.restock_product,
             product,
+        )
+
+    def test_does_not_create_opportunity_when_shipping_cost_is_unknown(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Gaming Mouse Pad",
+            purchase_price=Decimal("5.00"),
+            shipping_cost=None,
+            currency="USD",
+            stock=100,
+        )
+
+        service = SupplierOfferOpportunityService()
+
+        opportunity = service.create_opportunity(
+            offer=offer,
+            market_price=Decimal("29.90"),
+        )
+
+        self.assertIsNone(
+            opportunity
+        )
+
+        self.assertEqual(
+            ProductOpportunity.objects.count(),
+            0,
         )

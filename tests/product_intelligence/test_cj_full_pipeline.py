@@ -16,6 +16,9 @@ from product_intelligence.services.supplier_offer_opportunity import (
     SupplierOfferOpportunityService,
 )
 
+from product_intelligence.services.currency_conversion import (
+    CurrencyConversionService,
+)
 
 class FakeCJClient:
 
@@ -33,6 +36,7 @@ class FakeCJClient:
             "name": product["nameEn"],
             "image_url": product["bigImage"],
             "purchase_price": product["sellPrice"],
+            "currency": "USD",
         }
 
     def get_product_variants(self, product_id):
@@ -47,6 +51,21 @@ class FakeCJClient:
 
     def get_variant_stock(self, variant_id):
         return 42
+
+    def calculate_freight(
+        self,
+        variant_id,
+        origin_country,
+        destination_country,
+        quantity=1,
+    ):
+        return [
+            {
+                "logisticName": "Test Free Shipping",
+                "logisticPrice": "0.00",
+                "logisticAging": "7-12",
+            },
+        ]
 
 
 class CJFullPipelineTests(TestCase):
@@ -71,7 +90,13 @@ class CJFullPipelineTests(TestCase):
         pipeline = CJPipelineService(
             client=FakeCJClient(),
             offer_service=CJSupplierOfferService(),
-            opportunity_service=SupplierOfferOpportunityService(),
+            opportunity_service=(
+                SupplierOfferOpportunityService()
+            ),
+            currency_conversion_service=(
+                CurrencyConversionService()
+            ),
+            exchange_rate=Decimal("1.00"),
         )
 
         opportunity = pipeline.build_opportunity_from_observation(
@@ -124,7 +149,7 @@ class CJFullPipelineTests(TestCase):
 
         self.assertEqual(
             opportunity.opportunity_score,
-            60,
+            40,
         )
 
         

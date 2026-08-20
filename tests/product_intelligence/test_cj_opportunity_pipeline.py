@@ -107,5 +107,5 @@ class CJOpportunityPipelineTests(TestCase):
 
         self.assertEqual(
             opportunity.opportunity_score,
-            60,
+            40,
         )

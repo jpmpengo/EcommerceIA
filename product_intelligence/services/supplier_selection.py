@@ -1,5 +1,5 @@
 class SupplierSelectionService:
-    
+
     def __init__(
         self,
         currency_conversion_service=None,
@@ -7,6 +7,7 @@ class SupplierSelectionService:
         target_currency=None,
         max_shipping_days=None,
         target_shipping_country=None,
+        shipping_estimation_service=None,
     ):
         self.currency_conversion_service = (
             currency_conversion_service
@@ -22,13 +23,17 @@ class SupplierSelectionService:
 
         self.max_shipping_days = (
             max_shipping_days
-        )   
+        )
 
         self.target_shipping_country = (
             target_shipping_country
         )
 
         self._exchange_rate_cache = {}
+
+        self.shipping_estimation_service = (
+            shipping_estimation_service
+        )
 
     def select_best_offer(
         self,
@@ -62,10 +67,22 @@ class SupplierSelectionService:
         self,
         offers,
     ):
+
+        offers = list(
+            offers
+        )
+
+        self._estimate_shipping(
+            offers
+        )
+
         eligible_offers = [
             offer
             for offer in offers
             if (
+                offer.shipping_cost
+                is not None
+                and
                 self._is_offer_available(
                     offer
                 )
@@ -137,6 +154,67 @@ class SupplierSelectionService:
                 ),
             ),
         )
+
+    def _estimate_shipping(
+        self,
+        offers,
+    ):
+        if (
+            self.shipping_estimation_service
+            is None
+        ):
+            return
+
+        for offer in offers:
+            quote = (
+                self.shipping_estimation_service
+                .estimate(
+                    offer=offer,
+                    destination_country=(
+                        self.target_shipping_country
+                        or "FR"
+                    ),
+                    quantity=1,
+                )
+            )
+
+            if quote is None:
+                offer.shipping_cost = None
+                continue
+
+            quote_currency = quote.get(
+                "currency"
+            )
+
+            if (
+                quote_currency
+                and quote_currency
+                != offer.currency
+            ):
+                offer.shipping_cost = None
+                continue
+
+            offer.shipping_cost = quote.get(
+                "cost"
+            )
+            offer.shipping_days = quote.get(
+                "shipping_days"
+            )
+            offer.shipping_country = (
+                quote.get(
+                    "shipping_country"
+                )
+                or self.target_shipping_country
+                or "FR"
+            )
+
+            offer.save(
+                update_fields=[
+                    "shipping_cost",
+                    "shipping_days",
+                    "shipping_country",
+                ]
+            )
 
     @staticmethod
     def _shipping_days_sort_value(
@@ -250,10 +328,3 @@ class SupplierSelectionService:
             return 0
 
         return -offer.stock
-
-
-
-
-
-
-

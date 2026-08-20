@@ -80,6 +80,15 @@ from product_intelligence.services.market_opportunity_pipeline import (
 from product_intelligence.services.multi_supplier_search import (
     MultiSupplierSearchService,
 )
+from product_intelligence.services.cj_shipping_estimator import (
+    CJShippingEstimator,
+)
+from product_intelligence.services.multi_supplier_shipping import (
+    MultiSupplierShippingService,
+)
+from product_intelligence.services.printful_shipping_estimator import (
+    PrintfulShippingEstimator,
+)
 from product_intelligence.services.printful_client import (
     PrintfulClient,
 )
@@ -98,7 +107,9 @@ from product_intelligence.services.supplier_product_matching import (
 from product_intelligence.services.supplier_selection import (
     SupplierSelectionService,
 )
-
+from product_intelligence.services.variant_features import (
+    VariantFeaturesService,
+)
 
 class Command(BaseCommand):
     help = (
@@ -412,6 +423,36 @@ class Command(BaseCommand):
                     CurrencyConversionService()
                 )
 
+                destination_country = (
+                    os.getenv(
+                        "OPPORTUNITY_SHIPPING_COUNTRY",
+                        "FR",
+                    )
+                    .strip()
+                    .upper()
+                )
+
+                shipping_estimation_service = (
+                    MultiSupplierShippingService(
+                        estimators=[
+                            CJShippingEstimator(
+                                client=cj_client,
+                                origin_country=(
+                                    os.getenv(
+                                        "CJ_SHIPPING_ORIGIN_COUNTRY",
+                                        "CN",
+                                    )
+                                    .strip()
+                                    .upper()
+                                ),
+                            ),
+                            PrintfulShippingEstimator(
+                                client=printful_client,
+                            ),
+                        ],
+                    )
+                )
+
                 selection_service = (
                     SupplierSelectionService(
                         currency_conversion_service=(
@@ -419,6 +460,12 @@ class Command(BaseCommand):
                         ),
                         exchange_rate_client=(
                             exchange_rate_client
+                        ),
+                        target_shipping_country=(
+                            destination_country
+                        ),
+                        shipping_estimation_service=(
+                            shipping_estimation_service
                         ),
                     )
                 )
@@ -434,11 +481,19 @@ class Command(BaseCommand):
                     )
                 )
 
+                variant_features_service = (
+                    VariantFeaturesService()
+                )
+
                 cj_searcher = CJSupplierSearcher(
                     client=cj_client,
                     supplier=supplier,
                     offer_service=(
-                        CJSupplierOfferService()
+                        CJSupplierOfferService(
+                            variant_features_service=(
+                                variant_features_service
+                            ),
+                        )
                     ),
                 )
 
@@ -447,7 +502,11 @@ class Command(BaseCommand):
                         client=printful_client,
                         supplier=printful_supplier,
                         offer_service=(
-                            PrintfulSupplierOfferService()
+                            PrintfulSupplierOfferService(
+                                variant_features_service=(
+                                    variant_features_service
+                                ),
+                            )
                         ),
                         matching_service=(
                             matching_service
@@ -497,6 +556,9 @@ class Command(BaseCommand):
                         ),
                         exchange_rate_client=(
                             exchange_rate_client
+                        ),
+                        variant_features_service=(
+                            variant_features_service
                         ),
                     )
                 )

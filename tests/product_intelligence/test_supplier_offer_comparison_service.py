@@ -652,5 +652,68 @@ class SupplierOfferComparisonServiceTests(TestCase):
             cj_offer,
         )
 
+    def test_uses_persisted_capacity_for_mug_matching(
+        self,
+    ):
+        small_mug_offer = Mock()
+        small_mug_offer.id = 1
+        small_mug_offer.product_name = (
+            "Ceramic Coffee Mug 200ml"
+        )
+        small_mug_offer.variant_features = {
+            "capacity_ml": 200,
+        }
+
+        similar_mug_offer = Mock()
+        similar_mug_offer.id = 2
+        similar_mug_offer.product_name = (
+            "Ceramic Coffee Mug 330ml"
+        )
+        similar_mug_offer.variant_features = {
+            "capacity_ml": 330,
+        }
+
+        selection_service = Mock()
+        selection_service.select_best_offer.side_effect = (
+            lambda offers: (
+                offers[0]
+                if offers
+                else None
+            )
+        )
+
+        service = SupplierOfferComparisonService(
+            matching_service=(
+                SupplierProductMatchingService()
+            ),
+            selection_service=(
+                selection_service
+            ),
+        )
+
+        best_offer = (
+            service.select_best_comparable_offer(
+                offers=[
+                    small_mug_offer,
+                    similar_mug_offer,
+                ],
+                target_name=(
+                    "White Ceramic Mug 11 oz"
+                ),
+                target_capacity_ml=325,
+            )
+        )
+
+        self.assertIs(
+            best_offer,
+            similar_mug_offer,
+        )
+
+        selection_service.select_best_offer.assert_called_once_with(
+            [
+                similar_mug_offer,
+            ]
+        )
+
 
     

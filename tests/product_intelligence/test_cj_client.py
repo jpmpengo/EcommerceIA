@@ -1839,5 +1839,96 @@ class CJClientTests(SimpleTestCase):
 
         self.assertIsNone(stock)
 
+    def test_calculate_freight_sends_expected_request(
+        self,
+    ):
+        class Response:
+
+            status_code = 200
+
+            def json(self):
+                return {
+                    "code": 200,
+                    "result": True,
+                    "data": [
+                        {
+                            "logisticName": "CJPacket",
+                            "logisticPrice": 8.50,
+                            "logisticAging": "7-12",
+                        },
+                    ],
+                }
+
+        class HttpClient:
+
+            def __init__(self):
+                self.calls = []
+
+            def post(
+                self,
+                url,
+                json=None,
+                headers=None,
+            ):
+                self.calls.append(
+                    {
+                        "url": url,
+                        "json": json,
+                        "headers": headers,
+                    }
+                )
+
+                return Response()
+
+        http_client = HttpClient()
+
+        client = CJClient(
+            access_token="test-token",
+            http_client=http_client,
+        )
+
+        result = client.calculate_freight(
+            variant_id="CJ-VARIANT-1",
+            origin_country="CN",
+            destination_country="FR",
+            quantity=1,
+        )
+
+        self.assertEqual(
+            http_client.calls,
+            [
+                {
+                    "url": (
+                        "https://developers.cjdropshipping.com"
+                        "/api2.0/v1/logistic/freightCalculate"
+                    ),
+                    "json": {
+                        "startCountryCode": "CN",
+                        "endCountryCode": "FR",
+                        "products": [
+                            {
+                                "quantity": 1,
+                                "vid": "CJ-VARIANT-1",
+                            },
+                        ],
+                    },
+                    "headers": {
+                        "CJ-Access-Token": "test-token",
+                    },
+                },
+            ],
+        )
+
+        self.assertEqual(
+            result,
+            [
+                {
+                    "logisticName": "CJPacket",
+                    "logisticPrice": 8.50,
+                    "logisticAging": "7-12",
+                },
+            ],
+        )
+
         
     

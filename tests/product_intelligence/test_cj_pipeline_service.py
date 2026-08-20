@@ -48,12 +48,28 @@ class FakeCJClient:
     def get_variant_stock(self, variant_id):
         return 42
 
+    def calculate_freight(
+        self,
+        variant_id,
+        origin_country,
+        destination_country,
+        quantity=1,
+    ):
+        return [
+            {
+                "logisticName": "Test Free Shipping",
+                "logisticPrice": "0.00",
+                "logisticAging": "7-12",
+            },
+        ]
+
     def normalize_product(self, product):
         return {
             "external_id": product["id"],
             "name": product["nameEn"],
             "image_url": product["bigImage"],
             "purchase_price": product["sellPrice"],
+            "currency": "USD",
         }
 
 
@@ -234,6 +250,10 @@ class CJPipelineServiceTests(TestCase):
             client=FakeCJClient(),
             offer_service=CJSupplierOfferService(),
             opportunity_service=SupplierOfferOpportunityService(),
+            currency_conversion_service=(
+                CurrencyConversionService()
+            ),
+            exchange_rate=Decimal("1.00"),
         )
 
         opportunity = service.build_opportunity_from_observation(
@@ -452,6 +472,23 @@ class CJPipelineServiceTests(TestCase):
                 self.requested_variant_id = variant_id
                 return 14759
 
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": (
+                            "Test Free Shipping"
+                        ),
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
+
         client = FakeVariantCJClient()
 
         service = CJPipelineService(
@@ -527,6 +564,23 @@ class CJPipelineServiceTests(TestCase):
         class FakeVariantCJClient:
             def get_variant_stock(self, variant_id):
                 return 14759
+
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": (
+                            "Test Free Shipping"
+                        ),
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
 
         service = CJPipelineService(
             client=FakeVariantCJClient(),
@@ -607,6 +661,23 @@ class CJPipelineServiceTests(TestCase):
             def get_variant_stock(self, variant_id):
                 return 100
 
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": (
+                            "Test Free Shipping"
+                        ),
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
+
         service = CJPipelineService(
             client=FakeCJClient(),
             offer_service=CJSupplierOfferService(),
@@ -665,6 +736,23 @@ class CJPipelineServiceTests(TestCase):
         class FakeCJClient:
             def get_variant_stock(self, variant_id):
                 return 100
+
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": (
+                            "Test Free Shipping"
+                        ),
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
 
         class FakeExchangeRateClient:
             def get_rate(self, from_currency, to_currency):
@@ -741,6 +829,40 @@ class CJPipelineServiceTests(TestCase):
             def get_variant_stock(self, variant_id):
                 self.variant_id = variant_id
                 return 20000
+
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": (
+                            "Test Free Shipping"
+                        ),
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
+
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": (
+                            "Test Free Shipping"
+                        ),
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
 
         class FakeExchangeRateClient:
             def get_rate(
@@ -934,6 +1056,125 @@ class CJPipelineServiceTests(TestCase):
             service.build_supplier_product(
                 product_id="CJ-123",
             )   
+
+    def test_converts_shipping_cost_to_market_currency(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+
+        observation = MarketObservation.objects.create(
+            source="etsy",
+            external_id="ETSY-SHIPPING-1",
+            name="Wireless Charger",
+            observed_price=Decimal("29.90"),
+            currency="EUR",
+            product_url="https://example.com/product",
+        )
+
+        class FakeCJClient:
+
+            def get_variant_stock(
+                self,
+                variant_id,
+            ):
+                return 42
+
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": (
+                            "CJ Standard"
+                        ),
+                        "logisticPrice": "5.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
+
+        product = {
+            "external_id": "CJ-123",
+            "name": "Wireless Charger",
+            "currency": "USD",
+            "image_url": "",
+        }
+
+        variant = {
+            "vid": "VARIANT-123",
+            "pid": "CJ-123",
+            "variantNameEn": (
+                "Wireless Charger Black"
+            ),
+            "variantSellPrice": "10.00",
+        }
+
+        service = CJPipelineService(
+            client=FakeCJClient(),
+            offer_service=(
+                CJSupplierOfferService()
+            ),
+            opportunity_service=(
+                SupplierOfferOpportunityService()
+            ),
+            currency_conversion_service=(
+                CurrencyConversionService()
+            ),
+            exchange_rate=Decimal("0.90"),
+        )
+
+        opportunity = (
+            service.build_opportunity_from_variant(
+                supplier=supplier,
+                product=product,
+                variant=variant,
+                market_observation=observation,
+            )
+        )
+
+        self.assertIsNotNone(
+            opportunity
+        )
+
+        self.assertEqual(
+            opportunity.supplier_price,
+            Decimal("9.00"),
+        )
+
+        self.assertEqual(
+            opportunity.shipping_cost,
+            Decimal("4.50"),
+        )
+
+        self.assertEqual(
+            opportunity.get_total_cost(),
+            Decimal("13.50"),
+        )
+
+        offer = opportunity.supplier_offer
+
+        self.assertEqual(
+            offer.currency,
+            "EUR",
+        )
+
+        self.assertEqual(
+            offer.purchase_price,
+            Decimal("9.00"),
+        )
+
+        self.assertEqual(
+            offer.shipping_cost,
+            Decimal("4.50"),
+        )
 
     
 

@@ -23,7 +23,9 @@ class SupplierOfferComparisonService:
         offers,
         target_name=None,
         target_dimensions=None,
+        target_capacity_ml=None,
         dimensions_by_offer=None,
+        capacity_by_offer=None,
         target_variant_data=None,
         variant_data_by_offer=None,
         target_offer=None,
@@ -33,26 +35,30 @@ class SupplierOfferComparisonService:
             or {}
         )
 
+        capacity_by_offer = (
+            capacity_by_offer
+            or {}
+        )
+
         variant_data_by_offer = (
             variant_data_by_offer
             or {}
         )
 
-        # Nouveau fonctionnement :
-        # le target_offer peut fournir lui-même
-        # son nom et ses caractéristiques.
+        # L'offre cible peut fournir son nom
+        # et ses caractéristiques persistées.
         if target_offer is not None:
             if target_name is None:
                 target_name = (
                     target_offer.product_name
                 )
 
-            if target_dimensions is None:
-                target_features = (
-                    target_offer.variant_features
-                    or {}
-                )
+            target_features = (
+                target_offer.variant_features
+                or {}
+            )
 
+            if target_dimensions is None:
                 dimensions = (
                     target_features.get(
                         "dimensions_mm"
@@ -64,13 +70,23 @@ class SupplierOfferComparisonService:
                         dimensions
                     )
 
-        # Ancien fonctionnement :
-        # extraction depuis les données
-        # brutes de la variante cible.
+            if target_capacity_ml is None:
+                target_capacity_ml = (
+                    target_features.get(
+                        "capacity_ml"
+                    )
+                )
+
+        # Compatibilité avec les anciennes
+        # données brutes de variante cible.
         if (
-            target_dimensions is None
+            (
+                target_dimensions is None
+                or target_capacity_ml is None
+            )
             and target_variant_data is not None
-            and self.variant_features_service is not None
+            and self.variant_features_service
+            is not None
         ):
             target_features = (
                 self.variant_features_service.extract(
@@ -78,32 +94,45 @@ class SupplierOfferComparisonService:
                 )
             )
 
-            target_dimensions = (
-                target_features.get(
-                    "dimensions_mm"
+            if target_dimensions is None:
+                target_dimensions = (
+                    target_features.get(
+                        "dimensions_mm"
+                    )
                 )
-            )
+
+            if target_capacity_ml is None:
+                target_capacity_ml = (
+                    target_features.get(
+                        "capacity_ml"
+                    )
+                )
 
         comparable_offers = []
 
         for offer in offers:
             # Priorité 1 :
-            # dimensions fournies explicitement.
+            # caractéristiques explicites.
             offer_dimensions = (
                 dimensions_by_offer.get(
                     offer.id
                 )
             )
 
-            # Priorité 2 :
-            # caractéristiques déjà persistées
-            # dans SupplierOffer.
-            if offer_dimensions is None:
-                offer_features = (
-                    offer.variant_features
-                    or {}
+            offer_capacity_ml = (
+                capacity_by_offer.get(
+                    offer.id
                 )
+            )
 
+            # Priorité 2 :
+            # caractéristiques persistées.
+            offer_features = (
+                offer.variant_features
+                or {}
+            )
+
+            if offer_dimensions is None:
                 dimensions = (
                     offer_features.get(
                         "dimensions_mm"
@@ -115,12 +144,23 @@ class SupplierOfferComparisonService:
                         dimensions
                     )
 
+            if offer_capacity_ml is None:
+                offer_capacity_ml = (
+                    offer_features.get(
+                        "capacity_ml"
+                    )
+                )
+
             # Priorité 3 :
             # anciennes données brutes
             # de variante.
             if (
-                offer_dimensions is None
-                and self.variant_features_service is not None
+                (
+                    offer_dimensions is None
+                    or offer_capacity_ml is None
+                )
+                and self.variant_features_service
+                is not None
             ):
                 variant_data = (
                     variant_data_by_offer.get(
@@ -135,19 +175,41 @@ class SupplierOfferComparisonService:
                         )
                     )
 
-                    offer_dimensions = (
-                        features.get(
-                            "dimensions_mm"
+                    if offer_dimensions is None:
+                        offer_dimensions = (
+                            features.get(
+                                "dimensions_mm"
+                            )
                         )
-                    )
+
+                    if offer_capacity_ml is None:
+                        offer_capacity_ml = (
+                            features.get(
+                                "capacity_ml"
+                            )
+                        )
 
             is_comparable = (
                 self.matching_service
                 .are_products_comparable(
-                    first_name=offer.product_name,
-                    second_name=target_name,
-                    first_dimensions=offer_dimensions,
-                    second_dimensions=target_dimensions,
+                    first_name=(
+                        offer.product_name
+                    ),
+                    second_name=(
+                        target_name
+                    ),
+                    first_dimensions=(
+                        offer_dimensions
+                    ),
+                    second_dimensions=(
+                        target_dimensions
+                    ),
+                    first_capacity_ml=(
+                        offer_capacity_ml
+                    ),
+                    second_capacity_ml=(
+                        target_capacity_ml
+                    ),
                 )
             )
 
@@ -162,7 +224,3 @@ class SupplierOfferComparisonService:
                 comparable_offers
             )
         )
-
-        
-        
-        

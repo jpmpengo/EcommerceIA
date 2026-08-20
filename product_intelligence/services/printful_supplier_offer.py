@@ -67,9 +67,7 @@ class PrintfulSupplierOfferService:
                     "purchase_price": Decimal(
                         str(variant["price"])
                     ),
-                    "shipping_cost": Decimal(
-                        "0.00"
-                    ),
+                    "shipping_cost": None,
                     "currency": (
                         product.get("currency")
                         or "USD"

@@ -30,13 +30,18 @@ class CJSupplierOfferService:
             purchase_price=Decimal(
                 str(product["purchase_price"])
             ),
-            shipping_cost=Decimal(
-                str(
-                    product.get(
-                        "shipping_cost",
-                        "0.00",
+            shipping_cost=(
+                Decimal(
+                    str(
+                        product[
+                            "shipping_cost"
+                        ]
                     )
                 )
+                if product.get(
+                    "shipping_cost"
+                ) is not None
+                else None
             ),
             currency=(
                 product.get("currency")
@@ -115,9 +120,7 @@ class CJSupplierOfferService:
                             ]
                         )
                     ),
-                    "shipping_cost": Decimal(
-                        "0.00"
-                    ),
+                    "shipping_cost": None,
                     "currency": (
                         product.get("currency")
                         or "USD"

@@ -4,6 +4,10 @@ from django.test import TestCase
 
 from product_intelligence.models import ProductOpportunity
 
+from product_intelligence.services.analyzer import (
+    OpportunityAnalyzer,
+)
+
 
 class OpportunityAnalyzerTests(TestCase):
 
@@ -32,4 +36,29 @@ class OpportunityAnalyzerTests(TestCase):
         self.assertEqual(
             self.opportunity.get_estimated_margin(),
             Decimal("30"),
+        )
+
+    def test_unknown_market_scores_do_not_add_points(
+        self,
+    ):
+        opportunity = ProductOpportunity.objects.create(
+            name="Produit sans données marché",
+            source_name="Test",
+            supplier_price=Decimal("10.00"),
+            market_price=Decimal("30.00"),
+            shipping_cost=Decimal("0.00"),
+            demand_score=0,
+            competition_score=0,
+        )
+
+        score = (
+            OpportunityAnalyzer
+            .opportunity_score(
+                opportunity
+            )
+        )
+
+        self.assertEqual(
+            score,
+            40,
         )

@@ -228,3 +228,95 @@ class SupplierProductMatchingServiceTests(
         self.assertFalse(
             result
         )
+
+    def test_does_not_match_mugs_with_very_different_capacities(
+        self,
+    ):
+        service = (
+            SupplierProductMatchingService()
+        )
+
+        result = service.are_products_comparable(
+            first_name=(
+                "Ceramic Coffee Mug 200ml"
+            ),
+            second_name=(
+                "White Ceramic Mug 11 oz"
+            ),
+            first_capacity_ml=200,
+            second_capacity_ml=325,
+        )
+
+        self.assertFalse(
+            result
+        )
+
+    def test_matches_mugs_with_similar_capacities(
+        self,
+    ):
+        service = (
+            SupplierProductMatchingService()
+        )
+
+        result = service.are_products_comparable(
+            first_name=(
+                "Ceramic Coffee Mug 11 oz"
+            ),
+            second_name=(
+                "White Ceramic Mug 330ml"
+            ),
+            first_capacity_ml=325,
+            second_capacity_ml=330,
+        )
+
+        self.assertTrue(
+            result
+        )
+
+    def test_rejects_offer_without_dimensions_when_target_has_dimensions(
+        self,
+    ):
+        service = (
+            SupplierProductMatchingService()
+        )
+
+        result = service.are_products_comparable(
+            first_name=(
+                "Tote Bag Shoulder Strap"
+            ),
+            second_name=(
+                "Cotton Canvas Tote Bag "
+                "15 x 16 in"
+            ),
+            first_dimensions=None,
+            second_dimensions=(
+                381,
+                406,
+            ),
+        )
+
+        self.assertFalse(
+            result
+        )
+
+    def test_rejects_offer_without_capacity_when_target_has_capacity(
+        self,
+    ):
+        service = (
+            SupplierProductMatchingService()
+        )
+
+        result = service.are_products_comparable(
+            first_name=(
+                "Ceramic Coffee Mug"
+            ),
+            second_name=(
+                "White Ceramic Mug 11 oz"
+            ),
+            first_capacity_ml=None,
+            second_capacity_ml=325,
+        )
+
+        self.assertFalse(
+            result
+        )

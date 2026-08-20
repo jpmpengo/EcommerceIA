@@ -6,6 +6,9 @@ from product_intelligence.services.restock_opportunity import (
     RestockOpportunityService,
 )
 
+from product_intelligence.services.supplier_product_matching import (
+    SupplierProductMatchingService,
+)
 
 class SupplierOfferOpportunityService:
 
@@ -21,7 +24,13 @@ class SupplierOfferOpportunityService:
         self.minimum_stock = minimum_stock
         self.decision_service = decision_service
 
-    def total_cost(self, offer):
+    def total_cost(
+        self,
+        offer,
+    ):
+        if offer.shipping_cost is None:
+            return None
+
         return (
             offer.purchase_price
             + offer.shipping_cost
@@ -32,9 +41,16 @@ class SupplierOfferOpportunityService:
         offer,
         market_price,
     ):
+        total_cost = self.total_cost(
+            offer
+        )
+
+        if total_cost is None:
+            return None
+
         return (
             market_price
-            - self.total_cost(offer)
+            - total_cost
         )
 
     def margin_percent(
@@ -46,7 +62,10 @@ class SupplierOfferOpportunityService:
             offer
         )
 
-        if total_cost == 0:
+        if (
+            total_cost is None
+            or total_cost == 0
+        ):
             return Decimal("0.00")
 
         margin = self.estimated_margin(
@@ -67,6 +86,9 @@ class SupplierOfferOpportunityService:
         offer,
         market_price,
     ):
+        if offer.shipping_cost is None:
+            return None
+
         if (
             self.minimum_stock is not None
             and (
@@ -86,7 +108,7 @@ class SupplierOfferOpportunityService:
             and margin < self.minimum_margin
         ):
             return None
-        
+
         restock_product = (
             RestockOpportunityService.find_product(
                 offer
@@ -118,10 +140,10 @@ class SupplierOfferOpportunityService:
         opportunity.save()
 
         if self.decision_service is not None:
-            opportunity = self.decision_service.evaluate(
-                opportunity
+            opportunity = (
+                self.decision_service.evaluate(
+                    opportunity
+                )
             )
 
         return opportunity
-
-        

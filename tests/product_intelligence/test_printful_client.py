@@ -237,3 +237,97 @@ class PrintfulClientTests(SimpleTestCase):
             variant["price"],
             "11.72",
         )
+
+    def test_get_shipping_rates_sends_expected_request(
+        self,
+    ):
+        class FakeResponse:
+
+            def json(self):
+                return {
+                    "data": [
+                        {
+                            "shipping": "STANDARD",
+                            "rate": "7.49",
+                            "currency": "USD",
+                            "max_delivery_days": 8,
+                        },
+                    ],
+                }
+
+        class FakeHTTPClient:
+
+            def __init__(self):
+                self.calls = []
+
+            def post(
+                self,
+                url,
+                json=None,
+                headers=None,
+            ):
+                self.calls.append(
+                    {
+                        "url": url,
+                        "json": json,
+                        "headers": headers,
+                    }
+                )
+
+                return FakeResponse()
+
+        http_client = FakeHTTPClient()
+
+        client = PrintfulClient(
+            api_token="test-token",
+            http_client=http_client,
+        )
+
+        result = client.get_shipping_rates(
+            variant_id=14942,
+            destination_country="FR",
+            quantity=1,
+            currency="USD",
+        )
+
+        self.assertEqual(
+            http_client.calls,
+            [
+                {
+                    "url": (
+                        "https://api.printful.com"
+                        "/v2/shipping-rates"
+                    ),
+                    "json": {
+                        "recipient": {
+                            "country_code": "FR",
+                        },
+                        "order_items": [
+                            {
+                                "source": "catalog",
+                                "catalog_variant_id": 14942,
+                                "quantity": 1,
+                            },
+                        ],
+                        "currency": "USD",
+                    },
+                    "headers": {
+                        "Authorization": (
+                            "Bearer test-token"
+                        ),
+                    },
+                },
+            ],
+        )
+
+        self.assertEqual(
+            result,
+            [
+                {
+                    "shipping": "STANDARD",
+                    "rate": "7.49",
+                    "currency": "USD",
+                    "max_delivery_days": 8,
+                },
+            ],
+        )

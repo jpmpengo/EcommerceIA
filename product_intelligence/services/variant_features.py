@@ -1,9 +1,13 @@
 import re
 
+from html import unescape
+
 
 class VariantFeaturesService:
 
     INCH_TO_MM = 25.4
+
+    FL_OZ_TO_ML = 29.5735
 
     def extract(
         self,
@@ -26,6 +30,12 @@ class VariantFeaturesService:
             )
         )
 
+        capacity_ml = (
+            self._extract_capacity_ml(
+                size
+            )
+        )
+
         color = (
             variant.get("color")
             or self._extract_color(
@@ -35,6 +45,7 @@ class VariantFeaturesService:
 
         return {
             "dimensions_mm": dimensions_mm,
+            "capacity_ml": capacity_ml,
             "color": color,
         }
 
@@ -44,6 +55,10 @@ class VariantFeaturesService:
     ):
         if not value:
             return None
+
+        value = unescape(
+            str(value)
+        )
 
         inch_match = re.search(
             r"(\d+(?:\.\d+)?)"
@@ -56,12 +71,45 @@ class VariantFeaturesService:
 
         if inch_match:
             first = (
-                float(inch_match.group(1))
+                float(
+                    inch_match.group(1)
+                )
                 * self.INCH_TO_MM
             )
 
             second = (
-                float(inch_match.group(2))
+                float(
+                    inch_match.group(2)
+                )
+                * self.INCH_TO_MM
+            )
+
+            return (
+                int(round(first)),
+                int(round(second)),
+            )
+
+        inch_unit_match = re.search(
+            r"(\d+(?:\.\d+)?)"
+            r"\s*[x×]\s*"
+            r"(\d+(?:\.\d+)?)"
+            r"\s*(?:in|inch|inches)\b",
+            value,
+            re.IGNORECASE,
+        )
+
+        if inch_unit_match:
+            first = (
+                float(
+                    inch_unit_match.group(1)
+                )
+                * self.INCH_TO_MM
+            )
+
+            second = (
+                float(
+                    inch_unit_match.group(2)
+                )
                 * self.INCH_TO_MM
             )
 
@@ -83,12 +131,16 @@ class VariantFeaturesService:
 
         if cm_match:
             first = (
-                float(cm_match.group(1))
+                float(
+                    cm_match.group(1)
+                )
                 * 10
             )
 
             second = (
-                float(cm_match.group(2))
+                float(
+                    cm_match.group(2)
+                )
                 * 10
             )
 
@@ -124,6 +176,54 @@ class VariantFeaturesService:
 
         return None
 
+    def _extract_capacity_ml(
+        self,
+        value,
+    ):
+        if not value:
+            return None
+
+        value = unescape(
+            str(value)
+        )
+
+        ml_match = re.search(
+            r"(\d+(?:\.\d+)?)"
+            r"\s*ml\b",
+            value,
+            re.IGNORECASE,
+        )
+
+        if ml_match:
+            return int(
+                round(
+                    float(
+                        ml_match.group(1)
+                    )
+                )
+            )
+
+        ounce_match = re.search(
+            r"(\d+(?:\.\d+)?)"
+            r"\s*(?:fl\s*)?oz\b",
+            value,
+            re.IGNORECASE,
+        )
+
+        if ounce_match:
+            capacity = (
+                float(
+                    ounce_match.group(1)
+                )
+                * self.FL_OZ_TO_ML
+            )
+
+            return int(
+                round(capacity)
+            )
+
+        return None
+
     @staticmethod
     def _extract_color(
         value,
@@ -151,5 +251,3 @@ class VariantFeaturesService:
                 return color
 
         return None
-
-        

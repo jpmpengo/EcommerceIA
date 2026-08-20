@@ -84,6 +84,10 @@ class PrintfulSupplierOfferServiceTests(TestCase):
         )
 
         self.assertIsNone(
+            offer.shipping_cost
+        )
+
+        self.assertIsNone(
             offer.stock
         )
 

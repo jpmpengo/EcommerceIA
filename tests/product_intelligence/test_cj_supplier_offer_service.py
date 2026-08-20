@@ -70,7 +70,7 @@ class CJSupplierOfferServiceTests(TestCase):
             42,
         )
 
-    def test_uses_zero_shipping_cost_when_missing(self):
+    def test_keeps_shipping_cost_unknown_when_missing(self):
         product = {
             "external_id": "CJ-123",
             "name": "Wireless Charger",
@@ -82,10 +82,10 @@ class CJSupplierOfferServiceTests(TestCase):
             product=product,
         )
 
-        self.assertEqual(
-            offer.shipping_cost,
-            Decimal("0.00"),
+        self.assertIsNone(
+            offer.shipping_cost
         )
+
 
     def test_accepts_product_without_stock(self):
         product = {

@@ -70,6 +70,21 @@ class FakeCJClient:
         self.variant_id = variant_id
         return 500
 
+    def calculate_freight(
+        self,
+        variant_id,
+        origin_country,
+        destination_country,
+        quantity=1,
+    ):
+        return [
+            {
+                "logisticName": "Test Free Shipping",
+                "logisticPrice": "0.00",
+                "logisticAging": "7-12",
+            },
+        ]
+
 
 class FakeExchangeRateClient:
 
@@ -230,6 +245,21 @@ class EbayCJIntegrationTests(TestCase):
 
             def get_product_variants(self, product_id):
                 return []
+
+            def calculate_freight(
+                self,
+                variant_id,
+                origin_country,
+                destination_country,
+                quantity=1,
+            ):
+                return [
+                    {
+                        "logisticName": "Test Free Shipping",
+                        "logisticPrice": "0.00",
+                        "logisticAging": "7-12",
+                    },
+                ]
 
         class FixedExchangeRateClient:
 

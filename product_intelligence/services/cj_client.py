@@ -104,6 +104,75 @@ class CJClient:
         except httpx.RequestError:
             return None
 
+    def _safe_post(
+        self,
+        url,
+        json=None,
+        headers=None,
+    ):
+        try:
+            return self.http_client.post(
+                url,
+                json=json,
+                headers=headers,
+            )
+
+        except httpx.RequestError:
+            return None
+
+    def calculate_freight(
+        self,
+        variant_id,
+        origin_country,
+        destination_country,
+        quantity=1,
+    ):
+        url = (
+            f"{self.BASE_URL}"
+            "/api2.0/v1/logistic/freightCalculate"
+        )
+
+        payload = {
+            "startCountryCode": origin_country,
+            "endCountryCode": destination_country,
+            "products": [
+                {
+                    "quantity": quantity,
+                    "vid": variant_id,
+                },
+            ],
+        }
+
+        response = self._safe_post(
+            url,
+            json=payload,
+            headers=self._headers(),
+        )
+
+        if response is None:
+            return []
+
+        data = self._safe_json(
+            response
+        )
+
+        if not self._is_successful_response(
+            data
+        ):
+            return []
+
+        freight_options = data.get(
+            "data"
+        )
+
+        if not isinstance(
+            freight_options,
+            list,
+        ):
+            return []
+
+        return freight_options
+
     def search_products(
         self,
         keyword,

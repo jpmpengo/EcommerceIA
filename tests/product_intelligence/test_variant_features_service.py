@@ -61,3 +61,83 @@ class VariantFeaturesServiceTests(SimpleTestCase):
             features["color"],
             "Black",
         )
+
+    def test_extracts_dimensions_with_in_unit(
+        self,
+    ):
+        service = VariantFeaturesService()
+
+        features = service.extract(
+            variant={
+                "name": (
+                    "Cotton Canvas Tote Bag "
+                    "15 x 16 in"
+                ),
+            }
+        )
+
+        self.assertEqual(
+            features["dimensions_mm"],
+            (
+                381,
+                406,
+            ),
+        )
+
+    def test_extracts_dimensions_from_html_encoded_inches(
+        self,
+    ):
+        service = VariantFeaturesService()
+
+        features = service.extract(
+            variant={
+                "name": (
+                    "Cotton Canvas Tote Bag "
+                    "15&quot; x 16&quot;"
+                ),
+            }
+        )
+
+        self.assertEqual(
+            features["dimensions_mm"],
+            (
+                381,
+                406,
+            ),
+        )
+
+    def test_extracts_mug_capacity_from_ounces(
+        self,
+    ):
+        service = VariantFeaturesService()
+
+        features = service.extract(
+            variant={
+                "name": (
+                    "White Ceramic Mug 11 oz"
+                ),
+            }
+        )
+
+        self.assertEqual(
+            features["capacity_ml"],
+            325,
+        )
+
+    def test_extracts_mug_capacity_from_milliliters(
+        self,
+    ):
+        service = VariantFeaturesService()
+
+        features = service.extract(
+            variant={
+                "variantNameEn": (
+                    "Ceramic Coffee Mug 200ml"
+                ),
+            }
+        )
+
+        self.assertEqual(
+            features["capacity_ml"],
+            200,
+        )

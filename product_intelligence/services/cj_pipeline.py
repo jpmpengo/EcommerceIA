@@ -1,5 +1,9 @@
 from decimal import Decimal, InvalidOperation
 
+from product_intelligence.services.cj_shipping_estimator import (
+    CJShippingEstimator,
+)
+
 class CJPipelineService:
 
     def __init__(
@@ -10,6 +14,9 @@ class CJPipelineService:
         currency_conversion_service=None,
         exchange_rate=None,
         exchange_rate_client=None,
+        shipping_estimation_service=None,
+        shipping_destination_country="FR",
+        shipping_origin_country="CN",
     ):
         self.client = client
         self.offer_service = offer_service
@@ -17,6 +24,18 @@ class CJPipelineService:
         self.currency_conversion_service = currency_conversion_service
         self.exchange_rate = exchange_rate
         self.exchange_rate_client = exchange_rate_client
+        self.shipping_destination_country = (
+            shipping_destination_country
+        )
+        self.shipping_estimation_service = (
+            shipping_estimation_service
+            or CJShippingEstimator(
+                client=client,
+                origin_country=(
+                    shipping_origin_country
+                ),
+            )
+        )
 
     def build_supplier_product(self, product_id):
         product_detail = self.client.get_product_detail(
@@ -73,7 +92,9 @@ class CJPipelineService:
             ]
         )
 
-        return offer
+        return self._estimate_shipping(
+            offer
+        )
 
     def build_product_opportunity(
         self,
@@ -130,19 +151,38 @@ class CJPipelineService:
                     "Supplier and market currencies must match."
                 )
 
-            converted_price = self.currency_conversion_service.convert(
-                amount=offer.purchase_price,
-                from_currency=offer.currency,
-                to_currency=market_observation.currency,
-                exchange_rate=exchange_rate,
+            original_currency = offer.currency
+
+            converted_price = (
+                self.currency_conversion_service.convert(
+                    amount=offer.purchase_price,
+                    from_currency=original_currency,
+                    to_currency=(
+                        market_observation.currency
+                    ),
+                    exchange_rate=exchange_rate,
+                )
+            )
+
+            converted_shipping_cost = (
+                self.currency_conversion_service.convert(
+                    amount=offer.shipping_cost,
+                    from_currency=original_currency,
+                    to_currency=(
+                        market_observation.currency
+                    ),
+                    exchange_rate=exchange_rate,
+                )
             )
 
             offer.purchase_price = converted_price
+            offer.shipping_cost = converted_shipping_cost
             offer.currency = market_observation.currency
 
             offer.save(
                 update_fields=[
                     "purchase_price",
+                    "shipping_cost",
                     "currency",
                 ]
             )
@@ -163,12 +203,18 @@ class CJPipelineService:
         stock = self.client.get_variant_stock(
             variant_id=variant_id,
         )
+        offer = (
+            self.offer_service
+            .create_offer_from_variant(
+                supplier=supplier,
+                product=product,
+                variant=variant,
+                stock=stock,
+            )
+        )
 
-        return self.offer_service.create_offer_from_variant(
-            supplier=supplier,
-            product=product,
-            variant=variant,
-            stock=stock,
+        return self._estimate_shipping(
+            offer
         )
 
     def build_opportunity_from_variant(
@@ -218,19 +264,38 @@ class CJPipelineService:
                     "Supplier and market currencies must match."
                 )
 
-            converted_price = self.currency_conversion_service.convert(
-                amount=offer.purchase_price,
-                from_currency=offer.currency,
-                to_currency=market_observation.currency,
-                exchange_rate=exchange_rate,
+            original_currency = offer.currency
+
+            converted_price = (
+                self.currency_conversion_service.convert(
+                    amount=offer.purchase_price,
+                    from_currency=original_currency,
+                    to_currency=(
+                        market_observation.currency
+                    ),
+                    exchange_rate=exchange_rate,
+                )
+            )
+
+            converted_shipping_cost = (
+                self.currency_conversion_service.convert(
+                    amount=offer.shipping_cost,
+                    from_currency=original_currency,
+                    to_currency=(
+                        market_observation.currency
+                    ),
+                    exchange_rate=exchange_rate,
+                )
             )
 
             offer.purchase_price = converted_price
+            offer.shipping_cost = converted_shipping_cost
             offer.currency = market_observation.currency
 
             offer.save(
                 update_fields=[
                     "purchase_price",
+                    "shipping_cost",
                     "currency",
                 ]
             )
@@ -239,6 +304,60 @@ class CJPipelineService:
             offer=offer,
             market_price=market_observation.observed_price,
         )
+
+    def _estimate_shipping(
+        self,
+        offer,
+    ):
+        quote = (
+            self.shipping_estimation_service
+            .estimate(
+                offer=offer,
+                destination_country=(
+                    self.shipping_destination_country
+                ),
+                quantity=1,
+            )
+        )
+
+        if quote is None:
+            offer.shipping_cost = None
+            return offer
+
+        quote_currency = quote.get(
+            "currency"
+        )
+
+        if (
+            quote_currency
+            and quote_currency
+            != offer.currency
+        ):
+            offer.shipping_cost = None
+            return offer
+
+        offer.shipping_cost = quote.get(
+            "cost"
+        )
+        offer.shipping_days = quote.get(
+            "shipping_days"
+        )
+        offer.shipping_country = (
+            quote.get(
+                "shipping_country"
+            )
+            or self.shipping_destination_country
+        )
+
+        offer.save(
+            update_fields=[
+                "shipping_cost",
+                "shipping_days",
+                "shipping_country",
+            ]
+        )
+
+        return offer
 
     @staticmethod
     def _validate_single_purchase_price(product):
