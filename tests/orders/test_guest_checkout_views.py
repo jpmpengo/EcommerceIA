@@ -186,6 +186,15 @@ class GuestCheckoutViewTests(TestCase):
             order.email,
         )
 
+        self.assertEqual(
+            call_kwargs["metadata"],
+            {
+                "order_id": str(
+                    order.id
+                ),
+            },
+        )
+
     @patch(
         "orders.views.stripe.checkout.Session.retrieve"
     )
@@ -269,6 +278,79 @@ class GuestCheckoutViewTests(TestCase):
 
         stripe_retrieve.assert_called_once_with(
             "cs_test_guest_success"
+        )
+
+    @patch(
+        "orders.views.stripe.checkout.Session.retrieve"
+    )
+    def test_payment_success_uses_client_reference_when_metadata_is_missing(
+        self,
+        stripe_retrieve,
+    ):
+        self.client.post(
+            "/commande/creer/",
+            data=self.checkout_data,
+        )
+
+        order = Order.objects.get()
+
+        order.stripe_checkout_session_id = (
+            "cs_test_without_metadata"
+        )
+
+        order.save(
+            update_fields=[
+                "stripe_checkout_session_id",
+            ]
+        )
+
+        checkout_session = Mock()
+
+        checkout_session.id = (
+            "cs_test_without_metadata"
+        )
+
+        checkout_session.payment_status = (
+            "paid"
+        )
+
+        checkout_session.metadata = {}
+
+        checkout_session.client_reference_id = str(
+            order.id
+        )
+
+        stripe_retrieve.return_value = (
+            checkout_session
+        )
+
+        response = self.client.get(
+            (
+                "/commande/paiement/succes/"
+                "?session_id="
+                "cs_test_without_metadata"
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertTemplateUsed(
+            response,
+            "orders/payment_success.html",
+        )
+
+        order.refresh_from_db()
+
+        self.assertTrue(
+            order.paid
+        )
+
+        self.assertEqual(
+            order.status,
+            "paid",
         )
 
     def test_guest_can_list_orders_created_in_same_session(
