@@ -1,93 +1,607 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container py-5">
-    <h1 class="mb-4">Commande #{{ order.id }}</h1>
-
-    {% if order.status == "paid" %}
-    <div class="alert alert-success">
-        ✅ Payée
-    </div>
-
-    {% elif order.status == "pending" %}
-        <div class="alert alert-warning">
-            ⏳ En attente de paiement
-        </div>
-
-    {% elif order.status == "expired" %}
-        <div class="alert alert-secondary">
-            ⌛ Expirée
-        </div>
-
-    {% elif order.status == "cancelled" %}
-        <div class="alert alert-danger">
-            ❌ Annulée
-        </div>
-    {% endif %}
-
-    {% if order.status == "pending" %}
-        <div class="mb-4">
-            <a
-                href="{% url 'orders:payment_create' order.id %}"
-                class="btn btn-success"
-            >
-                💳 Payer maintenant
-            </a>
-            <form
-                method="post"
-                action="{% url 'orders:order_cancel' order.id %}"
-            >
-                {% csrf_token %}
-
-                <button
-                    type="submit"
-                    class="btn btn-outline-danger"
-                >
-                    Annuler la commande
-                </button>
-            </form>
-        </div>
-    {% endif %}
-
-    <p>
-        Commandée le {{ order.created_at|date:"d/m/Y à H:i" }}
-    </p>
-
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead>
-                <tr>
-                    <th>Produit</th>
-                    <th>Prix</th>
-                    <th>Quantité</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for item in order.items.all %}
-                    <tr>
-                        <td>{{ item.product.name }}</td>
-                        <td>{{ item.price }} €</td>
-                        <td>{{ item.quantity }}</td>
-                        <td>{{ item.get_cost }} €</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="text-end">
-        <h4>Total : {{ order.get_total_price }} €</h4>
-    </div>
-
-    <a
-        href="{% url 'orders:order_list' %}"
-        class="btn btn-outline-secondary"
-    >
-        Retour à mes commandes
-    </a>
-</div>
+{% block title %}
+    Commande #{{ order.id }} | EcommerceIA
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .order-detail-page {
+        padding: 3.5rem 0 5rem;
+    }
+
+    .order-detail-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 1.5rem;
+        color: #64748b;
+        font-size: 0.9rem;
+        font-weight: 750;
+    }
+
+    .order-detail-back:hover {
+        color: #2563eb;
+    }
+
+    .order-detail-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .order-detail-eyebrow {
+        margin-bottom: 0.45rem;
+        color: #2563eb;
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .order-detail-title {
+        margin: 0 0 0.55rem;
+        color: #0f172a;
+        font-size: clamp(2.3rem, 5vw, 3.6rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+    }
+
+    .order-detail-date {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.92rem;
+    }
+
+    .order-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        min-height: 2.7rem;
+        padding: 0.6rem 0.9rem;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .order-status-dot {
+        width: 0.65rem;
+        height: 0.65rem;
+        border-radius: 999px;
+        background: currentColor;
+        box-shadow: 0 0 0 0.25rem rgba(100, 116, 139, 0.12);
+    }
+
+    .order-status-paid {
+        color: #166534;
+        border-color: #bbf7d0;
+        background: #dcfce7;
+    }
+
+    .order-status-pending {
+        color: #92400e;
+        border-color: #fde68a;
+        background: #fef3c7;
+    }
+
+    .order-status-expired {
+        color: #475569;
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+    }
+
+    .order-status-cancelled {
+        color: #991b1b;
+        border-color: #fecaca;
+        background: #fee2e2;
+    }
+
+    .order-detail-card {
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.2rem;
+        background: #ffffff;
+        box-shadow:
+            0 18px 45px rgba(15, 23, 42, 0.07);
+    }
+
+    .order-items-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .order-items-title {
+        margin: 0;
+        color: #0f172a;
+        font-size: 1.2rem;
+        font-weight: 850;
+    }
+
+    .order-item {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto
+            auto
+            auto;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .order-item:last-child {
+        border-bottom: 0;
+    }
+
+    .order-product {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .order-product-image-wrapper {
+        width: 5.5rem;
+        height: 5.5rem;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.85rem;
+        background: #f1f5f9;
+    }
+
+    .order-product-image {
+        width: 100%;
+        height: 100%;
+        padding: 0.45rem;
+        object-fit: contain;
+    }
+
+    .order-product-placeholder {
+        color: #94a3b8;
+    }
+
+    .order-product-name {
+        margin-bottom: 0.3rem;
+        color: #0f172a;
+        font-weight: 800;
+        line-height: 1.4;
+    }
+
+    .order-product-category {
+        color: #64748b;
+        font-size: 0.82rem;
+    }
+
+    .order-item-data {
+        min-width: 5.5rem;
+    }
+
+    .order-item-label {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: #94a3b8;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .order-item-value {
+        color: #334155;
+        font-size: 0.92rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .order-item-total {
+        min-width: 6.5rem;
+        text-align: right;
+    }
+
+    .order-item-total .order-item-value {
+        color: #0f172a;
+        font-size: 1rem;
+        font-weight: 850;
+    }
+
+    .order-summary {
+        position: sticky;
+        top: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.2rem;
+        background: #ffffff;
+        box-shadow:
+            0 18px 45px rgba(15, 23, 42, 0.07);
+    }
+
+    .order-summary-title {
+        margin-bottom: 1.25rem;
+        color: #0f172a;
+        font-size: 1.2rem;
+        font-weight: 850;
+    }
+
+    .order-summary-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.9rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .order-summary-total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-top: 1.2rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid #e2e8f0;
+        color: #0f172a;
+        font-weight: 850;
+    }
+
+    .order-summary-price {
+        font-size: 1.55rem;
+        letter-spacing: -0.03em;
+    }
+
+    .order-actions {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1.4rem;
+    }
+
+    .order-action-button {
+        min-height: 3.15rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        font-weight: 800;
+    }
+
+    .order-payment-button {
+        box-shadow:
+            0 12px 25px rgba(21, 128, 61, 0.18);
+    }
+
+    .order-cancel-form {
+        width: 100%;
+    }
+
+    .order-cancel-button {
+        min-height: 2.8rem;
+        width: 100%;
+        font-size: 0.88rem;
+    }
+
+    .order-summary-note {
+        margin: 1.25rem 0 0;
+        padding-top: 1.15rem;
+        border-top: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 0.82rem;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 991.98px) {
+        .order-summary {
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .order-detail-page {
+            padding-top: 2.5rem;
+        }
+
+        .order-detail-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .order-item {
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .order-product {
+            grid-column: 1 / -1;
+        }
+
+        .order-item-total {
+            text-align: left;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .order-item {
+            padding: 1rem;
+        }
+
+        .order-product-image-wrapper {
+            width: 4.75rem;
+            height: 4.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="order-detail-page">
+    <div class="container">
+
+        <a
+            href="{% url 'orders:order_list' %}"
+            class="order-detail-back"
+        >
+            <span aria-hidden="true">←</span>
+            Retour à mes commandes
+        </a>
+
+        <header class="order-detail-header">
+            <div>
+                <div class="order-detail-eyebrow">
+                    Détail de la commande
+                </div>
+
+                <h1 class="order-detail-title">
+                    Commande #{{ order.id }}
+                </h1>
+
+                <p class="order-detail-date">
+                    Commandée le
+                    {{ order.created_at|date:"d/m/Y à H:i" }}
+                </p>
+            </div>
+
+            {% if order.status == "paid" %}
+
+                <div class="order-status order-status-paid">
+                    <span class="order-status-dot"></span>
+                    Payée
+                </div>
+
+            {% elif order.status == "pending" %}
+
+                <div class="order-status order-status-pending">
+                    <span class="order-status-dot"></span>
+                    En attente de paiement
+                </div>
+
+            {% elif order.status == "expired" %}
+
+                <div class="order-status order-status-expired">
+                    <span class="order-status-dot"></span>
+                    Expirée
+                </div>
+
+            {% elif order.status == "cancelled" %}
+
+                <div class="order-status order-status-cancelled">
+                    <span class="order-status-dot"></span>
+                    Annulée
+                </div>
+
+            {% endif %}
+        </header>
+
+        <div class="row g-4">
+
+            <div class="col-lg-8">
+                <div class="order-detail-card">
+
+                    <div class="order-items-header">
+                        <h2 class="order-items-title">
+                            Produits commandés
+                        </h2>
+                    </div>
+
+                    {% for item in order.items.all %}
+
+                        <article class="order-item">
+
+                            <div class="order-product">
+
+                                <a
+                                    href="{% url 'products:product_detail' item.product.id %}"
+                                    class="order-product-image-wrapper"
+                                >
+                                    {% if item.product.image %}
+
+                                        <img
+                                            src="{{ item.product.image.url }}"
+                                            alt="{{ item.product.name }}"
+                                            class="order-product-image"
+                                        >
+
+                                    {% else %}
+
+                                        <span
+                                            class="order-product-placeholder"
+                                            aria-hidden="true"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                width="27"
+                                                height="27"
+                                                viewBox="0 0 24 24"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="1.7"
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                            >
+                                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                                <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                                                <line x1="12" y1="22" x2="12" y2="12"></line>
+                                            </svg>
+                                        </span>
+
+                                    {% endif %}
+                                </a>
+
+                                <div>
+                                    <div class="order-product-name">
+                                        {{ item.product.name }}
+                                    </div>
+
+                                    {% if item.product.category %}
+
+                                        <div class="order-product-category">
+                                            {{ item.product.category.name }}
+                                        </div>
+
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="order-item-data">
+                                <span class="order-item-label">
+                                    Prix
+                                </span>
+
+                                <span class="order-item-value">
+                                    {{ item.price }} €
+                                </span>
+                            </div>
+
+                            <div class="order-item-data">
+                                <span class="order-item-label">
+                                    Quantité
+                                </span>
+
+                                <span class="order-item-value">
+                                    {{ item.quantity }}
+                                </span>
+                            </div>
+
+                            <div class="order-item-data order-item-total">
+                                <span class="order-item-label">
+                                    Total
+                                </span>
+
+                                <span class="order-item-value">
+                                    {{ item.get_cost }} €
+                                </span>
+                            </div>
+
+                        </article>
+
+                    {% empty %}
+
+                        <div class="p-4 text-muted">
+                            Aucun produit n’est associé à cette commande.
+                        </div>
+
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <aside class="order-summary">
+
+                    <h2 class="order-summary-title">
+                        Récapitulatif
+                    </h2>
+
+                    <div class="order-summary-line">
+                        <span>Commande</span>
+                        <span>#{{ order.id }}</span>
+                    </div>
+
+                    <div class="order-summary-line">
+                        <span>Statut</span>
+
+                        <span>
+                            {% if order.status == "paid" %}
+                                Payée
+                            {% elif order.status == "pending" %}
+                                En attente
+                            {% elif order.status == "expired" %}
+                                Expirée
+                            {% elif order.status == "cancelled" %}
+                                Annulée
+                            {% else %}
+                                {{ order.status }}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="order-summary-total">
+                        <span>Total</span>
+
+                        <span class="order-summary-price">
+                            {{ order.get_total_price }} €
+                        </span>
+                    </div>
+
+                    <div class="order-actions">
+
+                        {% if order.status == "pending" and not order.paid %}
+
+                            <a
+                                href="{% url 'orders:payment_create' order.id %}"
+                                class="btn btn-success order-action-button order-payment-button"
+                            >
+                                Payer maintenant
+                                <span aria-hidden="true">→</span>
+                            </a>
+
+                            <form
+                                method="post"
+                                action="{% url 'orders:order_cancel' order.id %}"
+                                class="order-cancel-form"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-danger order-cancel-button"
+                                >
+                                    Annuler la commande
+                                </button>
+                            </form>
+
+                        {% endif %}
+
+                        <a
+                            href="{% url 'products:product_list' %}"
+                            class="btn btn-outline-primary order-action-button"
+                        >
+                            Continuer mes achats
+                        </a>
+
+                    </div>
+
+                    {% if not user.is_authenticated %}
+
+                        <p class="order-summary-note">
+                            Cette commande reste accessible depuis
+                            ce navigateur sans création de compte.
+                        </p>
+
+                    {% endif %}
+
+                </aside>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}
 

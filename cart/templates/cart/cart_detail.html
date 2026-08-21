@@ -1,87 +1,641 @@
 {% extends "base.html" %}
 
+{% block title %}
+    Mon panier | EcommerceIA
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .cart-page {
+        padding: 3.5rem 0 5rem;
+    }
+
+    .cart-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .cart-eyebrow {
+        margin-bottom: 0.45rem;
+        color: #2563eb;
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .cart-title {
+        margin: 0;
+        color: #0f172a;
+        font-size: clamp(2.4rem, 5vw, 3.6rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+    }
+
+    .cart-count {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .cart-items {
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.15rem;
+        background: #ffffff;
+        box-shadow:
+            0 12px 32px rgba(15, 23, 42, 0.06);
+    }
+
+    .cart-item {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto
+            auto
+            auto;
+        align-items: center;
+        gap: 1.25rem;
+        padding: 1.25rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .cart-item:last-child {
+        border-bottom: 0;
+    }
+
+    .cart-product {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .cart-product-image-link {
+        width: 6.25rem;
+        height: 6.25rem;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.85rem;
+        background: #f1f5f9;
+    }
+
+    .cart-product-image {
+        width: 100%;
+        height: 100%;
+        padding: 0.55rem;
+        object-fit: contain;
+    }
+
+    .cart-product-placeholder {
+        width: 2.8rem;
+        height: 2.8rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.8rem;
+        color: #94a3b8;
+        background: #e2e8f0;
+    }
+
+    .cart-product-category {
+        margin-bottom: 0.3rem;
+        color: #2563eb;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .cart-product-name {
+        margin-bottom: 0.35rem;
+        color: #0f172a;
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+
+    .cart-product-name a {
+        color: inherit;
+    }
+
+    .cart-product-name a:hover {
+        color: #2563eb;
+    }
+
+    .cart-unit-price {
+        color: #64748b;
+        font-size: 0.83rem;
+    }
+
+    .cart-quantity {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.7rem;
+        background: #ffffff;
+    }
+
+    .cart-quantity-button {
+        width: 2rem;
+        height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        border-radius: 0.5rem;
+        color: #334155;
+        background: #f1f5f9;
+        font-size: 1rem;
+        font-weight: 800;
+        transition:
+            color 160ms ease,
+            background-color 160ms ease;
+    }
+
+    .cart-quantity-button:hover {
+        color: #ffffff;
+        background: #2563eb;
+    }
+
+    .cart-quantity-value {
+        min-width: 2.25rem;
+        color: #0f172a;
+        text-align: center;
+        font-size: 0.9rem;
+        font-weight: 800;
+    }
+
+    .cart-item-total {
+        min-width: 6.5rem;
+        color: #0f172a;
+        text-align: right;
+        font-size: 1rem;
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .cart-remove {
+        width: 2.35rem;
+        height: 2.35rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #fecaca;
+        border-radius: 0.65rem;
+        color: #b91c1c;
+        background: #fff;
+        transition:
+            color 160ms ease,
+            border-color 160ms ease,
+            background-color 160ms ease;
+    }
+
+    .cart-remove:hover {
+        color: #ffffff;
+        border-color: #dc2626;
+        background: #dc2626;
+    }
+
+    .cart-summary {
+        position: sticky;
+        top: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.15rem;
+        background: #ffffff;
+        box-shadow:
+            0 12px 32px rgba(15, 23, 42, 0.07);
+    }
+
+    .cart-summary-title {
+        margin-bottom: 1.25rem;
+        color: #0f172a;
+        font-size: 1.25rem;
+        font-weight: 850;
+    }
+
+    .cart-summary-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.8rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .cart-summary-total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 1.15rem 0;
+        padding-top: 1.15rem;
+        border-top: 1px solid #e2e8f0;
+        color: #0f172a;
+        font-weight: 850;
+    }
+
+    .cart-summary-price {
+        font-size: 1.45rem;
+        letter-spacing: -0.025em;
+    }
+
+    .cart-checkout-button {
+        min-height: 3.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        font-weight: 800;
+        box-shadow:
+            0 12px 25px rgba(21, 128, 61, 0.18);
+    }
+
+    .cart-continue {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-top: 0.8rem;
+        color: #64748b;
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+
+    .cart-continue:hover {
+        color: #2563eb;
+    }
+
+    .cart-warning {
+        margin-top: 1rem;
+        border: 0;
+        border-radius: 0.8rem;
+        font-size: 0.86rem;
+        line-height: 1.5;
+    }
+
+    .cart-empty {
+        padding: 5rem 1.5rem;
+        border: 1px dashed #cbd5e1;
+        border-radius: 1.25rem;
+        text-align: center;
+        background: #ffffff;
+    }
+
+    .cart-empty-icon {
+        width: 5rem;
+        height: 5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        border-radius: 1.35rem;
+        color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .cart-empty-title {
+        margin-bottom: 0.55rem;
+        color: #0f172a;
+        font-size: 1.65rem;
+        font-weight: 850;
+    }
+
+    .cart-empty-text {
+        max-width: 28rem;
+        margin: 0 auto 1.5rem;
+        color: #64748b;
+        line-height: 1.65;
+    }
+
+    @media (max-width: 991.98px) {
+        .cart-summary {
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .cart-page {
+            padding-top: 2.5rem;
+        }
+
+        .cart-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .cart-item {
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+        }
+
+        .cart-product {
+            grid-column: 1 / -1;
+        }
+
+        .cart-quantity {
+            justify-self: start;
+        }
+
+        .cart-item-total {
+            justify-self: end;
+        }
+
+        .cart-remove {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .cart-item {
+            position: relative;
+            padding-right: 4rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .cart-product-image-link {
+            width: 5rem;
+            height: 5rem;
+        }
+
+        .cart-item {
+            padding: 1rem 3.75rem 1rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h1 class="mb-4">Mon panier</h1>
 
-    {% if cart|length > 0 %}
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Produit</th>
-                        <th>Prix</th>
-                        <th>Quantité</th>
-                        <th>Total</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+<section class="cart-page">
+    <div class="container">
 
-                <tbody>
-                    {% for item in cart %}
-                        <tr>
-                            <td>{{ item.product.name }}</td>
-                            <td>{{ item.price }} €</td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <a href="{% url 'cart:cart_decrease' item.product.id %}"
-                                        class="btn btn-sm btn-outline-secondary">
+        <header class="cart-header">
+            <div>
+                <div class="cart-eyebrow">
+                    Votre sélection
+                </div>
+
+                <h1 class="cart-title">
+                    Mon panier
+                </h1>
+            </div>
+
+            {% if cart|length > 0 %}
+
+                <div class="cart-count">
+                    {{ cart|length }}
+                    produit{{ cart|length|pluralize }}
+                    dans votre panier
+                </div>
+
+            {% endif %}
+        </header>
+
+        {% if cart|length > 0 %}
+
+            <div class="row g-4">
+
+                <div class="col-lg-8">
+                    <div class="cart-items">
+
+                        {% for item in cart %}
+
+                            <article class="cart-item">
+
+                                <div class="cart-product">
+
+                                    <a
+                                        href="{% url 'products:product_detail' item.product.id %}"
+                                        class="cart-product-image-link"
+                                    >
+                                        {% if item.product.image %}
+
+                                            <img
+                                                src="{{ item.product.image.url }}"
+                                                class="cart-product-image"
+                                                alt="{{ item.product.name }}"
+                                            >
+
+                                        {% else %}
+
+                                            <span
+                                                class="cart-product-placeholder"
+                                                aria-hidden="true"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="25"
+                                                    height="25"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="1.7"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                                    <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                                                    <line x1="12" y1="22" x2="12" y2="12"></line>
+                                                </svg>
+                                            </span>
+
+                                        {% endif %}
+                                    </a>
+
+                                    <div>
+                                        {% if item.product.category %}
+
+                                            <div class="cart-product-category">
+                                                {{ item.product.category.name }}
+                                            </div>
+
+                                        {% endif %}
+
+                                        <h2 class="cart-product-name">
+                                            <a
+                                                href="{% url 'products:product_detail' item.product.id %}"
+                                            >
+                                                {{ item.product.name }}
+                                            </a>
+                                        </h2>
+
+                                        <div class="cart-unit-price">
+                                            {{ item.price|floatformat:2 }} €
+                                            l’unité
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="cart-quantity"
+                                    aria-label="Modifier la quantité"
+                                >
+                                    <a
+                                        href="{% url 'cart:cart_decrease' item.product.id %}"
+                                        class="cart-quantity-button"
+                                        aria-label="Diminuer la quantité"
+                                    >
                                         −
                                     </a>
 
-                                    <span>{{ item.quantity }}</span>
+                                    <span class="cart-quantity-value">
+                                        {{ item.quantity }}
+                                    </span>
 
-                                    <a href="{% url 'cart:cart_increase' item.product.id %}"
-                                         class="btn btn-sm btn-outline-secondary">
-                                         +
+                                    <a
+                                        href="{% url 'cart:cart_increase' item.product.id %}"
+                                        class="cart-quantity-button"
+                                        aria-label="Augmenter la quantité"
+                                    >
+                                        +
                                     </a>
                                 </div>
-                            </td>
-                            <td>{{ item.total_price }} €</td>
-                            <td>
-                                <a href="{% url 'cart:cart_remove' item.product.id %}"
-                                    class="btn btn-sm btn-outline-danger">
-                                     Supprimer
+
+                                <div class="cart-item-total">
+                                    {{ item.total_price|floatformat:2 }} €
+                                </div>
+
+                                <a
+                                    href="{% url 'cart:cart_remove' item.product.id %}"
+                                    class="cart-remove"
+                                    aria-label="Supprimer {{ item.product.name }} du panier"
+                                    title="Supprimer"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="18"
+                                        height="18"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        aria-hidden="true"
+                                    >
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6l-1 14H6L5 6"></path>
+                                        <path d="M10 11v6"></path>
+                                        <path d="M14 11v6"></path>
+                                        <path d="M9 6V4h6v2"></path>
+                                    </svg>
                                 </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
 
-        <div class="text-end">
-            <div class="text-end mt-3">
-                <h4>Total : {{ cart.get_total_price }} €</h4>
+                            </article>
 
-                {% if can_checkout %}
-                    <a
-                        href="{% url 'orders:order_create' %}"
-                        class="btn btn-success"
-                    >
-                        Valider la commande
-                    </a>
+                        {% endfor %}
 
-                {% else %}
-                    <div class="alert alert-warning mb-3">
-                        Ce produit est temporairement réservé par un autre client.
-                        Il pourra redevenir disponible si la commande n'est pas finalisée.
                     </div>
+                </div>
 
-                    <a
-                        href="{% url 'products:product_list' %}"
-                        class="btn btn-primary"
-                    >
-                        Continuer mes achats
-                    </a>
-                {% endif %}   
+                <div class="col-lg-4">
+                    <aside class="cart-summary">
+
+                        <h2 class="cart-summary-title">
+                            Récapitulatif
+                        </h2>
+
+                        <div class="cart-summary-line">
+                            <span>Articles</span>
+
+                            <span>{{ cart|length }}</span>
+                        </div>
+
+                        <div class="cart-summary-total">
+                            <span>Total</span>
+
+                            <span class="cart-summary-price">
+                                {{ cart.get_total_price|floatformat:2 }} €
+                            </span>
+                        </div>
+
+                        {% if can_checkout %}
+
+                            <a
+                                href="{% url 'orders:order_create' %}"
+                                class="btn btn-success cart-checkout-button"
+                            >
+                                Valider la commande
+                            </a>
+
+                        {% else %}
+
+                            <div
+                                class="alert alert-warning cart-warning"
+                                role="alert"
+                            >
+                                Ce produit est temporairement réservé par un autre client. Il pourra redevenir disponible si la commande n’est pas finalisée.
+
+                            </div>
+
+                        {% endif %}
+
+                        <a
+                            href="{% url 'products:product_list' %}"
+                            class="cart-continue"
+                        >
+                            <span aria-hidden="true">←</span>
+                            Continuer mes achats
+                        </a>
+
+                    </aside>
+                </div>
 
             </div>
-        </div>
-    {% else %}
-        <div class="alert alert-info">
-            Ton panier est vide.
-        </div>
-    {% endif %}
-</div>
+
+        {% else %}
+
+            <div class="cart-empty">
+
+                <span
+                    class="cart-empty-icon"
+                    aria-hidden="true"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="38"
+                        height="38"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <circle cx="9" cy="20" r="1"></circle>
+                        <circle cx="20" cy="20" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                </span>
+
+                <h2 class="cart-empty-title">
+                    Votre panier est vide
+                </h2>
+
+                <p class="cart-empty-text">
+                    Parcourez le catalogue pour découvrir les
+                    produits actuellement disponibles.
+                </p>
+
+                <a
+                    href="{% url 'products:product_list' %}"
+                    class="btn btn-primary btn-lg"
+                >
+                    Découvrir les produits
+                </a>
+            </div>
+
+        {% endif %}
+
+    </div>
+</section>
+
 {% endblock %}

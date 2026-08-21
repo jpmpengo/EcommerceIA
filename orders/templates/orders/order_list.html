@@ -1,67 +1,519 @@
 {% extends "base.html" %}
 
+{% block title %}
+    Mes commandes | EcommerceIA
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-list-page {
+        padding: 3.5rem 0 5rem;
+    }
+
+    .order-list-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .order-list-eyebrow {
+        margin-bottom: 0.45rem;
+        color: #2563eb;
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .order-list-title {
+        margin: 0 0 0.55rem;
+        color: #0f172a;
+        font-size: clamp(2.4rem, 5vw, 3.6rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+    }
+
+    .order-list-intro {
+        max-width: 42rem;
+        margin: 0;
+        color: #64748b;
+        line-height: 1.65;
+    }
+
+    .order-list-count {
+        color: #64748b;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .order-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .order-card {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto;
+        gap: 1.5rem;
+        padding: 1.35rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.15rem;
+        background: #ffffff;
+        box-shadow:
+            0 14px 36px rgba(15, 23, 42, 0.06);
+        transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .order-card:hover {
+        transform: translateY(-2px);
+        border-color: #bfdbfe;
+        box-shadow:
+            0 20px 42px rgba(15, 23, 42, 0.09);
+    }
+
+    .order-card-main {
+        min-width: 0;
+    }
+
+    .order-card-heading {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .order-card-number {
+        margin: 0;
+        color: #0f172a;
+        font-size: 1.3rem;
+        font-weight: 850;
+    }
+
+    .order-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        min-height: 1.9rem;
+        padding: 0.35rem 0.65rem;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+    }
+
+    .order-status-dot {
+        width: 0.48rem;
+        height: 0.48rem;
+        border-radius: 999px;
+        background: currentColor;
+    }
+
+    .order-status-paid {
+        color: #166534;
+        border-color: #bbf7d0;
+        background: #dcfce7;
+    }
+
+    .order-status-pending {
+        color: #92400e;
+        border-color: #fde68a;
+        background: #fef3c7;
+    }
+
+    .order-status-expired {
+        color: #475569;
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+    }
+
+    .order-status-cancelled {
+        color: #991b1b;
+        border-color: #fecaca;
+        background: #fee2e2;
+    }
+
+    .order-card-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.55rem 1.25rem;
+        margin-bottom: 1rem;
+        color: #64748b;
+        font-size: 0.84rem;
+    }
+
+    .order-products-preview {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+    .order-product-preview {
+        width: 3.4rem;
+        height: 3.4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        background: #f8fafc;
+    }
+
+    .order-product-preview img {
+        width: 100%;
+        height: 100%;
+        padding: 0.3rem;
+        object-fit: contain;
+    }
+
+    .order-product-placeholder {
+        color: #94a3b8;
+    }
+
+    .order-product-summary {
+        margin-left: 0.35rem;
+        color: #475569;
+        font-size: 0.84rem;
+        line-height: 1.45;
+    }
+
+    .order-card-side {
+        min-width: 11rem;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .order-card-total-label {
+        display: block;
+        margin-bottom: 0.2rem;
+        color: #94a3b8;
+        text-align: right;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .order-card-total {
+        color: #0f172a;
+        text-align: right;
+        font-size: 1.35rem;
+        font-weight: 850;
+        letter-spacing: -0.025em;
+    }
+
+    .order-card-button {
+        min-height: 2.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding-right: 1rem;
+        padding-left: 1rem;
+        font-weight: 800;
+    }
+
+    .order-empty {
+        padding: 5rem 1.5rem;
+        border: 1px dashed #cbd5e1;
+        border-radius: 1.25rem;
+        text-align: center;
+        background: #ffffff;
+    }
+
+    .order-empty-icon {
+        width: 5rem;
+        height: 5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        border-radius: 1.3rem;
+        color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .order-empty-title {
+        margin-bottom: 0.55rem;
+        color: #0f172a;
+        font-size: 1.65rem;
+        font-weight: 850;
+    }
+
+    .order-empty-text {
+        max-width: 32rem;
+        margin: 0 auto 1.5rem;
+        color: #64748b;
+        line-height: 1.65;
+    }
+
+    @media (max-width: 767.98px) {
+        .order-list-page {
+            padding-top: 2.5rem;
+        }
+
+        .order-list-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .order-card {
+            grid-template-columns: 1fr;
+        }
+
+        .order-card-side {
+            min-width: 0;
+            align-items: stretch;
+        }
+
+        .order-card-total-label,
+        .order-card-total {
+            text-align: left;
+        }
+
+        .order-card-button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h1 class="mb-4">Mes commandes</h1>
 
-    {% if orders %}
-        <div class="table-responsive">
-            <table class="table align-middle">
-                <thead>
-                    <tr>
-                        <th>Commande</th>
-                        <th>Date</th>
-                        <th>Total</th>
-                        <th>Statut</th>
-                        <th></th>
-                    </tr>
-                </thead>
+<section class="order-list-page">
+    <div class="container">
 
-                <tbody>
-                    {% for order in orders %}
-                        <tr>
-                            <td>#{{ order.id }}</td>
-                            <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
-                            <td>{{ order.get_total_price }} €</td>
-                            <td>
+        <header class="order-list-header">
+            <div>
+                <div class="order-list-eyebrow">
+                    Votre historique
+                </div>
+
+                <h1 class="order-list-title">
+                    Mes commandes
+                </h1>
+
+                <p class="order-list-intro">
+                    Retrouvez vos commandes, consultez leur statut
+                    et reprenez un paiement en attente.
+                </p>
+            </div>
+
+            {% if orders %}
+
+                <div class="order-list-count">
+                    {{ orders|length }}
+                    commande{{ orders|length|pluralize }}
+                </div>
+
+            {% endif %}
+        </header>
+
+        {% if orders %}
+
+            <div class="order-list">
+
+                {% for order in orders %}
+
+                    <article class="order-card">
+
+                        <div class="order-card-main">
+
+                            <div class="order-card-heading">
+
+                                <h2 class="order-card-number">
+                                    Commande #{{ order.id }}
+                                </h2>
+
                                 {% if order.status == "paid" %}
-                                    <span class="badge bg-success">
+
+                                    <span class="order-status order-status-paid">
+                                        <span class="order-status-dot"></span>
                                         Payée
                                     </span>
 
                                 {% elif order.status == "pending" %}
-                                    <span class="badge bg-warning text-dark">
+
+                                    <span class="order-status order-status-pending">
+                                        <span class="order-status-dot"></span>
                                         En attente de paiement
                                     </span>
 
                                 {% elif order.status == "expired" %}
-                                    <span class="badge bg-secondary">
+
+                                    <span class="order-status order-status-expired">
+                                        <span class="order-status-dot"></span>
                                         Expirée
                                     </span>
 
                                 {% elif order.status == "cancelled" %}
-                                    <span class="badge bg-danger">
+
+                                    <span class="order-status order-status-cancelled">
+                                        <span class="order-status-dot"></span>
                                         Annulée
                                     </span>
+
                                 {% endif %}
-                            </td>
-                            <td>
-                                <a
-                                    href="{% url 'orders:order_detail' order.id %}"
-                                    class="btn btn-sm btn-outline-primary"
-                                >
-                                    Voir
-                                </a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="alert alert-info">
-            Tu n’as encore aucune commande associée à ce compte.
-        </div>
-    {% endif %}
-</div>
+                            </div>
+
+                            <div class="order-card-meta">
+                                <span>
+                                    Commandée le
+                                    {{ order.created_at|date:"d/m/Y à H:i" }}
+                                </span>
+
+                                <span>
+                                    {{ order.items.count }}
+                                    produit{{ order.items.count|pluralize }}
+                                </span>
+                            </div>
+
+                            <div class="order-products-preview">
+
+                                {% for item in order.items.all|slice:":3" %}
+
+                                    <span
+                                        class="order-product-preview"
+                                        title="{{ item.product.name }}"
+                                    >
+                                        {% if item.product.image %}
+
+                                            <img
+                                                src="{{ item.product.image.url }}"
+                                                alt="{{ item.product.name }}"
+                                            >
+
+                                        {% else %}
+
+                                            <span
+                                                class="order-product-placeholder"
+                                                aria-hidden="true"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="21"
+                                                    height="21"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="1.7"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                                    <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                                                    <line x1="12" y1="22" x2="12" y2="12"></line>
+                                                </svg>
+                                            </span>
+
+                                        {% endif %}
+                                    </span>
+
+                                {% endfor %}
+
+                                <div class="order-product-summary">
+                                    {% with first_item=order.items.all.0 %}
+
+                                        {% if first_item %}
+
+                                            {{ first_item.product.name }}
+
+                                            {% if order.items.count > 1 %}
+                                                et autres produits
+                                            {% endif %}
+
+                                        {% endif %}
+
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="order-card-side">
+
+                            <div>
+                                <span class="order-card-total-label">
+                                    Total
+                                </span>
+
+                                <div class="order-card-total">
+                                    {{ order.get_total_price }} €
+                                </div>
+                            </div>
+
+                            <a
+                                href="{% url 'orders:order_detail' order.id %}"
+                                class="btn btn-outline-primary order-card-button"
+                            >
+                                Voir la commande
+                                <span aria-hidden="true">→</span>
+                            </a>
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="order-empty">
+
+                <span
+                    class="order-empty-icon"
+                    aria-hidden="true"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="34"
+                        height="34"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d="M6 2l1 4"></path>
+                        <path d="M18 2l-1 4"></path>
+                        <path d="M3 6h18l-2 15H5L3 6z"></path>
+                        <path d="M9 10v6"></path>
+                        <path d="M15 10v6"></path>
+                    </svg>
+                </span>
+
+                <h2 class="order-empty-title">
+                    Aucune commande pour le moment
+                </h2>
+
+                <p class="order-empty-text">
+                    Parcourez notre sélection et ajoutez les produits
+                    qui vous intéressent à votre panier.
+                </p>
+
+                <a
+                    href="{% url 'products:product_list' %}"
+                    class="btn btn-primary btn-lg"
+                >
+                    Découvrir les produits
+                </a>
+            </div>
+
+        {% endif %}
+    </div>
+</section>
+
 {% endblock %}

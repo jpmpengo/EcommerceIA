@@ -1,35 +1,71 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import Http404, HttpResponse
+from django.shortcuts import (
+    get_object_or_404,
+    redirect,
+    render,
+)
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+
+import stripe
 
 from cart.cart import Cart
 from products.models import Product
 
-from .forms import OrderCreateForm
-from .models import OrderItem, Order
-
-import stripe
-
-from django.conf import settings
-from django.urls import reverse
-
-from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
-
 from orders.services.payment_service import (
     OrderPaymentService,
 )
-
 from orders.services.reservation_service import (
     OrderReservationService,
 )
+
+from .forms import OrderCreateForm
+from .models import Order
+
+
+def _get_accessible_order(
+    request,
+    order_id,
+):
+    orders = Order.objects.prefetch_related(
+        "items__product"
+    )
+
+    if request.user.is_authenticated:
+        return get_object_or_404(
+            orders,
+            id=order_id,
+            user=request.user,
+        )
+
+    guest_order_ids = request.session.get(
+        "guest_order_ids",
+        [],
+    )
+
+    if order_id not in guest_order_ids:
+        raise Http404(
+            "Cette commande n'est pas accessible."
+        )
+
+    return get_object_or_404(
+        orders,
+        id=order_id,
+        user__isnull=True,
+    )
+
 
 def order_create(request):
     cart = Cart(request)
 
     if request.method == "POST":
-        form = OrderCreateForm(request.POST)
+        form = OrderCreateForm(
+            request.POST
+        )
 
         if form.is_valid():
             cart_items = list(cart)
@@ -39,28 +75,34 @@ def order_create(request):
                     request,
                     "Votre panier est vide.",
                 )
-                return redirect("cart:cart_detail")
+
+                return redirect(
+                    "cart:cart_detail"
+                )
 
             try:
                 with transaction.atomic():
                     locked_products = {}
 
-                    # Verrouillage des produits.
                     for item in cart_items:
                         product = (
                             Product.objects
                             .select_for_update()
                             .get(
-                                id=item["product"].id
+                                id=(
+                                    item["product"].id
+                                )
                             )
                         )
 
-                        locked_products[product.id] = product
+                        locked_products[
+                            product.id
+                        ] = product
 
-                        # Vérification du stock physique.
                         if (
                             not product.is_available
-                            or item["quantity"] > product.stock
+                            or item["quantity"]
+                            > product.stock
                         ):
                             raise ValueError(
                                 (
@@ -69,17 +111,17 @@ def order_create(request):
                                 )
                             )
 
-                    # Création de la commande.
                     order = form.save(
                         commit=False
                     )
 
                     if request.user.is_authenticated:
-                        order.user = request.user
+                        order.user = (
+                            request.user
+                        )
 
                     order.save()
 
-                    # Réservation valable 30 minutes.
                     order.set_reservation_expiration()
 
                     order.save(
@@ -88,14 +130,16 @@ def order_create(request):
                         ]
                     )
 
-                    # Création des lignes avec
-                    # contrôle du stock disponible.
                     for item in cart_items:
-                        product = locked_products[
-                            item["product"].id
-                        ]
+                        product = (
+                            locked_products[
+                                item["product"].id
+                            ]
+                        )
 
-                        quantity = item["quantity"]
+                        quantity = (
+                            item["quantity"]
+                        )
 
                         OrderReservationService.reserve(
                             order=order,
@@ -113,16 +157,30 @@ def order_create(request):
                     "cart:cart_detail"
                 )
 
-            # Seulement si toute la transaction
-            # a réellement réussi.
             cart.clear()
 
-            return render(
-                request,
-                "orders/order_created.html",
-                {
-                    "order": order,
-                },
+            if not request.user.is_authenticated:
+                guest_order_ids = (
+                    request.session.get(
+                        "guest_order_ids",
+                        [],
+                    )
+                )
+
+                if order.id not in guest_order_ids:
+                    guest_order_ids.append(
+                        order.id
+                    )
+
+                request.session[
+                    "guest_order_ids"
+                ] = guest_order_ids
+
+                request.session.modified = True
+
+            return redirect(
+                "orders:order_created",
+                order_id=order.id,
             )
 
     else:
@@ -137,14 +195,43 @@ def order_create(request):
         },
     )
 
-
-@login_required
-def payment_create(request, order_id):
-    order = get_object_or_404(
-        request.user.orders.prefetch_related("items__product"),
-        id=order_id,
-        paid=False,
+def order_created(
+    request,
+    order_id,
+):
+    order = _get_accessible_order(
+        request,
+        order_id,
     )
+
+    order = (
+        OrderReservationService
+        .expire_order(
+            order
+        )
+    )
+
+    return render(
+        request,
+        "orders/order_created.html",
+        {
+            "order": order,
+        },
+    )
+
+def payment_create(
+    request,
+    order_id,
+):
+    order = _get_accessible_order(
+        request,
+        order_id,
+    )
+
+    if order.paid:
+        raise Http404(
+            "Cette commande est déjà payée."
+        )
 
     if order.reservation_has_expired():
         order.status = "expired"
@@ -158,8 +245,9 @@ def payment_create(request, order_id):
         messages.error(
             request,
             (
-                "La réservation de cette commande a expiré. "
-                "Le paiement n'est plus disponible."
+                "La réservation de cette commande "
+                "a expiré. Le paiement n'est plus "
+                "disponible."
             ),
         )
 
@@ -171,7 +259,10 @@ def payment_create(request, order_id):
     if order.status != "pending":
         messages.error(
             request,
-            "Cette commande ne peut plus être payée.",
+            (
+                "Cette commande ne peut plus "
+                "être payée."
+            ),
         )
 
         return redirect(
@@ -179,7 +270,9 @@ def payment_create(request, order_id):
             order_id=order.id,
         )
 
-    stripe.api_key = settings.STRIPE_SECRET_KEY
+    stripe.api_key = (
+        settings.STRIPE_SECRET_KEY
+    )
 
     line_items = []
 
@@ -189,157 +282,333 @@ def payment_create(request, order_id):
                 "price_data": {
                     "currency": "eur",
                     "product_data": {
-                        "name": item.product.name,
+                        "name": (
+                            item.product.name
+                        ),
                     },
-                    "unit_amount": int(item.price * 100),
+                    "unit_amount": int(
+                        item.price * 100
+                    ),
                 },
                 "quantity": item.quantity,
             }
         )
 
-    success_url = request.build_absolute_uri(
-        reverse("orders:payment_success")
-    )
-
-    success_url += "?session_id={CHECKOUT_SESSION_ID}"
-
-    cancel_url = request.build_absolute_uri(
-        reverse(
-            "orders:order_detail",
-            args=[order.id],
+    success_url = (
+        request.build_absolute_uri(
+            reverse(
+                "orders:payment_success"
+            )
         )
     )
 
-    checkout_session = stripe.checkout.Session.create(
-        mode="payment",
-        line_items=line_items,
-        success_url=success_url,
-        cancel_url=cancel_url,
-        client_reference_id=str(order.id),
-        metadata={
-            "order_id": str(order.id),
+    success_url += (
+        "?session_id="
+        "{CHECKOUT_SESSION_ID}"
+    )
+
+    cancel_url = (
+        request.build_absolute_uri(
+            reverse(
+                "orders:order_detail",
+                args=[
+                    order.id,
+                ],
+            )
+        )
+    )
+
+    checkout_session = (
+        stripe.checkout.Session.create(
+            mode="payment",
+            line_items=line_items,
+            success_url=success_url,
+            cancel_url=cancel_url,
+            client_reference_id=str(
+                order.id
+            ),
+            metadata={
+                "order_id": str(
+                    order.id
+                ),
+            },
+        )
+    )
+
+    order.stripe_checkout_session_id = (
+        checkout_session.id
+    )
+
+    order.save(
+        update_fields=[
+            "stripe_checkout_session_id",
+        ]
+    )
+
+    return HttpResponse(
+        status=303,
+        headers={
+            "Location": checkout_session.url,
         },
     )
 
-    order.stripe_checkout_session_id = checkout_session.id
-    order.save(
-        update_fields=["stripe_checkout_session_id"]
-    )
 
-    return redirect(
-        checkout_session.url,
-        code=303,
-    )
-
-
-@login_required
 def payment_success(request):
-    session_id = request.GET.get("session_id")
+    session_id = request.GET.get(
+        "session_id"
+    )
 
     if not session_id:
         messages.error(
             request,
-            "La session de paiement est introuvable.",
+            (
+                "La session de paiement "
+                "est introuvable."
+            ),
         )
-        return redirect("orders:order_list")
 
-    stripe.api_key = settings.STRIPE_SECRET_KEY
+        if request.user.is_authenticated:
+            return redirect(
+                "orders:order_list"
+            )
 
-    checkout_session = stripe.checkout.Session.retrieve(
-        session_id
+        return redirect(
+            "cart:cart_detail"
+        )
+
+    stripe.api_key = (
+        settings.STRIPE_SECRET_KEY
     )
 
-    order = get_object_or_404(
-        request.user.orders,
-        id=checkout_session.metadata.order_id,
+    checkout_session = (
+        stripe.checkout.Session.retrieve(
+            session_id
+        )
     )
+
+    metadata = getattr(
+        checkout_session,
+        "metadata",
+        {},
+    )
+
+    order_id = getattr(
+        metadata,
+        "order_id",
+        None,
+    )
+
+    if (
+        order_id is None
+        and isinstance(metadata, dict)
+    ):
+        order_id = metadata.get(
+            "order_id"
+        )
+
+    if order_id is None:
+        raise Http404(
+            (
+                "La commande associée "
+                "est introuvable."
+            )
+        )
+
+    try:
+        order_id = int(
+            order_id
+        )
+    except (
+        TypeError,
+        ValueError,
+    ):
+        raise Http404(
+            (
+                "L'identifiant de commande "
+                "est invalide."
+            )
+        )
+
+    order = _get_accessible_order(
+        request,
+        order_id,
+    )
+
+    if (
+        order.stripe_checkout_session_id
+        != session_id
+    ):
+        raise Http404(
+            (
+                "Cette session de paiement "
+                "ne correspond pas à la commande."
+            )
+        )
 
     return render(
         request,
         "orders/payment_success.html",
         {
             "order": order,
-            "checkout_session": checkout_session,
+            "checkout_session": (
+                checkout_session
+            ),
         },
     )
 
-
-@login_required
 def order_list(request):
-    orders = request.user.orders.prefetch_related(
+    orders = Order.objects.prefetch_related(
         "items__product"
+    )
+
+    if request.user.is_authenticated:
+        orders = orders.filter(
+            user=request.user,
+        )
+
+    else:
+        guest_order_ids = request.session.get(
+            "guest_order_ids",
+            [],
+        )
+
+        orders = orders.filter(
+            id__in=guest_order_ids,
+            user__isnull=True,
+        )
+
+    (
+        OrderReservationService
+        .expire_overdue_orders(
+            orders
+        )
+    )
+
+    orders = orders.order_by(
+        "-id"
     )
 
     return render(
         request,
         "orders/order_list.html",
-        {"orders": orders},
+        {
+            "orders": orders,
+        },
     )
 
+def order_detail(
+    request,
+    order_id,
+):
+    order = _get_accessible_order(
+        request,
+        order_id,
+    )
 
-@login_required
-def order_detail(request, order_id):
-    order = get_object_or_404(
-        request.user.orders.prefetch_related("items__product"),
-        id=order_id,
+    order = (
+        OrderReservationService
+        .expire_order(
+            order
+        )
     )
 
     return render(
         request,
         "orders/order_detail.html",
-        {"order": order},
+        {
+            "order": order,
+        },
     )
-    
+
 @csrf_exempt
 def stripe_webhook(request):
     if request.method != "POST":
-        return HttpResponse(status=405)
+        return HttpResponse(
+            status=405
+        )
 
     payload = request.body
-    signature = request.META.get("HTTP_STRIPE_SIGNATURE")
+
+    signature = request.META.get(
+        "HTTP_STRIPE_SIGNATURE"
+    )
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload=payload,
-            sig_header=signature,
-            secret=settings.STRIPE_WEBHOOK_SECRET,
+        event = (
+            stripe.Webhook.construct_event(
+                payload=payload,
+                sig_header=signature,
+                secret=(
+                    settings
+                    .STRIPE_WEBHOOK_SECRET
+                ),
+            )
         )
 
     except ValueError:
-        return HttpResponse(status=400)
+        return HttpResponse(
+            status=400
+        )
 
-    except stripe.error.SignatureVerificationError:
-        return HttpResponse(status=400)
+    except (
+        stripe.error
+        .SignatureVerificationError
+    ):
+        return HttpResponse(
+            status=400
+        )
 
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
+    if (
+        event["type"]
+        == "checkout.session.completed"
+    ):
+        session = event[
+            "data"
+        ][
+            "object"
+        ]
 
-        metadata = session["metadata"]
-        order_id = (
-            metadata["order_id"]
-            if "order_id" in metadata
-            else None
+        metadata = session.get(
+            "metadata",
+            {},
+        )
+
+        order_id = metadata.get(
+            "order_id"
         )
 
         if order_id:
-            order = Order.objects.filter(
-                id=order_id,
-                paid=False,
-            ).first()
+            order = (
+                Order.objects
+                .filter(
+                    id=order_id,
+                    paid=False,
+                )
+                .first()
+            )
 
-            if order_id:
-                OrderPaymentService.confirm_payment(
-                    order_id=order_id,
-                    stripe_session_id=session["id"],
+            if order is not None:
+                (
+                    OrderPaymentService
+                    .confirm_payment(
+                        order_id=order_id,
+                        stripe_session_id=(
+                            session["id"]
+                        ),
+                    )
                 )
 
-    return HttpResponse(status=200)
+    return HttpResponse(
+        status=200
+    )
 
-@login_required
-def order_cancel(request, order_id):
-    order = get_object_or_404(
-        request.user.orders,
-        id=order_id,
+def order_cancel(
+    request,
+    order_id,
+):
+    order = _get_accessible_order(
+        request,
+        order_id,
     )
 
     if request.method != "POST":
@@ -348,7 +617,10 @@ def order_cancel(request, order_id):
             order_id=order.id,
         )
 
-    if order.status == "pending" and not order.paid:
+    if (
+        order.status == "pending"
+        and not order.paid
+    ):
         order.status = "cancelled"
 
         order.save(
@@ -359,13 +631,13 @@ def order_cancel(request, order_id):
 
         messages.success(
             request,
-            "Votre commande a été annulée.",
+            (
+                "Votre commande a été "
+                "annulée."
+            ),
         )
 
     return redirect(
         "orders:order_detail",
         order_id=order.id,
     )
-
-    
-    

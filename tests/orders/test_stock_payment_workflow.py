@@ -69,9 +69,16 @@ class StockPaymentWorkflowTests(TestCase):
             },
         )
 
-        self.assertEqual(
-            response.status_code,
-            200,
+        order = Order.objects.get()
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "orders:order_created",
+                args=[
+                    order.id,
+                ],
+            ),
         )
 
         self.product.refresh_from_db()

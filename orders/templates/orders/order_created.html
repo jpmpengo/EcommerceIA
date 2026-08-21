@@ -1,37 +1,550 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="container py-5">
-
-    <div class="alert alert-success">
-        <h2>Commande enregistrée</h2>
-
-        <p>
-            Merci pour ta commande.
-            Ton numéro de commande est <strong>#{{ order.id }}</strong>.
-        </p>
-    </div>
-
-    {% if not order.paid %}
-        <a
-            href="{% url 'orders:payment_create' order.id %}"
-            class="btn btn-success btn-lg me-2"
-        >
-            Payer maintenant
-        </a>
-    {% else %}
-        <span class="badge bg-success">
-            Commande déjà payée
-        </span>
-    {% endif %}
-
-    <a
-        href="{% url 'products:product_list' %}"
-        class="btn btn-primary btn-lg"
-    >
-        Continuer mes achats
-    </a>
-
-</div>
+{% block title %}
+    Commande #{{ order.id }} | EcommerceIA
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .order-created-page {
+        min-height: calc(100vh - 4.75rem);
+        display: flex;
+        align-items: center;
+        padding: 4rem 0 5rem;
+        background:
+            radial-gradient(
+                circle at 18% 20%,
+                rgba(34, 197, 94, 0.11),
+                transparent 30%
+            ),
+            radial-gradient(
+                circle at 85% 75%,
+                rgba(37, 99, 235, 0.1),
+                transparent 30%
+            );
+    }
+
+    .order-created-card {
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.4rem;
+        background: #ffffff;
+        box-shadow:
+            0 28px 70px rgba(15, 23, 42, 0.12);
+    }
+
+    .order-created-main {
+        padding: 3rem;
+    }
+
+    .order-created-icon {
+        width: 4.5rem;
+        height: 4.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        border-radius: 1.25rem;
+        color: #15803d;
+        background: #dcfce7;
+        box-shadow:
+            0 12px 25px rgba(21, 128, 61, 0.14);
+    }
+
+    .order-created-icon-expired {
+        color: #475569;
+        background: #e2e8f0;
+        box-shadow: none;
+    }
+
+    .order-created-icon-cancelled {
+        color: #991b1b;
+        background: #fee2e2;
+        box-shadow: none;
+    }
+
+    .order-created-eyebrow {
+        margin-bottom: 0.6rem;
+        color: #15803d;
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .order-created-eyebrow-expired {
+        color: #475569;
+    }
+
+    .order-created-eyebrow-cancelled {
+        color: #991b1b;
+    }
+
+    .order-created-title {
+        margin-bottom: 0.85rem;
+        color: #0f172a;
+        font-size: clamp(2.25rem, 5vw, 3.5rem);
+        font-weight: 850;
+        line-height: 1.05;
+        letter-spacing: -0.055em;
+    }
+
+    .order-created-text {
+        max-width: 37rem;
+        margin-bottom: 1.5rem;
+        color: #64748b;
+        font-size: 1.02rem;
+        line-height: 1.7;
+    }
+
+    .order-reference {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 2rem;
+        padding: 0.75rem 1rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.8rem;
+        color: #334155;
+        background: #f8fafc;
+        font-size: 0.9rem;
+    }
+
+    .order-reference strong {
+        color: #0f172a;
+        font-size: 1.05rem;
+    }
+
+    .order-created-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .order-created-button {
+        min-height: 3.15rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding-right: 1.15rem;
+        padding-left: 1.15rem;
+        font-weight: 800;
+    }
+
+    .payment-button {
+        box-shadow:
+            0 14px 28px rgba(21, 128, 61, 0.2);
+    }
+
+    .order-created-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 3.15rem;
+        padding: 0.7rem 1rem;
+        border: 1px solid;
+        border-radius: 0.75rem;
+        font-weight: 800;
+    }
+
+    .order-created-status-paid {
+        color: #166534;
+        border-color: #bbf7d0;
+        background: #dcfce7;
+    }
+
+    .order-created-status-expired {
+        color: #475569;
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+    }
+
+    .order-created-status-cancelled {
+        color: #991b1b;
+        border-color: #fecaca;
+        background: #fee2e2;
+    }
+
+    .order-created-account-note {
+        max-width: 36rem;
+        margin: 1.5rem 0 0;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 0.88rem;
+        line-height: 1.6;
+    }
+
+    .order-created-aside {
+        height: 100%;
+        padding: 3rem 2rem;
+        color: #ffffff;
+        background:
+            linear-gradient(
+                145deg,
+                #0f172a,
+                #172554
+            );
+    }
+
+    .order-created-aside-title {
+        margin-bottom: 1.25rem;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
+
+    .order-step-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .order-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.8rem;
+        color: #cbd5e1;
+        font-size: 0.88rem;
+        line-height: 1.55;
+    }
+
+    .order-step-mark {
+        flex: 0 0 auto;
+        width: 1.7rem;
+        height: 1.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        color: #172554;
+        background: #fbbf24;
+        font-size: 0.72rem;
+        font-weight: 900;
+    }
+
+    @media (max-width: 991.98px) {
+        .order-created-page {
+            align-items: flex-start;
+            padding: 3rem 0;
+        }
+
+        .order-created-main,
+        .order-created-aside {
+            padding: 2rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .order-created-main {
+            padding: 1.5rem;
+        }
+
+        .order-created-actions,
+        .order-created-actions > * {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="order-created-page">
+    <div class="container">
+        <div class="order-created-card">
+            <div class="row g-0">
+
+                <div class="col-lg-8">
+                    <div class="order-created-main">
+
+                        <span
+                            class="order-created-icon
+                            {% if order.status == 'expired' %}
+                                order-created-icon-expired
+                            {% elif order.status == 'cancelled' %}
+                                order-created-icon-cancelled
+                            {% endif %}"
+                            aria-hidden="true"
+                        >
+                            {% if order.status == "expired" %}
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="38"
+                                    height="38"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <path d="M12 7v5l3 2"></path>
+                                </svg>
+
+                            {% elif order.status == "cancelled" %}
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="38"
+                                    height="38"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <path d="M9 9l6 6"></path>
+                                    <path d="M15 9l-6 6"></path>
+                                </svg>
+
+                            {% else %}
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="38"
+                                    height="38"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                >
+                                    <path d="M20 6L9 17l-5-5"></path>
+                                </svg>
+
+                            {% endif %}
+                        </span>
+
+                        {% if order.status == "expired" %}
+
+                            <div class="order-created-eyebrow order-created-eyebrow-expired">
+                                Réservation expirée
+                            </div>
+
+                            <h1 class="order-created-title">
+                                Le délai de paiement est dépassé.
+                            </h1>
+
+                            <p class="order-created-text">
+                                Cette commande reste consultable, mais
+                                sa réservation a été libérée. Les produits
+                                peuvent maintenant être commandés par un
+                                autre client.
+                            </p>
+
+                        {% elif order.status == "cancelled" %}
+
+                            <div class="order-created-eyebrow order-created-eyebrow-cancelled">
+                                Commande annulée
+                            </div>
+
+                            <h1 class="order-created-title">
+                                Cette commande a été annulée.
+                            </h1>
+
+                            <p class="order-created-text">
+                                Aucun paiement ne peut plus être effectué
+                                pour cette commande. Les produits réservés
+                                ont été remis à disposition.
+                            </p>
+
+                        {% elif order.paid or order.status == "paid" %}
+
+                            <div class="order-created-eyebrow">
+                                Paiement confirmé
+                            </div>
+
+                            <h1 class="order-created-title">
+                                Merci pour votre commande.
+                            </h1>
+
+                            <p class="order-created-text">
+                                Votre commande est enregistrée et son
+                                paiement est confirmé.
+                            </p>
+
+                        {% else %}
+
+                            <div class="order-created-eyebrow">
+                                Commande enregistrée
+                            </div>
+
+                            <h1 class="order-created-title">
+                                Merci pour votre commande.
+                            </h1>
+
+                            <p class="order-created-text">
+                                Votre commande a bien été enregistrée.
+                                Finalisez maintenant le paiement pour
+                                poursuivre son traitement.
+                            </p>
+
+                        {% endif %}
+
+                        <div class="order-reference">
+                            <span>Numéro de commande</span>
+                            <strong>#{{ order.id }}</strong>
+                        </div>
+
+                        <div class="order-created-actions">
+
+                            {% if order.status == "pending" and not order.paid %}
+
+                                <a
+                                    href="{% url 'orders:payment_create' order.id %}"
+                                    class="btn btn-success btn-lg order-created-button payment-button"
+                                >
+                                    Payer maintenant
+                                    <span aria-hidden="true">→</span>
+                                </a>
+
+                            {% elif order.paid or order.status == "paid" %}
+
+                                <span class="order-created-status order-created-status-paid">
+                                    <span aria-hidden="true">✓</span>
+                                    Paiement confirmé
+                                </span>
+
+                            {% elif order.status == "expired" %}
+
+                                <span class="order-created-status order-created-status-expired">
+                                    Délai de paiement expiré
+                                </span>
+
+                            {% elif order.status == "cancelled" %}
+
+                                <span class="order-created-status order-created-status-cancelled">
+                                    Commande annulée
+                                </span>
+
+                            {% endif %}
+
+                            <a
+                                href="{% url 'orders:order_detail' order.id %}"
+                                class="btn btn-primary btn-lg order-created-button"
+                            >
+                                Voir ma commande
+                            </a>
+
+                            <a
+                                href="{% url 'orders:order_list' %}"
+                                class="btn btn-outline-primary btn-lg order-created-button"
+                            >
+                                Mes commandes
+                            </a>
+
+                            <a
+                                href="{% url 'products:product_list' %}"
+                                class="btn btn-outline-secondary btn-lg order-created-button"
+                            >
+                                Continuer mes achats
+                            </a>
+                        </div>
+
+                        {% if not user.is_authenticated %}
+
+                            <p class="order-created-account-note">
+                                Cette commande reste accessible depuis
+                                ce navigateur sans création de compte.
+                            </p>
+
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <aside class="order-created-aside">
+
+                        <h2 class="order-created-aside-title">
+                            Informations utiles
+                        </h2>
+
+                        <div class="order-step-list">
+
+                            <div class="order-step">
+                                <span class="order-step-mark">1</span>
+
+                                <span>
+                                    Conservez le numéro de référence de
+                                    cette commande.
+                                </span>
+                            </div>
+
+                            {% if order.status == "pending" and not order.paid %}
+
+                                <div class="order-step">
+                                    <span class="order-step-mark">2</span>
+
+                                    <span>
+                                        Finalisez le paiement avant
+                                        l’expiration de la réservation.
+                                    </span>
+                                </div>
+
+                                <div class="order-step">
+                                    <span class="order-step-mark">3</span>
+
+                                    <span>
+                                        Le paiement confirmé permettra
+                                        la préparation de la commande.
+                                    </span>
+                                </div>
+
+                            {% elif order.status == "expired" %}
+
+                                <div class="order-step">
+                                    <span class="order-step-mark">2</span>
+
+                                    <span>
+                                        La réservation des produits a
+                                        été libérée.
+                                    </span>
+                                </div>
+
+                                <div class="order-step">
+                                    <span class="order-step-mark">3</span>
+
+                                    <span>
+                                        Vous pouvez créer une nouvelle
+                                        commande depuis le catalogue.
+                                    </span>
+                                </div>
+
+                            {% elif order.status == "cancelled" %}
+
+                                <div class="order-step">
+                                    <span class="order-step-mark">2</span>
+
+                                    <span>
+                                        Aucun paiement ne sera demandé
+                                        pour cette commande.
+                                    </span>
+                                </div>
+
+                            {% else %}
+
+                                <div class="order-step">
+                                    <span class="order-step-mark">2</span>
+
+                                    <span>
+                                        Le paiement est confirmé et la
+                                        commande peut être préparée.
+                                    </span>
+                                </div>
+
+                            {% endif %}
+                        </div>
+                    </aside>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

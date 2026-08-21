@@ -131,7 +131,7 @@ class CartReservationAvailabilityTests(TestCase):
 
         response = self.client.get(
             reverse("cart:cart_detail")
-        )  
+        )
 
         self.assertEqual(
             response.status_code,
@@ -266,10 +266,7 @@ class CartReservationAvailabilityTests(TestCase):
             "Ce produit est temporairement réservé par un autre client.",
         )
 
-        self.assertNotContains(
+        self.assertContains(
             response,
             "Continuer mes achats",
         )
-
-   
-

@@ -1,52 +1,530 @@
 {% extends "base.html" %}
 
+{% block title %}
+    Finaliser ma commande | EcommerceIA
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checkout-page {
+        padding: 3.5rem 0 5rem;
+    }
+
+    .checkout-header {
+        margin-bottom: 2rem;
+    }
+
+    .checkout-eyebrow {
+        margin-bottom: 0.5rem;
+        color: #2563eb;
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .checkout-title {
+        margin-bottom: 0.65rem;
+        color: #0f172a;
+        font-size: clamp(2.4rem, 5vw, 3.6rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+    }
+
+    .checkout-intro {
+        max-width: 42rem;
+        margin-bottom: 0;
+        color: #64748b;
+        line-height: 1.65;
+    }
+
+    .checkout-guest-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin-top: 1rem;
+        padding: 0.55rem 0.75rem;
+        border: 1px solid #bfdbfe;
+        border-radius: 999px;
+        color: #1e40af;
+        background: #eff6ff;
+        font-size: 0.8rem;
+        font-weight: 750;
+    }
+
+    .checkout-form-card {
+        padding: 1.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.15rem;
+        background: #ffffff;
+        box-shadow:
+            0 12px 32px rgba(15, 23, 42, 0.06);
+    }
+
+    .checkout-card-title {
+        margin-bottom: 0.35rem;
+        color: #0f172a;
+        font-size: 1.3rem;
+        font-weight: 850;
+    }
+
+    .checkout-card-description {
+        margin-bottom: 1.5rem;
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    .checkout-field {
+        margin-bottom: 1.15rem;
+    }
+
+    .checkout-field label {
+        display: block;
+        margin-bottom: 0.45rem;
+        color: #334155;
+        font-size: 0.86rem;
+        font-weight: 750;
+    }
+
+    .checkout-field input,
+    .checkout-field textarea,
+    .checkout-field select {
+        width: 100%;
+        min-height: 3rem;
+        padding: 0.72rem 0.85rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.72rem;
+        color: #0f172a;
+        background: #ffffff;
+        outline: none;
+        transition:
+            border-color 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .checkout-field textarea {
+        min-height: 6rem;
+        resize: vertical;
+    }
+
+    .checkout-field input:focus,
+    .checkout-field textarea:focus,
+    .checkout-field select:focus {
+        border-color: #2563eb;
+        box-shadow:
+            0 0 0 0.22rem rgba(37, 99, 235, 0.12);
+    }
+
+    .checkout-field-help {
+        margin-top: 0.4rem;
+        color: #64748b;
+        font-size: 0.78rem;
+    }
+
+    .checkout-field-error {
+        margin-top: 0.4rem;
+        color: #b91c1c;
+        font-size: 0.8rem;
+        font-weight: 650;
+    }
+
+    .checkout-submit {
+        min-height: 3.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        margin-top: 0.35rem;
+        font-weight: 800;
+        box-shadow:
+            0 14px 28px rgba(37, 99, 235, 0.2);
+    }
+
+    .checkout-summary {
+        position: sticky;
+        top: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.15rem;
+        background: #ffffff;
+        box-shadow:
+            0 12px 32px rgba(15, 23, 42, 0.07);
+    }
+
+    .checkout-summary-title {
+        margin-bottom: 1.25rem;
+        color: #0f172a;
+        font-size: 1.25rem;
+        font-weight: 850;
+    }
+
+    .checkout-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.85rem 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .checkout-item:first-of-type {
+        padding-top: 0;
+    }
+
+    .checkout-item-image {
+        width: 3.75rem;
+        height: 3.75rem;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.7rem;
+        background: #f1f5f9;
+    }
+
+    .checkout-item-image img {
+        width: 100%;
+        height: 100%;
+        padding: 0.35rem;
+        object-fit: contain;
+    }
+
+    .checkout-item-placeholder {
+        color: #94a3b8;
+    }
+
+    .checkout-item-content {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .checkout-item-name {
+        margin-bottom: 0.15rem;
+        overflow: hidden;
+        color: #0f172a;
+        font-size: 0.86rem;
+        font-weight: 750;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .checkout-item-quantity {
+        color: #64748b;
+        font-size: 0.76rem;
+    }
+
+    .checkout-item-price {
+        color: #0f172a;
+        font-size: 0.88rem;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .checkout-total {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-top: 1.25rem;
+        color: #0f172a;
+        font-weight: 850;
+    }
+
+    .checkout-total-price {
+        font-size: 1.45rem;
+        letter-spacing: -0.025em;
+    }
+
+    .checkout-edit-cart {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 1.1rem;
+        color: #64748b;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .checkout-edit-cart:hover {
+        color: #2563eb;
+    }
+
+    .checkout-security {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .checkout-security-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+        color: #64748b;
+        font-size: 0.8rem;
+        line-height: 1.45;
+    }
+
+    .checkout-security-mark {
+        flex: 0 0 auto;
+        width: 1.45rem;
+        height: 1.45rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        color: #15803d;
+        background: #dcfce7;
+        font-size: 0.68rem;
+        font-weight: 900;
+    }
+
+    @media (max-width: 991.98px) {
+        .checkout-summary {
+            position: static;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .checkout-page {
+            padding: 2.5rem 0 3.5rem;
+        }
+
+        .checkout-form-card {
+            padding: 1.25rem;
+        }
+
+        .checkout-guest-note {
+            align-items: flex-start;
+            border-radius: 0.8rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <h1 class="mb-4">Validation de la commande</h1>
 
-    <div class="row">
-        <div class="col-lg-7">
-            <form method="post">
-                {% csrf_token %}
+<section class="checkout-page">
+    <div class="container">
 
-                {{ form.as_p }}
+        <header class="checkout-header">
 
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                >
-                    Confirmer la commande
-                </button>
-            </form>
-        </div>
+            <div class="checkout-eyebrow">
+                Dernière étape
+            </div>
 
-        <div class="col-lg-5">
-            <div class="card">
-                <div class="card-body">
-                    <h2 class="h5">Résumé du panier</h2>
+            <h1 class="checkout-title">
+                Finaliser ma commande
+            </h1>
 
-                    {% for item in cart %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>
-                                {{ item.product.name }}
-                                × {{ item.quantity }}
-                            </span>
+            <p class="checkout-intro">
+                Indiquez les informations nécessaires pour
+                préparer et suivre votre commande.
+            </p>
 
-                            <span>
-                                {{ item.total_price }} €
-                            </span>
+            {% if not user.is_authenticated %}
+
+                <div class="checkout-guest-note">
+                    <span aria-hidden="true">✓</span>
+
+                    <span>
+                        Aucun compte n’est nécessaire pour commander.
+                    </span>
+                </div>
+
+            {% endif %}
+        </header>
+
+        <div class="row g-4">
+
+            <div class="col-lg-7">
+                <div class="checkout-form-card">
+
+                    <h2 class="checkout-card-title">
+                        Vos coordonnées
+                    </h2>
+
+                    <p class="checkout-card-description">
+                        Ces informations seront associées à
+                        cette commande.
+                    </p>
+
+                    {% if form.non_field_errors %}
+
+                        <div
+                            class="alert alert-danger"
+                            role="alert"
+                        >
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
                         </div>
-                    {% endfor %}
 
-                    <hr>
+                    {% endif %}
 
-                    <div class="d-flex justify-content-between fw-bold">
-                        <span>Total</span>
-                        <span>{{ cart.get_total_price }} €</span>
-                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="row">
+
+                            {% for field in form %}
+
+                                <div
+                                    class="{% if field.name == 'address' %}col-12{% else %}col-md-6{% endif %}"
+                                >
+                                    <div class="checkout-field">
+
+                                        <label for="{{ field.id_for_label }}">
+                                            {{ field.label }}
+                                        </label>
+
+                                        {{ field }}
+
+                                        {% if field.help_text %}
+
+                                            <div class="checkout-field-help">
+                                                {{ field.help_text }}
+                                            </div>
+
+                                        {% endif %}
+
+                                        {% for error in field.errors %}
+
+                                            <div class="checkout-field-error">
+                                                {{ error }}
+                                            </div>
+
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary checkout-submit"
+                        >
+                            Confirmer la commande
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
                 </div>
             </div>
+
+            <div class="col-lg-5">
+                <aside class="checkout-summary">
+
+                    <h2 class="checkout-summary-title">
+                        Résumé du panier
+                    </h2>
+
+                    {% for item in cart %}
+
+                        <div class="checkout-item">
+
+                            <div class="checkout-item-image">
+
+                                {% if item.product.image %}
+
+                                    <img
+                                        src="{{ item.product.image.url }}"
+                                        alt="{{ item.product.name }}"
+                                    >
+
+                                {% else %}
+
+                                    <span
+                                        class="checkout-item-placeholder"
+                                        aria-hidden="true"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="23"
+                                            height="23"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            stroke-width="1.7"
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                        >
+                                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                            <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                                            <line x1="12" y1="22" x2="12" y2="12"></line>
+                                        </svg>
+                                    </span>
+
+                                {% endif %}
+                            </div>
+
+                            <div class="checkout-item-content">
+                                <div class="checkout-item-name">
+                                    {{ item.product.name }}
+                                </div>
+
+                                <div class="checkout-item-quantity">
+                                    Quantité : {{ item.quantity }}
+                                </div>
+                            </div>
+
+                            <div class="checkout-item-price">
+                                {{ item.total_price|floatformat:2 }} €
+                            </div>
+                        </div>
+
+                    {% endfor %}
+
+                    <div class="checkout-total">
+                        <span>Total</span>
+
+                        <span class="checkout-total-price">
+                            {{ cart.get_total_price|floatformat:2 }} €
+                        </span>
+                    </div>
+
+                    <a
+                        href="{% url 'cart:cart_detail' %}"
+                        class="checkout-edit-cart"
+                    >
+                        <span aria-hidden="true">←</span>
+                        Modifier mon panier
+                    </a>
+
+                    <div class="checkout-security">
+
+                        <div class="checkout-security-item">
+                            <span class="checkout-security-mark">
+                                ✓
+                            </span>
+
+                            <span>
+                                Commande possible sans création
+                                de compte.
+                            </span>
+                        </div>
+
+                        <div class="checkout-security-item">
+                            <span class="checkout-security-mark">
+                                ✓
+                            </span>
+
+                            <span>
+                                Les informations saisies sont utilisées
+                                pour le traitement de la commande.
+                            </span>
+                        </div>
+
+                    </div>
+                </aside>
+            </div>
+
         </div>
     </div>
-</div>
+</section>
+
 {% endblock %}

@@ -12,6 +12,11 @@ urlpatterns = [
         name="order_create",
     ),
     path(
+        "confirmation/<int:order_id>/",
+        views.order_created,
+        name="order_created",
+    ),
+    path(
         "mes-commandes/",
         views.order_list,
         name="order_list",
@@ -42,4 +47,3 @@ urlpatterns = [
         name="order_cancel",
     ),
 ]
-

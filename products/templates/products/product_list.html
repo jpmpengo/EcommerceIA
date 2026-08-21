@@ -1,53 +1,547 @@
 {% extends "base.html" %}
 
 {% block title %}
-Produits - EcommerceIA
+    {% if category %}
+        {{ category.name }} | EcommerceIA
+    {% else %}
+        Nos produits | EcommerceIA
+    {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .catalog-header {
+        padding: 3.25rem 0 2.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        background:
+            radial-gradient(
+                circle at 88% 15%,
+                rgba(245, 158, 11, 0.11),
+                transparent 27%
+            ),
+            linear-gradient(
+                180deg,
+                #ffffff,
+                #f8fafc
+            );
+    }
+
+    .catalog-eyebrow {
+        margin-bottom: 0.6rem;
+        color: #2563eb;
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .catalog-title {
+        margin-bottom: 0.65rem;
+        color: #0f172a;
+        font-size: clamp(2.3rem, 4vw, 3.35rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+    }
+
+    .catalog-description {
+        max-width: 42rem;
+        margin-bottom: 0;
+        color: #64748b;
+        font-size: 1rem;
+        line-height: 1.65;
+    }
+
+    .catalog-section {
+        padding: 2.25rem 0 4.5rem;
+    }
+
+    .category-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .category-filter-link {
+        min-height: 2.4rem;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.48rem 0.8rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 999px;
+        color: #475569;
+        background: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 700;
+        transition:
+            color 160ms ease,
+            border-color 160ms ease,
+            background-color 160ms ease,
+            transform 160ms ease;
+    }
+
+    .category-filter-link:hover {
+        color: #1d4ed8;
+        border-color: #93c5fd;
+        background: #eff6ff;
+        transform: translateY(-1px);
+    }
+
+    .category-filter-link.active {
+        color: #ffffff;
+        border-color: #2563eb;
+        background: #2563eb;
+        box-shadow:
+            0 7px 18px rgba(37, 99, 235, 0.2);
+    }
+
+    .catalog-summary {
+        margin-bottom: 1.2rem;
+    }
+
+    .catalog-count {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.88rem;
+    }
+
+    .catalog-count strong {
+        color: #0f172a;
+    }
+
+    .product-card {
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        background: #ffffff;
+        box-shadow:
+            0 8px 24px rgba(15, 23, 42, 0.05);
+        transition:
+            transform 180ms ease,
+            border-color 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .product-card:hover {
+        border-color: rgba(37, 99, 235, 0.34);
+        transform: translateY(-4px);
+        box-shadow:
+            0 18px 38px rgba(15, 23, 42, 0.1);
+    }
+
+    .product-image-link {
+        position: relative;
+        height: 12rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background:
+            linear-gradient(
+                145deg,
+                #f8fafc,
+                #eef2f7
+            );
+    }
+
+    .product-image {
+        width: 100%;
+        height: 100%;
+        padding: 1rem;
+        object-fit: contain;
+        transition: transform 220ms ease;
+    }
+
+    .product-card:hover .product-image {
+        transform: scale(1.04);
+    }
+
+    .product-placeholder {
+        width: 4.25rem;
+        height: 4.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 1rem;
+        color: #94a3b8;
+        background: #e2e8f0;
+    }
+
+    .product-stock-badge {
+        position: absolute;
+        top: 0.7rem;
+        right: 0.7rem;
+        padding: 0.32rem 0.55rem;
+        border-radius: 999px;
+        font-size: 0.67rem;
+        font-weight: 800;
+        backdrop-filter: blur(8px);
+    }
+
+    .product-stock-badge.available {
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        background: rgba(220, 252, 231, 0.94);
+    }
+
+    .product-stock-badge.unavailable {
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        background: rgba(254, 226, 226, 0.94);
+    }
+
+    .product-card-body {
+        height: calc(100% - 12rem);
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .product-category {
+        display: inline-flex;
+        align-self: flex-start;
+        margin-bottom: 0.55rem;
+        padding: 0.28rem 0.5rem;
+        border-radius: 999px;
+        color: #1d4ed8;
+        background: #eff6ff;
+        font-size: 0.66rem;
+        font-weight: 800;
+    }
+
+    .product-title {
+        margin-bottom: 0.45rem;
+        color: #0f172a;
+        font-size: 1rem;
+        font-weight: 800;
+        line-height: 1.35;
+    }
+
+    .product-title a {
+        color: inherit;
+    }
+
+    .product-title a:hover {
+        color: #2563eb;
+    }
+
+    .product-description {
+        min-height: 2.7rem;
+        margin-bottom: 0.75rem;
+        color: #64748b;
+        font-size: 0.82rem;
+        line-height: 1.5;
+    }
+
+    .product-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+        margin-top: auto;
+        padding-top: 0.8rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .product-price {
+        color: #0f172a;
+        font-size: 1.05rem;
+        font-weight: 850;
+        white-space: nowrap;
+    }
+
+    .product-button {
+        min-height: 2.25rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.4rem 0.65rem;
+        font-size: 0.78rem;
+        white-space: nowrap;
+    }
+
+    .catalog-empty {
+        padding: 4rem 1.5rem;
+        border: 1px dashed #cbd5e1;
+        border-radius: 1.2rem;
+        text-align: center;
+        background: #ffffff;
+    }
+
+    .catalog-empty-icon {
+        width: 4rem;
+        height: 4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        border-radius: 1.1rem;
+        color: #64748b;
+        background: #f1f5f9;
+    }
+
+    .catalog-empty-title {
+        margin-bottom: 0.5rem;
+        color: #0f172a;
+        font-weight: 800;
+    }
+
+    .catalog-empty-text {
+        margin-bottom: 0;
+        color: #64748b;
+    }
+
+    @media (max-width: 1199.98px) {
+        .product-image-link {
+            height: 13rem;
+        }
+
+        .product-card-body {
+            height: calc(100% - 13rem);
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .catalog-header {
+            padding: 2.75rem 0 2rem;
+        }
+
+        .catalog-section {
+            padding-top: 1.75rem;
+        }
+
+        .product-image-link {
+            height: 14rem;
+        }
+
+        .product-card-body {
+            height: calc(100% - 14rem);
+        }
+
+        .product-description {
+            min-height: auto;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    {% if category %}
-        <h1>Produits : {{ category.name }}</h1>
-    {% else %}
-        <h1>Nos produits</h1>
-    {% endif %}
 
-    <div class="row">
-        {% for product in products %}
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    {% if product.image %}
-                        <img
-                            src="{{ product.image.url }}"
-                            class="card-img-top p-3"
-                            alt="{{ product.name }}"
-                            style="height: 180px; object-fit: contain;"
-                        >
-                    {% endif %}
-                    <div class="card-body">
-                        <h2 class="card-title h5">
-                            {{ product.name }}
-                        </h2>
+<header class="catalog-header">
+    <div class="container">
 
-                        <p class="card-text">
-                            {{ product.description }}
-                        </p>
+        <div class="catalog-eyebrow">
+            Le catalogue
+        </div>
 
-                        <p class="fw-bold">
-                            {{ product.price }} €
-                        </p>
+        {% if category %}
+
+            <h1 class="catalog-title">
+                {{ category.name }}
+            </h1>
+
+            <p class="catalog-description">
+                Découvrez les produits actuellement disponibles
+                dans la catégorie {{ category.name }}.
+            </p>
+
+        {% else %}
+
+            <h1 class="catalog-title">
+                Nos produits
+            </h1>
+
+            <p class="catalog-description">
+                Parcourez notre sélection et consultez les
+                informations essentielles en un coup d’œil.
+            </p>
+
+        {% endif %}
+
+    </div>
+</header>
+
+<section class="catalog-section">
+    <div class="container">
+
+        <nav
+            class="category-filter"
+            aria-label="Filtrer les produits par catégorie"
+        >
+            <a
+                href="{% url 'products:product_list' %}"
+                class="category-filter-link {% if not category %}active{% endif %}"
+            >
+                Tous les produits
+            </a>
+
+            {% for menu_category in menu_categories %}
+
+                <a
+                    href="{% url 'products:products_by_category' menu_category.slug %}"
+                    class="category-filter-link {% if category.id == menu_category.id %}active{% endif %}"
+                >
+                    {{ menu_category.name }}
+                </a>
+
+            {% endfor %}
+        </nav>
+
+        <div class="catalog-summary">
+            <p class="catalog-count">
+                <strong>{{ products|length }}</strong>
+
+                produit{{ products|length|pluralize }}
+                disponible{{ products|length|pluralize }}
+            </p>
+        </div>
+
+        <div class="row g-3">
+
+            {% for product in products %}
+
+                <div class="col-sm-6 col-lg-4 col-xl-3">
+                    <article class="product-card">
+
                         <a
                             href="{% url 'products:product_detail' product.id %}"
-                            class="btn btn-outline-primary"
+                            class="product-image-link"
+                            aria-label="Voir {{ product.name }}"
                         >
-                            Voir le produit
+                            {% if product.image %}
+
+                                <img
+                                    src="{{ product.image.url }}"
+                                    class="product-image"
+                                    alt="{{ product.name }}"
+                                    loading="lazy"
+                                >
+
+                            {% else %}
+
+                                <span
+                                    class="product-placeholder"
+                                    aria-hidden="true"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="30"
+                                        height="30"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.7"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                        <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                                        <line x1="12" y1="22" x2="12" y2="12"></line>
+                                    </svg>
+                                </span>
+
+                            {% endif %}
+
+                            {% if product.is_available and product.stock > 0 %}
+
+                                <span class="product-stock-badge available">
+                                    En stock
+                                </span>
+
+                            {% else %}
+
+                                <span class="product-stock-badge unavailable">
+                                    Indisponible
+                                </span>
+
+                            {% endif %}
                         </a>
+
+                        <div class="product-card-body">
+
+                            {% if product.category %}
+
+                                <a
+                                    href="{% url 'products:products_by_category' product.category.slug %}"
+                                    class="product-category"
+                                >
+                                    {{ product.category.name }}
+                                </a>
+
+                            {% endif %}
+
+                            <h2 class="product-title">
+                                <a
+                                    href="{% url 'products:product_detail' product.id %}"
+                                >
+                                    {{ product.name }}
+                                </a>
+                            </h2>
+
+                            <p class="product-description">
+                                {{ product.description|truncatewords:12 }}
+                            </p>
+
+                            <div class="product-footer">
+
+                                <span class="product-price">
+                                    {{ product.price|floatformat:2 }} €
+                                </span>
+
+                                <a
+                                    href="{% url 'products:product_detail' product.id %}"
+                                    class="btn btn-outline-primary product-button"
+                                >
+                                    Voir
+                                    <span aria-hidden="true">→</span>
+                                </a>
+
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+            {% empty %}
+
+                <div class="col-12">
+                    <div class="catalog-empty">
+
+                        <span
+                            class="catalog-empty-icon"
+                            aria-hidden="true"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="30"
+                                height="30"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.7"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+
+                        <h2 class="catalog-empty-title">
+                            Aucun produit disponible
+                        </h2>
+
+                        <p class="catalog-empty-text">
+                            De nouveaux produits seront ajoutés prochainement.
+                        </p>
                     </div>
                 </div>
-            </div>
-        {% empty %}
-            <p>Aucun produit disponible pour le moment.</p>
-        {% endfor %}
+
+            {% endfor %}
+
+        </div>
     </div>
-</div>
+</section>
+
 {% endblock %}
