@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}
+Retrouver mes commandes | EcommerceIA
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container py-lg-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-xl-6">
+
+                <div class="mb-4">
+                    <p
+                        class="text-primary fw-bold text-uppercase mb-2"
+                        style="letter-spacing: 0.08em;"
+                    >
+                        Accès sécurisé
+                    </p>
+
+                    <h1 class="display-5 fw-bold mb-3">
+                        Retrouver mes commandes
+                    </h1>
+
+                    <p class="lead text-muted mb-0">
+                        Indiquez l’adresse e-mail utilisée lors de votre
+                        commande. Nous vous enverrons un code temporaire
+                        pour vérifier votre identité.
+                    </p>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4 p-lg-5">
+
+                        {% if error %}
+                            <div class="alert alert-danger">
+                                {{ error }}
+                            </div>
+                        {% endif %}
+
+                        <form method="post">
+                            {% csrf_token %}
+
+                            <div class="mb-4">
+                                <label
+                                    for="id_email"
+                                    class="form-label fw-bold"
+                                >
+                                    Adresse e-mail
+                                </label>
+
+                                <input
+                                    type="email"
+                                    name="email"
+                                    id="id_email"
+                                    class="form-control form-control-lg"
+                                    value="{{ email|default:'' }}"
+                                    autocomplete="email"
+                                    required
+                                >
+
+                                <div class="form-text mt-2">
+                                    Utilisez la même adresse que celle
+                                    indiquée pendant la commande.
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary btn-lg w-100"
+                            >
+                                Recevoir mon code
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+
+                <p class="text-muted small mt-4 mb-0">
+                    Le code sera temporaire. Une personne connaissant
+                    uniquement votre adresse e-mail ne pourra pas accéder
+                    à vos commandes.
+                </p>
+
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

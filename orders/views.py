@@ -26,6 +26,30 @@ from orders.services.reservation_service import (
 from .forms import OrderCreateForm
 from .models import Order
 
+import secrets
+
+from datetime import timedelta
+
+from django.contrib.auth.hashers import (
+    make_password,
+)
+from django.core.mail import send_mail
+from django.core.validators import (
+    validate_email,
+)
+from django.core.exceptions import (
+    ValidationError,
+)
+from django.utils import timezone
+
+from django.contrib.auth.hashers import (
+    check_password,
+)
+
+from django.utils.dateparse import (
+    parse_datetime,
+)
+
 
 def _get_accessible_order(
     request,
@@ -58,6 +82,242 @@ def _get_accessible_order(
         user__isnull=True,
     )
 
+def order_recovery(request):
+    if request.method == "POST":
+        email = (
+            request.POST
+            .get("email", "")
+            .strip()
+            .lower()
+        )
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            return render(
+                request,
+                "orders/order_recovery.html",
+                {
+                    "email": email,
+                    "error": (
+                        "Saisissez une adresse "
+                        "e-mail valide."
+                    ),
+                },
+                status=400,
+            )
+
+        code = (
+            f"{secrets.randbelow(1000000):06d}"
+        )
+
+        request.session[
+            "order_recovery"
+        ] = {
+            "email": email,
+            "code_hash": make_password(
+                code
+            ),
+            "expires_at": (
+                timezone.now()
+                + timedelta(minutes=10)
+            ).isoformat(),
+            "attempts": 0,
+        }
+
+        order_exists = (
+            Order.objects.filter(
+                email__iexact=email,
+            )
+            .exists()
+        )
+
+        if order_exists:
+            send_mail(
+                subject=(
+                    "Votre code EcommerceIA"
+                ),
+                message=(
+                    "Votre code pour retrouver "
+                    "vos commandes est : "
+                    f"{code}\n\n"
+                    "Ce code est valable "
+                    "pendant 10 minutes."
+                ),
+                from_email=(
+                    settings.DEFAULT_FROM_EMAIL
+                ),
+                recipient_list=[
+                    email,
+                ],
+            )
+
+        return redirect(
+            "orders:order_recovery_verify"
+        )
+
+    return render(
+        request,
+        "orders/order_recovery.html",
+    )
+
+def order_recovery_verify(request):
+    recovery = request.session.get(
+        "order_recovery"
+    )
+
+    if not recovery:
+        return redirect(
+            "orders:order_recovery"
+        )
+
+    email = recovery.get(
+        "email",
+        "",
+    )
+
+    if request.method == "POST":
+        code = (
+            request.POST
+            .get("code", "")
+            .strip()
+        )
+
+        expires_at = parse_datetime(
+            recovery.get(
+                "expires_at",
+                "",
+            )
+        )
+
+        code_has_expired = (
+            expires_at is None
+            or timezone.now() >= expires_at
+        )
+
+        if code_has_expired:
+            request.session.pop(
+                "order_recovery",
+                None,
+            )
+
+            messages.error(
+                request,
+                (
+                    "Ce code a expiré. "
+                    "Demandez un nouveau code."
+                ),
+            )
+
+            return redirect(
+                "orders:order_recovery"
+            )
+
+        attempts = int(
+            recovery.get(
+                "attempts",
+                0,
+            )
+        )
+
+        code_is_valid = (
+            len(code) == 6
+            and code.isdigit()
+            and check_password(
+                code,
+                recovery.get(
+                    "code_hash",
+                    "",
+                ),
+            )
+        )
+
+        if not code_is_valid:
+            attempts += 1
+
+            if attempts >= 5:
+                request.session.pop(
+                    "order_recovery",
+                    None,
+                )
+
+                messages.error(
+                    request,
+                    (
+                        "Trop de tentatives. "
+                        "Demandez un nouveau code."
+                    ),
+                )
+
+                return redirect(
+                    "orders:order_recovery"
+                )
+
+            recovery["attempts"] = attempts
+
+            request.session[
+                "order_recovery"
+            ] = recovery
+
+            return render(
+                request,
+                (
+                    "orders/"
+                    "order_recovery_verify.html"
+                ),
+                {
+                    "email": email,
+                    "error": (
+                        "Le code saisi est incorrect."
+                    ),
+                },
+                status=400,
+            )
+
+        recovered_order_ids = list(
+            Order.objects.filter(
+                email__iexact=email,
+                user__isnull=True,
+            )
+            .values_list(
+                "id",
+                flat=True,
+            )
+        )
+
+        existing_order_ids = set(
+            request.session.get(
+                "guest_order_ids",
+                [],
+            )
+        )
+
+        existing_order_ids.update(
+            recovered_order_ids
+        )
+
+        request.session[
+            "guest_order_ids"
+        ] = list(
+            existing_order_ids
+        )
+
+        request.session.pop(
+            "order_recovery",
+            None,
+        )
+
+        return redirect(
+            "orders:order_list"
+        )
+
+    return render(
+        request,
+        "orders/order_recovery_verify.html",
+        {
+            "email": email,
+        },
+    )
 
 def order_create(request):
     cart = Cart(request)
@@ -321,17 +581,13 @@ def payment_create(
     checkout_session = (
         stripe.checkout.Session.create(
             mode="payment",
+            customer_email=order.email,
             line_items=line_items,
             success_url=success_url,
             cancel_url=cancel_url,
             client_reference_id=str(
                 order.id
             ),
-            metadata={
-                "order_id": str(
-                    order.id
-                ),
-            },
         )
     )
 

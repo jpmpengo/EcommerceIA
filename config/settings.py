@@ -145,4 +145,10 @@ STRIPE_SECRET_KEY = "STRIPE_SECRET_REMOVEDKuUFUzx4rQEzxuCPZbnrWMT6qHwecHPE8qvASr
 # stripe listen --forward-to http://127.0.0.1:8000/commande/stripe/webhook/
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 
+EMAIL_BACKEND = (
+    "django.core.mail.backends.console.EmailBackend"
+)
 
+DEFAULT_FROM_EMAIL = (
+    "EcommerceIA <no-reply@ecommerceia.local>"
+)

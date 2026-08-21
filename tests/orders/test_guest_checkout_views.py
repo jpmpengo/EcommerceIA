@@ -177,6 +177,15 @@ class GuestCheckoutViewTests(TestCase):
 
         stripe_create.assert_called_once()
 
+        call_kwargs = (
+            stripe_create.call_args.kwargs
+        )
+
+        self.assertEqual(
+            call_kwargs["customer_email"],
+            order.email,
+        )
+
     @patch(
         "orders.views.stripe.checkout.Session.retrieve"
     )

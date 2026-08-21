@@ -7,6 +7,16 @@ app_name = "orders"
 
 urlpatterns = [
     path(
+        "retrouver/",
+        views.order_recovery,
+        name="order_recovery",
+    ),
+    path(
+        "retrouver/code/",
+        views.order_recovery_verify,
+        name="order_recovery_verify",
+    ),
+    path(
         "creer/",
         views.order_create,
         name="order_create",

@@ -480,6 +480,15 @@
                                 Mes commandes
                             </a>
 
+                        {% else %}
+
+                            <a
+                                href="{% url 'orders:order_recovery' %}"
+                                class="btn btn-outline-light store-action"
+                            >
+                                Retrouver une commande
+                            </a>
+
                         {% endif %}
 
                         <a
