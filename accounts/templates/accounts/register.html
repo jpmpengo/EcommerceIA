@@ -1,24 +1,360 @@
 {% extends "base.html" %}
 
+{% block title %}
+Créer mon compte | EcommerceIA
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-page {
+        padding: 4.5rem 0 5.5rem;
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(255, 184, 0, 0.12),
+                transparent 30rem
+            ),
+            #f7f9fc;
+    }
+
+    .register-heading {
+        max-width: 48rem;
+        margin-bottom: 2rem;
+    }
+
+    .register-eyebrow {
+        margin-bottom: 0.6rem;
+        color: #2563eb;
+        font-size: 0.78rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .register-title {
+        margin-bottom: 0.75rem;
+        color: #0f172a;
+        font-size: clamp(2.4rem, 5vw, 3.8rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+    }
+
+    .register-intro {
+        margin-bottom: 0;
+        color: #64748b;
+        line-height: 1.7;
+    }
+
+    .register-card {
+        overflow: hidden;
+        border: 1px solid #dbe3ef;
+        border-radius: 1.4rem;
+        background: #ffffff;
+        box-shadow: 0 1.5rem 3.5rem rgba(15, 23, 42, 0.08);
+    }
+
+    .register-form-panel {
+        padding: 2rem;
+    }
+
+    .register-side-panel {
+        height: 100%;
+        padding: 2.3rem;
+        color: #ffffff;
+        background: #142143;
+    }
+
+    .register-side-panel h2 {
+        margin-bottom: 1rem;
+        font-size: 1.55rem;
+        font-weight: 800;
+    }
+
+    .register-benefit {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.2rem;
+        line-height: 1.55;
+    }
+
+    .register-benefit-mark {
+        display: inline-flex;
+        flex: 0 0 1.55rem;
+        align-items: center;
+        justify-content: center;
+        width: 1.55rem;
+        height: 1.55rem;
+        border-radius: 50%;
+        color: #142143;
+        font-weight: 900;
+        background: #ffc21c;
+    }
+
+    .register-field {
+        margin-bottom: 1.15rem;
+    }
+
+    .register-field label {
+        margin-bottom: 0.45rem;
+        color: #172036;
+        font-size: 0.9rem;
+        font-weight: 750;
+    }
+
+    .register-field .form-control {
+        min-height: 3.15rem;
+        border-color: #cbd5e1;
+        border-radius: 0.8rem;
+    }
+
+    .register-field .form-control:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.12);
+    }
+
+    .register-error {
+        margin-top: 0.4rem;
+        color: #dc2626;
+        font-size: 0.82rem;
+    }
+
+    .register-help {
+        margin-top: 0.45rem;
+        color: #64748b;
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .register-submit {
+        min-height: 3.2rem;
+        border-radius: 0.8rem;
+        font-weight: 800;
+    }
+
+    .register-login-link {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    @media (min-width: 992px) {
+        .register-form-panel {
+            padding: 2.6rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <h1 class="mb-4">Créer un compte</h1>
+<section class="register-page">
+    <div class="container">
 
-            <form method="post">
-                {% csrf_token %}
+        <header class="register-heading">
+            <p class="register-eyebrow">
+                Votre espace client
+            </p>
 
-                {{ form.as_p }}
+            <h1 class="register-title">
+                Créer mon compte
+            </h1>
 
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                >
-                    S’inscrire
-                </button>
-            </form>
+            <p class="register-intro">
+                Retrouvez vos commandes et simplifiez vos prochains
+                achats. Les informations déjà fournies pendant votre
+                commande sont proposées automatiquement.
+            </p>
+        </header>
+
+        <div class="register-card">
+            <div class="row g-0">
+
+                <div class="col-lg-8">
+                    <div class="register-form-panel">
+
+                        {% if form.non_field_errors %}
+                            <div
+                                class="alert alert-danger"
+                                role="alert"
+                            >
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="register-field">
+                                        <label for="{{ form.first_name.id_for_label }}">
+                                            {{ form.first_name.label }}
+                                        </label>
+
+                                        {{ form.first_name }}
+
+                                        {% for error in form.first_name.errors %}
+                                            <div class="register-error">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="register-field">
+                                        <label for="{{ form.last_name.id_for_label }}">
+                                            {{ form.last_name.label }}
+                                        </label>
+
+                                        {{ form.last_name }}
+
+                                        {% for error in form.last_name.errors %}
+                                            <div class="register-error">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="register-field">
+                                <label for="{{ form.email.id_for_label }}">
+                                    {{ form.email.label }}
+                                </label>
+
+                                {{ form.email }}
+
+                                <div class="register-help">
+                                    Utilisez l’adresse indiquée pendant
+                                    votre commande pour la rattacher à
+                                    ce compte.
+                                </div>
+
+                                {% for error in form.email.errors %}
+                                    <div class="register-error">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="register-field">
+                                <label for="{{ form.username.id_for_label }}">
+                                    {{ form.username.label }}
+                                </label>
+
+                                {{ form.username }}
+
+                                {% if form.username.help_text %}
+                                    <div class="register-help">
+                                        {{ form.username.help_text|safe }}
+                                    </div>
+                                {% endif %}
+
+                                {% for error in form.username.errors %}
+                                    <div class="register-error">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="register-field">
+                                        <label for="{{ form.password1.id_for_label }}">
+                                            {{ form.password1.label }}
+                                        </label>
+
+                                        {{ form.password1 }}
+
+                                        {% if form.password1.help_text %}
+                                            <div class="register-help">
+                                                {{ form.password1.help_text|safe }}
+                                            </div>
+                                        {% endif %}
+
+                                        {% for error in form.password1.errors %}
+                                            <div class="register-error">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="register-field">
+                                        <label for="{{ form.password2.id_for_label }}">
+                                            {{ form.password2.label }}
+                                        </label>
+
+                                        {{ form.password2 }}
+
+                                        {% for error in form.password2.errors %}
+                                            <div class="register-error">
+                                                {{ error }}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary register-submit w-100 mt-2"
+                            >
+                                Créer mon compte
+                            </button>
+                        </form>
+
+                        <p class="register-login-link mt-4 mb-0">
+                            Vous avez déjà un compte ?
+                            <a href="{% url 'login' %}">
+                                Se connecter
+                            </a>
+                        </p>
+
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <aside class="register-side-panel">
+                        <h2>
+                            Tout reste sous votre contrôle
+                        </h2>
+
+                        <p class="mb-4 opacity-75">
+                            La création du compte est facultative et
+                            intervient après votre décision d’achat.
+                        </p>
+
+                        <div class="register-benefit">
+                            <span class="register-benefit-mark">✓</span>
+                            <span>
+                                Retrouvez les commandes utilisant
+                                la même adresse e-mail.
+                            </span>
+                        </div>
+
+                        <div class="register-benefit">
+                            <span class="register-benefit-mark">✓</span>
+                            <span>
+                                Consultez leur paiement et leur statut.
+                            </span>
+                        </div>
+
+                        <div class="register-benefit">
+                            <span class="register-benefit-mark">✓</span>
+                            <span>
+                                Gagnez du temps lors de vos prochains
+                                achats.
+                            </span>
+                        </div>
+                    </aside>
+                </div>
+
+            </div>
         </div>
+
     </div>
-</div>
+</section>
 {% endblock %}

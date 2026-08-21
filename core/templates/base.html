@@ -455,6 +455,13 @@
                             Mes commandes
                         </a>
 
+                        <a
+                            href="{% url 'password_change' %}"
+                            class="btn btn-outline-light store-action"
+                        >
+                            Modifier mon mot de passe
+                        </a>
+
                         <form
                             method="post"
                             action="{% url 'logout' %}"
@@ -518,6 +525,7 @@
                         </span>
                     </a>
                 </div>
+
             </div>
         </div>
     </nav>
@@ -611,4 +619,3 @@
     {% block extra_js %}{% endblock %}
 </body>
 </html>
-
