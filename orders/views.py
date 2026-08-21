@@ -445,6 +445,34 @@ def payment_success(request):
             )
         )
 
+    payment_status = getattr(
+        checkout_session,
+        "payment_status",
+        None,
+    )
+
+    if payment_status != "paid":
+        messages.warning(
+            request,
+            (
+                "Le paiement n'est pas encore "
+                "confirmé par Stripe."
+            ),
+        )
+
+        return redirect(
+            "orders:order_detail",
+            order_id=order.id,
+        )
+
+    order = (
+        OrderPaymentService
+        .confirm_payment(
+            order_id=order.id,
+            stripe_session_id=session_id,
+        )
+    )
+
     return render(
         request,
         "orders/payment_success.html",
@@ -455,6 +483,7 @@ def payment_success(request):
             ),
         },
     )
+
 
 def order_list(request):
     orders = Order.objects.prefetch_related(

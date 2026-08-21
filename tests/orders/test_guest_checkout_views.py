@@ -207,6 +207,10 @@ class GuestCheckoutViewTests(TestCase):
             "cs_test_guest_success"
         )
 
+        checkout_session.payment_status = (
+            "paid"
+        )
+
         checkout_session.metadata.order_id = str(
             order.id
         )
@@ -235,6 +239,23 @@ class GuestCheckoutViewTests(TestCase):
         self.assertEqual(
             response.context["order"],
             order,
+        )
+
+        order.refresh_from_db()
+        self.product.refresh_from_db()
+
+        self.assertTrue(
+            order.paid
+        )
+
+        self.assertEqual(
+            order.status,
+            "paid",
+        )
+
+        self.assertEqual(
+            self.product.stock,
+            4,
         )
 
         stripe_retrieve.assert_called_once_with(
