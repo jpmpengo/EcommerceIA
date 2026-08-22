@@ -1,126 +1,701 @@
 {% extends "base.html" %}
 
 {% block title %}
-{{ opportunity.name }}
+{{ opportunity.name }} | Emma
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .decision-page {
+        --decision-navy: #101b3a;
+        --decision-blue: #2865ee;
+        --decision-blue-soft: #edf4ff;
+        --decision-yellow: #ffbd19;
+        --decision-green: #17935b;
+        --decision-green-soft: #e5f8ee;
+        --decision-red: #dc3545;
+        --decision-red-soft: #fff0f2;
+        --decision-text: #111a31;
+        --decision-muted: #64748b;
+        --decision-border: #dbe3ef;
+        --decision-background: #f5f8fc;
+
+        min-height: calc(100vh - 5rem);
+        padding: 3.5rem 0 5rem;
+        color: var(--decision-text);
+        background:
+            radial-gradient(
+                circle at 100% 0,
+                rgba(255, 189, 25, 0.12),
+                transparent 28rem
+            ),
+            radial-gradient(
+                circle at 0 15rem,
+                rgba(40, 101, 238, 0.09),
+                transparent 30rem
+            ),
+            var(--decision-background);
+    }
+
+    .decision-shell {
+        width: min(100% - 2rem, 1320px);
+        margin: 0 auto;
+    }
+
+    .decision-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 1.7rem;
+        color: var(--decision-muted);
+        font-size: 0.88rem;
+        font-weight: 700;
+    }
+
+    .decision-back:hover {
+        color: var(--decision-blue);
+    }
+
+    .decision-header {
+        display: flex;
+        gap: 2rem;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .decision-eyebrow {
+        margin-bottom: 0.65rem;
+        color: var(--decision-blue);
+        font-size: 0.73rem;
+        font-weight: 850;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+    }
+
+    .decision-title {
+        max-width: 58rem;
+        margin-bottom: 0.75rem;
+        color: var(--decision-text);
+        font-size: clamp(2.3rem, 5vw, 4.3rem);
+        font-weight: 850;
+        letter-spacing: -0.06em;
+        line-height: 1;
+    }
+
+    .decision-status {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        padding: 0.65rem 0.85rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 800;
+    }
+
+    .decision-status::before {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 50%;
+        content: "";
+    }
+
+    .decision-status-ready {
+        color: #12633d;
+        background: var(--decision-green-soft);
+    }
+
+    .decision-status-ready::before {
+        background: var(--decision-green);
+    }
+
+    .decision-status-preparation {
+        color: #7a4b00;
+        background: #fff3cd;
+    }
+
+    .decision-status-preparation::before {
+        background: var(--decision-yellow);
+    }
+
+    .decision-status-restock {
+        color: #174fc8;
+        background: var(--decision-blue-soft);
+    }
+
+    .decision-status-restock::before {
+        background: var(--decision-blue);
+    }
+
+    .decision-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(20rem, 0.72fr);
+        gap: 1.4rem;
+        align-items: start;
+    }
+
+    .decision-stack {
+        display: grid;
+        gap: 1.25rem;
+    }
+
+    .decision-card {
+        overflow: hidden;
+        border: 1px solid var(--decision-border);
+        border-radius: 1.3rem;
+        background: #ffffff;
+        box-shadow:
+            0 1rem 2.8rem rgba(16, 27, 58, 0.06);
+    }
+
+    .decision-card-body {
+        padding: clamp(1.35rem, 3vw, 2rem);
+    }
+
+    .decision-section-label {
+        margin-bottom: 0.55rem;
+        color: var(--decision-blue);
+        font-size: 0.7rem;
+        font-weight: 850;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .decision-section-title {
+        margin-bottom: 0.7rem;
+        color: var(--decision-text);
+        font-size: 1.35rem;
+        font-weight: 820;
+        letter-spacing: -0.035em;
+    }
+
+    .decision-copy {
+        color: var(--decision-muted);
+        line-height: 1.65;
+    }
+
+    .decision-analysis {
+        position: relative;
+        padding-left: 1rem;
+        border-left: 0.3rem solid var(--decision-blue);
+    }
+
+    .decision-analysis-success {
+        border-left-color: var(--decision-green);
+    }
+
+    .decision-analysis-warning {
+        border-left-color: var(--decision-yellow);
+    }
+
+    .decision-analysis-danger {
+        border-left-color: var(--decision-red);
+    }
+
+    .decision-analysis-message {
+        margin-bottom: 1rem;
+        font-size: 1.05rem;
+        font-weight: 780;
+        line-height: 1.5;
+    }
+
+    .decision-reasons {
+        display: grid;
+        gap: 0.65rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .decision-reasons li {
+        display: flex;
+        gap: 0.6rem;
+        color: var(--decision-muted);
+        line-height: 1.5;
+    }
+
+    .decision-reasons li::before {
+        display: grid;
+        flex: 0 0 1.45rem;
+        width: 1.45rem;
+        height: 1.45rem;
+        place-items: center;
+        border-radius: 50%;
+        color: #ffffff;
+        background: var(--decision-blue);
+        content: "✓";
+        font-size: 0.68rem;
+        font-weight: 900;
+    }
+
+    .decision-warning {
+        display: flex;
+        gap: 0.8rem;
+        margin-top: 1.2rem;
+        padding: 1rem;
+        border: 1px solid #f2ce70;
+        border-radius: 0.9rem;
+        background: #fff9e8;
+    }
+
+    .decision-warning-icon {
+        display: grid;
+        flex: 0 0 2rem;
+        width: 2rem;
+        height: 2rem;
+        place-items: center;
+        border-radius: 50%;
+        color: #7a4b00;
+        background: #ffe49a;
+        font-weight: 900;
+    }
+
+    .decision-warning strong,
+    .decision-warning span {
+        display: block;
+    }
+
+    .decision-warning strong {
+        margin-bottom: 0.25rem;
+        color: #704508;
+        font-size: 0.9rem;
+    }
+
+    .decision-warning span {
+        color: #7b6135;
+        font-size: 0.84rem;
+        line-height: 1.55;
+    }
+
+    .decision-missing {
+        display: flex;
+        gap: 0.55rem;
+        flex-wrap: wrap;
+        margin: 1rem 0 1.3rem;
+    }
+
+    .decision-missing-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.65rem;
+        border-radius: 999px;
+        color: #6f4a0c;
+        background: #fff3cd;
+        font-size: 0.78rem;
+        font-weight: 750;
+    }
+
+    .decision-missing-item::before {
+        width: 0.42rem;
+        height: 0.42rem;
+        border-radius: 50%;
+        content: "";
+        background: var(--decision-yellow);
+    }
+
+    .decision-suggestion {
+        padding: 1.15rem;
+        border: 1px solid #c8d8fb;
+        border-radius: 1rem;
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff,
+                #f2f6ff
+            );
+    }
+
+    .decision-suggestion + .decision-suggestion {
+        margin-top: 1rem;
+    }
+
+    .decision-suggestion-title {
+        margin-bottom: 0.55rem;
+        color: var(--decision-text);
+        font-size: 1rem;
+        font-weight: 800;
+    }
+
+    .decision-suggestion-copy {
+        margin-bottom: 0.9rem;
+        color: var(--decision-muted);
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .decision-suggestion-image {
+        display: block;
+        width: 100%;
+        max-height: 22rem;
+        margin-bottom: 0.8rem;
+        border: 1px solid var(--decision-border);
+        border-radius: 0.9rem;
+        background: #ffffff;
+        object-fit: contain;
+    }
+
+    .decision-form-label {
+        margin-bottom: 0.45rem;
+        color: var(--decision-text);
+        font-size: 0.84rem;
+        font-weight: 750;
+    }
+
+    .decision-action {
+        border-radius: 0.7rem;
+        font-weight: 750;
+    }
+
+    .decision-action-primary {
+        border-color: var(--decision-blue);
+        color: #ffffff;
+        background: var(--decision-blue);
+    }
+
+    .decision-action-primary:hover {
+        border-color: #174fc8;
+        color: #ffffff;
+        background: #174fc8;
+    }
+
+    .decision-finance-card {
+        position: sticky;
+        top: 1.5rem;
+    }
+
+    .decision-finance-header {
+        padding: 1.35rem 1.4rem 1rem;
+        border-bottom: 1px solid var(--decision-border);
+    }
+
+    .decision-finance-title {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 820;
+    }
+
+    .decision-finance-body {
+        padding: 1.3rem 1.4rem;
+    }
+
+    .decision-finance-line {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.7rem 0;
+        color: var(--decision-muted);
+        font-size: 0.88rem;
+    }
+
+    .decision-finance-line + .decision-finance-line {
+        border-top: 1px solid #edf0f5;
+    }
+
+    .decision-finance-line strong {
+        color: var(--decision-text);
+        font-weight: 800;
+        text-align: right;
+    }
+
+    .decision-finance-total {
+        margin-top: 0.55rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--decision-border);
+    }
+
+    .decision-finance-total span,
+    .decision-finance-total strong {
+        display: block;
+    }
+
+    .decision-finance-total span {
+        color: var(--decision-muted);
+        font-size: 0.78rem;
+    }
+
+    .decision-finance-total strong {
+        margin-top: 0.25rem;
+        color: var(--decision-green);
+        font-size: 1.65rem;
+        font-weight: 880;
+    }
+
+    .decision-score {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 1rem;
+        padding: 0.9rem;
+        border-radius: 0.85rem;
+        background: var(--decision-blue-soft);
+    }
+
+    .decision-score span {
+        color: var(--decision-muted);
+        font-size: 0.8rem;
+    }
+
+    .decision-score strong {
+        color: var(--decision-blue);
+        font-size: 1.25rem;
+        font-weight: 880;
+    }
+
+    .decision-action-panel {
+        display: grid;
+        gap: 0.65rem;
+        padding: 0 1.4rem 1.4rem;
+    }
+
+    .decision-action-panel form,
+    .decision-action-panel .btn {
+        width: 100%;
+    }
+
+    .decision-separator {
+        height: 1px;
+        margin: 0.3rem 0;
+        background: var(--decision-border);
+    }
+
+    .decision-restock-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.8rem;
+        margin: 1.1rem 0;
+    }
+
+    .decision-restock-stat {
+        padding: 0.85rem;
+        border-radius: 0.8rem;
+        background: #f7f9fc;
+    }
+
+    .decision-restock-stat span,
+    .decision-restock-stat strong {
+        display: block;
+    }
+
+    .decision-restock-stat span {
+        margin-bottom: 0.25rem;
+        color: var(--decision-muted);
+        font-size: 0.72rem;
+    }
+
+    .decision-restock-stat strong {
+        color: var(--decision-text);
+        font-size: 1.05rem;
+    }
+
+    @media (max-width: 991.98px) {
+        .decision-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .decision-finance-card {
+            position: static;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .decision-header {
+            display: block;
+        }
+
+        .decision-status {
+            margin-top: 0.5rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .decision-page {
+            padding-top: 2rem;
+        }
+
+        .decision-shell {
+            width: min(100% - 1.2rem, 1320px);
+        }
+
+        .decision-restock-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
-<div class="container py-5">
+<section class="decision-page">
+    <div class="decision-shell">
 
-    <a
-        href="{% url 'dashboard:home' %}"
-        class="btn btn-outline-secondary mb-4"
-    >
-        ← Revenir au briefing d'Emma
-    </a>
+        <a
+            href="{% url 'dashboard:home' %}"
+            class="decision-back"
+        >
+            <span aria-hidden="true">←</span>
+            Retour au pilotage
+        </a>
 
-    <div class="row g-4">
+        <header class="decision-header">
 
-        <div class="col-lg-8">
+            <div>
+                <p class="decision-eyebrow">
+                    Analyse d’une opportunité
+                </p>
 
-            <div class="card shadow-sm">
+                <h1 class="decision-title">
+                    {{ opportunity.name }}
+                </h1>
+            </div>
 
-                <div class="card-body p-4">
+            {% if is_restock %}
 
-                    <h1 class="mb-3">
-                        🏆 {{ opportunity.name }}
-                    </h1>
+                <span class="decision-status decision-status-restock">
+                    Réapprovisionnement
+                </span>
 
-                    {% if is_restock %}
+            {% elif readiness.ready %}
 
-                        <div class="alert alert-warning">
-                            <strong>
-                                📦 Opportunité de réapprovisionnement.
-                            </strong>
-                        </div>
+                <span class="decision-status decision-status-ready">
+                    Prête à publier
+                </span>
 
-                    {% elif readiness.ready %}
+            {% else %}
 
-                        <div class="alert alert-success">
-                            <strong>
-                                ✅ Cette recommandation peut être publiée.
-                            </strong>
-                        </div>
+                <span class="decision-status decision-status-preparation">
+                    Préparation nécessaire
+                </span>
 
-                    {% else %}
+            {% endif %}
 
-                        <div class="alert alert-warning">
-                            <strong>
-                                📝 Opportunité approuvée —
-                                préparation nécessaire.
-                            </strong>
-                        </div>
+        </header>
 
-                    {% endif %}
+        <div class="decision-layout">
 
+            <main class="decision-stack">
 
-                    <h2 class="h4 mt-4">
-                        Pourquoi cette recommandation ?
-                    </h2>
+                <section class="decision-card">
+                    <div class="decision-card-body">
 
-                    <ul>
-                        {% for reason in recommendation.reasons %}
-                            <li>
-                                {{ reason }}
-                            </li>
-                        {% empty %}
-                            <li>
-                                Aucune explication disponible.
-                            </li>
-                        {% endfor %}
-                    </ul>
-
-
-                    {% if is_restock %}
+                        <p class="decision-section-label">
+                            Avis analytique d’Emma
+                        </p>
 
                         <div
-                            id="restock"
-                            class="alert alert-warning mt-4"
+                            class="decision-analysis decision-analysis-{{ recommendation.level }}"
                         >
 
-                            <h2 class="h4">
-                                📦 Réapprovisionnement
+                            <p class="decision-analysis-message">
+                                {{ recommendation.decision }}
+                            </p>
+
+                            <ul class="decision-reasons">
+
+                                {% for reason in recommendation.reasons %}
+
+                                    <li>
+                                        {{ reason }}
+                                    </li>
+
+                                {% empty %}
+
+                                    <li>
+                                        Aucune explication disponible.
+                                    </li>
+
+                                {% endfor %}
+
+                            </ul>
+
+                        </div>
+
+                        {% if recommendation.margin_percent > 300 %}
+
+                            <div class="decision-warning">
+
+                                <span class="decision-warning-icon">
+                                    !
+                                </span>
+
+                                <div>
+                                    <strong>
+                                        Écart de prix exceptionnel à contrôler
+                                    </strong>
+
+                                    <span>
+                                        Le taux de marge sur coût dépasse
+                                        300 %. Vérifiez la variante fournisseur,
+                                        la quantité minimale, les frais de
+                                        livraison et la comparabilité réelle
+                                        des produits avant publication.
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+                </section>
+
+                {% if is_restock %}
+
+                    <section
+                        id="restock"
+                        class="decision-card"
+                    >
+                        <div class="decision-card-body">
+
+                            <p class="decision-section-label">
+                                Gestion du stock
+                            </p>
+
+                            <h2 class="decision-section-title">
+                                Réapprovisionner le produit
                             </h2>
 
-                            <p>
+                            <p class="decision-copy">
                                 Ce produit existe déjà dans la boutique.
-                                Emma a détecté une nouvelle opportunité
+                                Emma a détecté une nouvelle possibilité
                                 de réapprovisionnement.
                             </p>
 
-                            <p>
-                                <strong>Produit :</strong>
-                                {{ restock_product.name }}
-                            </p>
+                            <div class="decision-restock-grid">
 
-                            <p>
-                                <strong>Stock actuel :</strong>
-                                {{ restock_product.stock }}
-                            </p>
-
-                            {% if opportunity.supplier_offer %}
-
-                                <p>
+                                <div class="decision-restock-stat">
+                                    <span>Stock actuel</span>
                                     <strong>
-                                        Stock fournisseur disponible :
+                                        {{ restock_product.stock }}
                                     </strong>
-                                    {{ opportunity.supplier_offer.stock }}
-                                </p>
+                                </div>
 
-                            {% endif %}
+                                {% if opportunity.supplier_offer %}
 
-                            {% if suggested_stock %}
+                                    <div class="decision-restock-stat">
+                                        <span>Stock fournisseur</span>
+                                        <strong>
+                                            {{ opportunity.supplier_offer.stock }}
+                                        </strong>
+                                    </div>
 
-                                <p>
-                                    <strong>
-                                        Quantité proposée par Emma :
-                                    </strong>
-                                    {{ suggested_stock }}
-                                </p>
+                                {% endif %}
 
-                            {% endif %}
+                                {% if suggested_stock %}
 
+                                    <div class="decision-restock-stat">
+                                        <span>Quantité conseillée</span>
+                                        <strong>
+                                            {{ suggested_stock }}
+                                        </strong>
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
 
                             <form
                                 method="post"
@@ -128,242 +703,260 @@
                             >
                                 {% csrf_token %}
 
-                                <div class="mb-3">
+                                <label
+                                    for="restock-quantity"
+                                    class="decision-form-label"
+                                >
+                                    Quantité à ajouter
+                                </label>
 
-                                    <label
-                                        for="restock-quantity"
-                                        class="form-label"
-                                    >
-                                        Quantité à ajouter
-                                    </label>
+                                <div class="row g-2">
 
-                                    <input
-                                        id="restock-quantity"
-                                        type="number"
-                                        name="quantity"
-                                        min="1"
-                                        class="form-control"
-                                        value="{{ suggested_stock|default_if_none:'10' }}"
-                                        required
-                                    >
+                                    <div class="col-sm-7">
+
+                                        <input
+                                            id="restock-quantity"
+                                            type="number"
+                                            name="quantity"
+                                            min="1"
+                                            class="form-control"
+                                            value="{{ suggested_stock|default_if_none:'10' }}"
+                                            required
+                                        >
+
+                                    </div>
+
+                                    <div class="col-sm-5">
+
+                                        <button
+                                            type="submit"
+                                            class="btn btn-success decision-action w-100 h-100"
+                                        >
+                                            Réapprovisionner
+                                        </button>
+
+                                    </div>
 
                                 </div>
-
-                                <button
-                                    type="submit"
-                                    class="btn btn-success"
-                                >
-                                    📦 Réapprovisionner
-                                </button>
 
                             </form>
 
                         </div>
+                    </section>
 
+                {% elif not readiness.ready %}
 
-                    {% else %}
+                    <section
+                        id="preparation"
+                        class="decision-card"
+                    >
+                        <div class="decision-card-body">
 
+                            <p class="decision-section-label">
+                                Votre décision
+                            </p>
 
-                        {% if not readiness.ready %}
+                            <h2 class="decision-section-title">
+                                Compléter avant publication
+                            </h2>
 
-                            <div
-                                id="preparation"
-                                class="mt-4"
-                            >
+                            <p class="decision-copy">
+                                Vous avez approuvé cette opportunité.
+                                Les éléments suivants doivent encore
+                                être complétés avant sa publication.
+                            </p>
 
-                                <h2 class="h4">
-                                    📝 Préparation avant publication
-                                </h2>
+                            <div class="decision-missing">
 
-                                <p>
-                                    Emma a vérifié cette opportunité.
-                                    Il reste certaines informations
-                                    à compléter.
-                                </p>
+                                {% for missing in readiness.missing %}
 
-                                <ul>
+                                    <span class="decision-missing-item">
+                                        {{ missing.label }}
+                                    </span>
 
-                                    {% for missing in readiness.missing %}
+                                {% endfor %}
 
-                                        <li>
-                                            {{ missing.label }}
-                                        </li>
+                            </div>
 
-                                    {% endfor %}
+                            {% if suggested_category %}
 
-                                </ul>
+                                <article class="decision-suggestion">
 
+                                    <h3 class="decision-suggestion-title">
+                                        Catégorie proposée
+                                    </h3>
 
-                                {% if suggested_category %}
+                                    <p class="decision-suggestion-copy">
+                                        Emma suggère la catégorie
+                                        <strong>
+                                            {{ suggested_category.name }}
+                                        </strong>.
+                                    </p>
 
-                                    <div class="alert alert-info mt-3">
+                                    <form
+                                        method="post"
+                                        action="{% url 'recommendations:apply_category' opportunity.id %}"
+                                    >
+                                        {% csrf_token %}
 
-                                        <p>
-                                            💡 Emma suggère la catégorie
-                                            <strong>
-                                                {{ suggested_category.name }}
-                                            </strong>.
-                                        </p>
-
-                                        <a
-                                            href="{% url 'recommendations:apply_category' opportunity.id %}"
-                                            class="btn btn-primary"
+                                        <button
+                                            type="submit"
+                                            class="btn decision-action decision-action-primary"
                                         >
-                                            ✓ Utiliser cette catégorie
-                                        </a>
+                                            Utiliser cette catégorie
+                                        </button>
 
-                                    </div>
+                                    </form>
 
-                                {% endif %}
+                                </article>
 
+                            {% endif %}
 
-                                {% if suggested_description %}
+                            {% if suggested_description %}
 
-                                    <div class="alert alert-info mt-3">
+                                <article class="decision-suggestion">
 
-                                        <p class="mb-2">
-                                            ✍️
-                                            <strong>
-                                                Emma propose une
-                                                description enrichie.
-                                            </strong>
-                                        </p>
+                                    <h3 class="decision-suggestion-title">
+                                        Description proposée
+                                    </h3>
 
-                                        <p>
-                                            {{ suggested_description }}
-                                        </p>
+                                    <p class="decision-suggestion-copy">
+                                        {{ suggested_description }}
+                                    </p>
 
-                                        <a
-                                            href="{% url 'recommendations:apply_description' opportunity.id %}"
-                                            class="btn btn-primary"
+                                    <form
+                                        method="post"
+                                        action="{% url 'recommendations:apply_description' opportunity.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn decision-action decision-action-primary"
                                         >
-                                            ✓ Utiliser cette description
-                                        </a>
+                                            Utiliser cette description
+                                        </button>
 
-                                    </div>
+                                    </form>
 
-                                {% endif %}
+                                </article>
 
-                                {% if image_missing %}
+                            {% endif %}
 
-                                    <div class="alert alert-info">
+                            {% if image_missing %}
 
-                                        <p>
-                                            <strong>🖼️ Ajoutez une image du produit.</strong>
-                                        </p>
+                                <article class="decision-suggestion">
 
-                                        <p>
-                                            Cette image sera utilisée pour présenter
-                                            le produit dans la boutique.
-                                        </p>
+                                    <h3 class="decision-suggestion-title">
+                                        Image du produit
+                                    </h3>
 
-                                        {% if suggested_image_url %}
+                                    <p class="decision-suggestion-copy">
+                                        Ajoutez l’image qui sera utilisée
+                                        pour présenter le produit dans
+                                        la boutique.
+                                    </p>
 
-                                            <div class="mb-3">
-                                                <p>
-                                                    <strong>
-                                                        Image proposée par le fournisseur :
-                                                    </strong>
-                                                </p>
+                                    {% if suggested_image_url %}
 
-                                                <img
-                                                    src="{{ suggested_image_url }}"
-                                                    alt="{{ opportunity.name }}"
-                                                    class="img-fluid rounded border"
-                                                    style="max-height: 320px;"
-                                                >
+                                        <img
+                                            src="{{ suggested_image_url }}"
+                                            alt="{{ opportunity.name }}"
+                                            class="decision-suggestion-image"
+                                        >
 
-                                                <p class="small text-muted mt-2">
-                                                    Cette image provient du fournisseur CJ.
-                                                </p>
-
-                                                <form
-                                                    method="post"
-                                                    action="{% url 'recommendations:apply_supplier_image' opportunity.id %}"
-                                                    class="mb-3"
-                                                >
-                                                    {% csrf_token %}
-
-                                                        <button
-                                                            type="submit"
-                                                            class="btn btn-primary"
-                                                        >
-                                                            ✓ Utiliser cette image fournisseur
-                                                        </button>
-                                                </form>
-                                            </div>
-
-                                        {% endif %}
-
-                                        <hr>
-
-                                        <p>
-                                            <strong>Ou choisissez votre propre image :</strong>
+                                        <p class="decision-suggestion-copy">
+                                            Image proposée par le fournisseur.
+                                            Vérifiez qu’elle correspond
+                                            exactement à la variante étudiée.
                                         </p>
 
                                         <form
                                             method="post"
-                                            enctype="multipart/form-data"
-                                            action="{% url 'recommendations:apply_image' opportunity.id %}"
+                                            action="{% url 'recommendations:apply_supplier_image' opportunity.id %}"
+                                            class="mb-3"
                                         >
                                             {% csrf_token %}
-
-                                            <input
-                                                type="file"
-                                                name="image"
-                                                accept="image/*"
-                                                required
-                                                class="form-control mb-3"
-                                            >
 
                                             <button
                                                 type="submit"
-                                                class="btn btn-outline-primary"
+                                                class="btn decision-action decision-action-primary"
                                             >
-                                                Envoyer cette image
+                                                Utiliser l’image fournisseur
                                             </button>
+
                                         </form>
 
-                                    </div>
+                                    {% endif %}
 
-                                {% endif %}
+                                    <form
+                                        method="post"
+                                        enctype="multipart/form-data"
+                                        action="{% url 'recommendations:apply_image' opportunity.id %}"
+                                    >
+                                        {% csrf_token %}
 
-                                {% if stock_missing %}
+                                        <label
+                                            for="opportunity-image"
+                                            class="decision-form-label"
+                                        >
+                                            Choisir une autre image
+                                        </label>
 
-                                    <div class="alert alert-info mt-3">
+                                        <input
+                                            id="opportunity-image"
+                                            type="file"
+                                            name="image"
+                                            accept="image/*"
+                                            required
+                                            class="form-control mb-3"
+                                        >
 
-                                        <p class="mb-2">
-                                            📦
-                                            <strong>
-                                                Définissez le stock initial.
-                                            </strong>
-                                        </p>
+                                        <button
+                                            type="submit"
+                                            class="btn btn-outline-primary decision-action"
+                                        >
+                                            Envoyer cette image
+                                        </button>
 
-                                        <p>
-                                            Indiquez la quantité disponible
-                                            au moment de la publication.
-                                        </p>
+                                    </form>
+
+                                </article>
+
+                            {% endif %}
+
+                            {% if stock_missing %}
+
+                                <article class="decision-suggestion">
+
+                                    <h3 class="decision-suggestion-title">
+                                        Stock initial
+                                    </h3>
+
+                                    <p class="decision-suggestion-copy">
+                                        Définissez la quantité disponible
+                                        au moment de la publication.
 
                                         {% if suggested_stock %}
 
-                                            <p>
-                                                Emma propose un stock initial de
-                                                <strong>
-                                                    {{ suggested_stock }}
-                                                </strong>
-                                                unité(s), basé sur le stock
-                                                fournisseur disponible.
-                                            </p>
+                                            Emma propose
+                                            <strong>
+                                                {{ suggested_stock }}
+                                            </strong>
+                                            unité(s).
 
                                         {% endif %}
+                                    </p>
 
-                                        <form
-                                            method="post"
-                                            action="{% url 'recommendations:apply_stock' opportunity.id %}"
-                                        >
-                                            {% csrf_token %}
+                                    <form
+                                        method="post"
+                                        action="{% url 'recommendations:apply_stock' opportunity.id %}"
+                                    >
+                                        {% csrf_token %}
 
-                                            <div class="mb-3">
+                                        <div class="row g-2">
+
+                                            <div class="col-sm-7">
 
                                                 <input
                                                     type="number"
@@ -372,152 +965,179 @@
                                                     class="form-control"
                                                     value="{{ suggested_stock|default_if_none:'' }}"
                                                     required
+                                                    aria-label="Stock initial"
                                                 >
 
                                             </div>
 
-                                            <button
-                                                type="submit"
-                                                class="btn btn-primary"
-                                            >
-                                                ✓ Utiliser ce stock
-                                            </button>
+                                            <div class="col-sm-5">
 
-                                        </form>
+                                                <button
+                                                    type="submit"
+                                                    class="btn decision-action decision-action-primary w-100 h-100"
+                                                >
+                                                    Utiliser ce stock
+                                                </button>
 
-                                    </div>
+                                            </div>
 
-                                {% endif %}
+                                        </div>
 
-                            </div>
+                                    </form>
 
-                        {% endif %}
+                                </article>
+
+                            {% endif %}
+
+                        </div>
+                    </section>
+
+                {% endif %}
+
+            </main>
+
+            <aside class="decision-card decision-finance-card">
+
+                <div class="decision-finance-header">
+                    <p class="decision-section-label">
+                        Synthèse
+                    </p>
+
+                    <h2 class="decision-finance-title">
+                        Analyse financière
+                    </h2>
+                </div>
+
+                <div class="decision-finance-body">
+
+                    <div class="decision-finance-line">
+                        <span>Prix fournisseur</span>
+                        <strong>
+                            {{ opportunity.supplier_price|floatformat:2 }} €
+                        </strong>
+                    </div>
+
+                    <div class="decision-finance-line">
+                        <span>Prix du marché</span>
+                        <strong>
+                            {{ opportunity.market_price|floatformat:2 }} €
+                        </strong>
+                    </div>
+
+                    <div class="decision-finance-line">
+                        <span>Frais de livraison</span>
+                        <strong>
+                            {{ opportunity.shipping_cost|floatformat:2 }} €
+                        </strong>
+                    </div>
+
+                    <div class="decision-finance-line">
+                        <span>Autres frais</span>
+                        <strong>
+                            {{ opportunity.other_costs|floatformat:2 }} €
+                        </strong>
+                    </div>
+
+                    <div class="decision-finance-total">
+                        <span>Marge estimée</span>
+                        <strong>
+                            {{ recommendation.estimated_margin|floatformat:2 }} €
+                        </strong>
+                    </div>
+
+                    <div class="decision-finance-line">
+                        <span>Taux de marge sur coût</span>
+                        <strong>
+                            {{ recommendation.margin_percent|floatformat:1 }} %
+                        </strong>
+                    </div>
+
+                    <div class="decision-score">
+                        <span>Score analytique</span>
+                        <strong>
+                            {{ recommendation.score }}/100
+                        </strong>
+                    </div>
+
+                </div>
+
+                <div class="decision-action-panel">
+
+                    <div class="decision-separator"></div>
+
+                    {% if is_restock %}
+
+                        <a
+                            href="#restock"
+                            class="btn btn-success decision-action"
+                        >
+                            Réapprovisionner
+                        </a>
+
+                    {% elif readiness.ready %}
+
+                        <form
+                            method="post"
+                            action="{% url 'recommendations:publish' opportunity.id %}"
+                        >
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="btn btn-success decision-action"
+                            >
+                                Publier le produit
+                            </button>
+
+                        </form>
+
+                    {% else %}
+
+                        <a
+                            href="#preparation"
+                            class="btn decision-action decision-action-primary"
+                        >
+                            Compléter avant publication
+                        </a>
 
                     {% endif %}
 
-                </div>
+                    <form
+                        method="post"
+                        action="{% url 'recommendations:postpone' opportunity.id %}"
+                    >
+                        {% csrf_token %}
 
-            </div>
-
-        </div>
-
-
-        <div class="col-lg-4">
-
-            <div class="card shadow-sm">
-
-                <div class="card-body">
-
-                    <h2 class="h5">
-                        Analyse financière
-                    </h2>
-
-                    <hr>
-
-                    <h4 class="mb-3">
-                        Actions
-                    </h4>
-
-                    <div class="d-grid gap-2">
-
-                        {% if is_restock %}
-
-                            <a
-                                href="#restock"
-                                class="btn btn-success"
-                            >
-                                📦 Réapprovisionner
-                            </a>
-
-                        {% elif readiness.ready %}
-
-                            <a
-                                href="{% url 'recommendations:publish' opportunity.id %}"
-                                class="btn btn-success"
-                            >
-                                ✅ Publier
-                            </a>
-
-                        {% else %}
-
-                            <a
-                                href="#preparation"
-                                class="btn btn-primary"
-                            >
-                                📝 Compléter avant publication
-                            </a>
-
-                        {% endif %}
-
-
-                        <a
-                            href="{% url 'recommendations:postpone' opportunity.id %}"
-                            class="btn btn-warning"
+                        <button
+                            type="submit"
+                            class="btn btn-outline-warning decision-action"
                         >
-                            ⏳ Reporter
-                        </a>
+                            Reporter
+                        </button>
+                    </form>
 
-                        <a
-                            href="{% url 'recommendations:reject' opportunity.id %}"
-                            class="btn btn-danger"
+                    <form
+                        method="post"
+                        action="{% url 'recommendations:reject' opportunity.id %}"
+                        onsubmit="return confirm('Voulez-vous vraiment rejeter cette recommandation ?');"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-danger decision-action"
                         >
-                            ❌ Rejeter
-                        </a>
-
-                    </div>
-
-                    <hr>
-
-                    <p>
-                        <strong>Prix fournisseur :</strong><br>
-                        {{ opportunity.supplier_price|floatformat:2 }} €
-                    </p>
-
-                    <p>
-                        <strong>Prix du marché :</strong><br>
-                        {{ opportunity.market_price|floatformat:2 }} €
-                    </p>
-
-                    <p>
-                        <strong>Frais de livraison :</strong><br>
-                        {{ opportunity.shipping_cost|floatformat:2 }} €
-                    </p>
-
-                    <p>
-                        <strong>Autres frais :</strong><br>
-                        {{ opportunity.other_costs|floatformat:2 }} €
-                    </p>
-
-                    <hr>
-
-                    <p>
-                        <strong>Marge estimée :</strong><br>
-                        {{ recommendation.estimated_margin|floatformat:2 }} €
-                    </p>
-
-                    <p>
-                        <strong>Taux de marge :</strong><br>
-                        {{ recommendation.margin_percent|floatformat:1 }} %
-                    </p>
-
-                    <p>
-                        <strong>Score :</strong><br>
-                        {{ recommendation.score }}/100
-                    </p>
+                            Rejeter
+                        </button>
+                    </form>
 
                 </div>
 
-            </div>
+            </aside>
 
         </div>
 
     </div>
-
-</div>
+</section>
 
 {% endblock %}
-
-
-
-
-

@@ -1,377 +1,1208 @@
 {% extends "base.html" %}
 
 {% block title %}
-Briefing d’Emma
+Briefing d’Emma | EcommerceIA
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .emma-page {
+        --emma-navy: #101b3a;
+        --emma-navy-light: #1c3064;
+        --emma-blue: #2865ee;
+        --emma-blue-soft: #edf4ff;
+        --emma-yellow: #ffbd19;
+        --emma-green: #17935b;
+        --emma-red: #d8394c;
+        --emma-text: #111a31;
+        --emma-muted: #64748b;
+        --emma-border: #dbe3ef;
+        --emma-surface: #ffffff;
+        --emma-background: #f5f8fc;
+
+        min-height: calc(100vh - 5rem);
+        padding: 3.5rem 0 5rem;
+        color: var(--emma-text);
+        background:
+            radial-gradient(
+                circle at 100% 0,
+                rgba(255, 189, 25, 0.13),
+                transparent 28rem
+            ),
+            radial-gradient(
+                circle at 0 15rem,
+                rgba(40, 101, 238, 0.10),
+                transparent 30rem
+            ),
+            var(--emma-background);
+    }
+
+    .emma-shell {
+        width: min(100% - 2rem, 1320px);
+        margin: 0 auto;
+    }
+
+    .emma-eyebrow {
+        margin-bottom: 0.65rem;
+        color: var(--emma-blue);
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+    }
+
+    .emma-heading {
+        margin-bottom: 0.8rem;
+        color: var(--emma-text);
+        font-size: clamp(2.6rem, 5vw, 4.8rem);
+        font-weight: 850;
+        letter-spacing: -0.06em;
+        line-height: 0.98;
+    }
+
+    .emma-intro {
+        max-width: 48rem;
+        margin: 0;
+        color: var(--emma-muted);
+        font-size: 1.08rem;
+        line-height: 1.7;
+    }
+
+    .emma-hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.75fr);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--emma-border);
+        border-radius: 1.6rem;
+        background: var(--emma-surface);
+        box-shadow: 0 1.4rem 3.5rem rgba(16, 27, 58, 0.08);
+    }
+
+    .emma-hero-main {
+        padding: clamp(2rem, 4vw, 3.5rem);
+    }
+
+    .emma-identity {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .emma-avatar {
+        display: grid;
+        width: 3.25rem;
+        height: 3.25rem;
+        place-items: center;
+        border-radius: 1rem;
+        color: var(--emma-navy);
+        background: var(--emma-yellow);
+        box-shadow: 0 0.8rem 1.8rem rgba(255, 189, 25, 0.3);
+        font-size: 1.05rem;
+        font-weight: 900;
+    }
+
+    .emma-identity-copy strong,
+    .emma-identity-copy span {
+        display: block;
+    }
+
+    .emma-identity-copy strong {
+        color: var(--emma-text);
+        font-size: 1rem;
+    }
+
+    .emma-identity-copy span {
+        color: var(--emma-muted);
+        font-size: 0.86rem;
+    }
+
+    .emma-hero-title {
+        max-width: 50rem;
+        margin-bottom: 1rem;
+        color: var(--emma-text);
+        font-size: clamp(2.1rem, 4vw, 3.8rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+        line-height: 1.02;
+    }
+
+    .emma-hero-message {
+        max-width: 48rem;
+        margin-bottom: 0;
+        color: var(--emma-muted);
+        font-size: 1.05rem;
+        line-height: 1.75;
+    }
+
+    .emma-progress-list {
+        display: grid;
+        gap: 0.65rem;
+        margin-top: 1.5rem;
+    }
+
+    .emma-progress-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.65rem;
+        color: #236343;
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .emma-progress-icon {
+        display: grid;
+        flex: 0 0 1.65rem;
+        width: 1.65rem;
+        height: 1.65rem;
+        place-items: center;
+        border-radius: 50%;
+        background: #dcf8e8;
+        font-size: 0.78rem;
+        font-weight: 900;
+    }
+
+    .emma-hero-side {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: clamp(2rem, 3.5vw, 3rem);
+        color: #ffffff;
+        background:
+            linear-gradient(
+                145deg,
+                var(--emma-navy),
+                var(--emma-navy-light)
+            );
+    }
+
+    .emma-hero-side-label {
+        margin-bottom: 0.8rem;
+        color: var(--emma-yellow);
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    .emma-hero-side-title {
+        margin-bottom: 0.85rem;
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .emma-hero-side-message {
+        margin-bottom: 1.6rem;
+        color: #cbd6ee;
+        line-height: 1.65;
+    }
+
+    .emma-mini-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.65rem;
+    }
+
+    .emma-mini-stat {
+        padding: 0.85rem 0.65rem;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 0.85rem;
+        background: rgba(255, 255, 255, 0.06);
+        text-align: center;
+    }
+
+    .emma-mini-stat strong,
+    .emma-mini-stat span {
+        display: block;
+    }
+
+    .emma-mini-stat strong {
+        color: #ffffff;
+        font-size: 1.4rem;
+        font-weight: 850;
+    }
+
+    .emma-mini-stat span {
+        margin-top: 0.15rem;
+        color: #b9c7e5;
+        font-size: 0.72rem;
+    }
+
+    .emma-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.75fr);
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .emma-stack {
+        display: grid;
+        gap: 1.5rem;
+    }
+
+    .emma-card {
+        overflow: hidden;
+        border: 1px solid var(--emma-border);
+        border-radius: 1.35rem;
+        background: var(--emma-surface);
+        box-shadow: 0 1rem 2.6rem rgba(16, 27, 58, 0.06);
+    }
+
+    .emma-card-body {
+        padding: clamp(1.35rem, 3vw, 2rem);
+    }
+
+    .emma-priority {
+        position: relative;
+        border-color: #b9cdfd;
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff,
+                #f4f8ff
+            );
+    }
+
+    .emma-priority::before {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 0.3rem;
+        content: "";
+        background:
+            linear-gradient(
+                90deg,
+                var(--emma-blue),
+                var(--emma-yellow)
+            );
+    }
+
+    .emma-card-kicker {
+        margin-bottom: 0.6rem;
+        color: var(--emma-blue);
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .emma-card-title {
+        margin-bottom: 0.7rem;
+        color: var(--emma-text);
+        font-size: clamp(1.45rem, 3vw, 2rem);
+        font-weight: 820;
+        letter-spacing: -0.04em;
+    }
+
+    .emma-card-copy {
+        color: var(--emma-muted);
+        line-height: 1.65;
+    }
+
+    .emma-reasons {
+        display: grid;
+        gap: 0.65rem;
+        margin: 1.25rem 0 1.5rem;
+        padding: 0;
+        list-style: none;
+    }
+
+    .emma-reasons li {
+        display: flex;
+        gap: 0.65rem;
+        color: #39465f;
+        line-height: 1.5;
+    }
+
+    .emma-reasons li::before {
+        display: grid;
+        flex: 0 0 1.45rem;
+        width: 1.45rem;
+        height: 1.45rem;
+        place-items: center;
+        border-radius: 50%;
+        content: "✓";
+        color: #ffffff;
+        background: var(--emma-blue);
+        font-size: 0.72rem;
+        font-weight: 900;
+    }
+
+    .emma-primary-action {
+        padding: 0.8rem 1.1rem;
+        border-color: var(--emma-blue);
+        border-radius: 0.75rem;
+        color: #ffffff;
+        background: var(--emma-blue);
+        font-weight: 750;
+    }
+
+    .emma-primary-action:hover {
+        border-color: #174fc8;
+        color: #ffffff;
+        background: #174fc8;
+    }
+
+    .emma-section {
+        margin-top: 2rem;
+    }
+
+    .emma-section-header {
+        display: flex;
+        gap: 1rem;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .emma-section-title {
+        margin: 0;
+        color: var(--emma-text);
+        font-size: 1.45rem;
+        font-weight: 820;
+        letter-spacing: -0.035em;
+    }
+
+    .emma-section-note {
+        margin: 0.3rem 0 0;
+        color: var(--emma-muted);
+        font-size: 0.9rem;
+    }
+
+    .emma-count {
+        display: inline-flex;
+        min-width: 2rem;
+        height: 2rem;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        color: var(--emma-blue);
+        background: var(--emma-blue-soft);
+        font-size: 0.82rem;
+        font-weight: 850;
+    }
+
+    .emma-review-grid,
+    .emma-work-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+
+    .emma-opportunity {
+        display: flex;
+        min-height: 100%;
+        flex-direction: column;
+        padding: 1.35rem;
+    }
+
+    .emma-opportunity-top {
+        display: flex;
+        gap: 0.8rem;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .emma-opportunity-title {
+        margin: 0;
+        color: var(--emma-text);
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+
+    .emma-score {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.35rem 0.55rem;
+        border-radius: 999px;
+        color: #174fc8;
+        background: var(--emma-blue-soft);
+        font-size: 0.76rem;
+        font-weight: 800;
+    }
+
+    .emma-price-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.7rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .emma-price {
+        padding: 0.75rem;
+        border-radius: 0.8rem;
+        background: #f7f9fc;
+    }
+
+    .emma-price span,
+    .emma-price strong {
+        display: block;
+    }
+
+    .emma-price span {
+        margin-bottom: 0.2rem;
+        color: var(--emma-muted);
+        font-size: 0.72rem;
+    }
+
+    .emma-price strong {
+        color: var(--emma-text);
+        font-size: 0.98rem;
+    }
+
+    .emma-actions {
+        display: flex;
+        gap: 0.65rem;
+        margin-top: auto;
+        flex-wrap: wrap;
+    }
+
+    .emma-action-button {
+        border-radius: 0.65rem;
+        font-weight: 700;
+    }
+
+    .emma-work-card {
+        padding: 1.3rem;
+    }
+
+    .emma-work-label {
+        margin-bottom: 0.45rem;
+        color: var(--emma-blue);
+        font-size: 0.7rem;
+        font-weight: 850;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .emma-work-title {
+        margin-bottom: 0.85rem;
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+
+    .emma-missing-list {
+        display: grid;
+        gap: 0.5rem;
+        margin: 0 0 1.1rem;
+        padding: 0;
+        list-style: none;
+    }
+
+    .emma-missing-list li {
+        display: flex;
+        gap: 0.55rem;
+        align-items: center;
+        color: var(--emma-muted);
+        font-size: 0.88rem;
+    }
+
+    .emma-missing-list li::before {
+        width: 0.48rem;
+        height: 0.48rem;
+        border-radius: 50%;
+        content: "";
+        background: var(--emma-yellow);
+    }
+
+    .emma-side-card-title {
+        margin-bottom: 1rem;
+        font-size: 1.08rem;
+        font-weight: 800;
+    }
+
+    .emma-alert {
+        padding: 1rem;
+        border: 1px solid #f4d78e;
+        border-radius: 0.85rem;
+        background: #fff9e8;
+    }
+
+    .emma-alert + .emma-alert {
+        margin-top: 0.75rem;
+    }
+
+    .emma-alert-title {
+        margin-bottom: 0.35rem;
+        color: #704508;
+        font-size: 0.92rem;
+        font-weight: 800;
+    }
+
+    .emma-alert-copy {
+        margin-bottom: 0.65rem;
+        color: #7b6135;
+        font-size: 0.85rem;
+        line-height: 1.55;
+    }
+
+    .emma-change {
+        display: flex;
+        gap: 0.65rem;
+        padding: 0.8rem 0;
+        color: var(--emma-muted);
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .emma-change + .emma-change {
+        border-top: 1px solid var(--emma-border);
+    }
+
+    .emma-restock-data {
+        display: grid;
+        gap: 0.55rem;
+        margin-bottom: 1rem;
+    }
+
+    .emma-restock-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        color: var(--emma-muted);
+        font-size: 0.88rem;
+    }
+
+    .emma-restock-line strong {
+        color: var(--emma-text);
+    }
+
+    .emma-activity {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .emma-activity-card {
+        padding: 1.25rem;
+        border: 1px solid var(--emma-border);
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.82);
+    }
+
+    .emma-activity-card span,
+    .emma-activity-card strong {
+        display: block;
+    }
+
+    .emma-activity-card span {
+        margin-bottom: 0.35rem;
+        color: var(--emma-muted);
+        font-size: 0.82rem;
+    }
+
+    .emma-activity-card strong {
+        color: var(--emma-text);
+        font-size: 1.8rem;
+        font-weight: 850;
+    }
+
+    @media (max-width: 991.98px) {
+        .emma-hero,
+        .emma-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .emma-review-grid,
+        .emma-work-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .emma-page {
+            padding-top: 2rem;
+        }
+
+        .emma-shell {
+            width: min(100% - 1.2rem, 1320px);
+        }
+
+        .emma-hero-main,
+        .emma-hero-side {
+            padding: 1.4rem;
+        }
+
+        .emma-mini-stats,
+        .emma-activity {
+            grid-template-columns: 1fr;
+        }
+
+        .emma-price-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .emma-section-header {
+            align-items: flex-start;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
-<div class="container py-5">
+<section class="emma-page">
+    <div class="emma-shell">
 
-    <section class="mb-4">
-        <h1>
-            {{ briefing.greeting.title }}
-        </h1>
+        <header class="emma-hero">
 
-        <p class="lead">
-            {{ briefing.greeting.message }}
-        </p>
-    </section>
+            <div class="emma-hero-main">
 
-    {% if briefing.progress %}
-        <section class="mb-4">
-            <div class="alert alert-success">
-                {% for item in briefing.progress %}
-                    <p class="mb-0">
-                        {{ item.icon }}
-                        {{ item.message }}
-                    </p>
-                {% endfor %}
-            </div>
-        </section>
-    {% endif %}
-
-    {% if briefing.summary %}
-        <section class="mb-4">
-            <h2 class="h5">
-                {{ briefing.summary.title }}
-            </h2>
-
-            <p class="mb-0">
-                {{ briefing.summary.message }}
-            </p>
-        </section>
-    {% endif %}
-
-    {% if briefing.priorite %}
-        <section class="card border-0 shadow-sm p-4 mb-4">
-            <p class="mb-2">
-                <strong>
-                    🎯 Je vous conseille de commencer par...
-                </strong>
-            </p>
-
-            <h2 class="h4">
-                {{ briefing.priorite.title }}
-            </h2>
-
-            <p>
-                {{ briefing.priorite.message }}
-            </p>
-
-            {% if briefing.priorite.reasons %}
-                <p class="mb-2">
-                    <strong>
-                        Pourquoi je vous le conseille ?
-                    </strong>
-                </p>
-
-                <ul>
-                    {% for reason in briefing.priorite.reasons %}
-                        <li>{{ reason }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-
-            <div>
-                <a
-                    href="{{ briefing.priorite.action_url }}"
-                    class="btn btn-dark"
-                >
-                    {{ briefing.priorite.action_label }}
-                </a>
-            </div>
-        </section>
-    {% endif %}
-
-    {% if briefing.alerts %}
-        <section class="mt-4">
-            <h2 class="h4 mb-3">
-                ⏳ À surveiller
-            </h2>
-
-            <div class="alert alert-warning">
-                {% for alert in briefing.alerts %}
-                    <div class="mb-2">
-                        <strong>
-                            {{ alert.icon }}
-                            {{ alert.title }}
-                        </strong>
+                <div class="emma-identity">
+                    <div
+                        class="emma-avatar"
+                        aria-hidden="true"
+                    >
+                        E
                     </div>
 
-                    <p class="mb-2">
-                        {{ alert.message }}
+                    <div class="emma-identity-copy">
+                        <strong>Emma</strong>
+                        <span>Votre collaboratrice commerciale</span>
+                    </div>
+                </div>
+
+                <p class="emma-eyebrow">
+                    Briefing du jour
+                </p>
+
+                <h1 class="emma-hero-title">
+                    {{ briefing.greeting.title }}
+                </h1>
+
+                <p class="emma-hero-message">
+                    {{ briefing.greeting.message }}
+                </p>
+
+                {% if briefing.progress %}
+
+                    <div class="emma-progress-list">
+
+                        {% for item in briefing.progress %}
+
+                            <div class="emma-progress-item">
+                                <span class="emma-progress-icon">
+                                    ✓
+                                </span>
+
+                                <span>
+                                    {{ item.message }}
+                                </span>
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+            <aside class="emma-hero-side">
+
+                <div>
+                    <p class="emma-hero-side-label">
+                        Vue d’ensemble
                     </p>
 
-                    {% if alert.action_url %}
-                        <a
-                            href="{{ alert.action_url }}"
-                            class="btn btn-outline-dark btn-sm"
-                        >
-                            {{ alert.action_label }}
-                        </a>
-                    {% endif %}
-                {% endfor %}
-            </div>
-        </section>
-    {% endif %}
+                    {% if briefing.summary %}
 
-    {% if briefing.greeting.previous_visit %}
-        <section class="mt-4">
-            <h2 class="h4 mb-3">
-                ✨ Depuis votre dernière visite
-            </h2>
+                        <h2 class="emma-hero-side-title">
+                            {{ briefing.summary.title }}
+                        </h2>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    {% for change in briefing.changes %}
-                        <p class="mb-2">
-                            {{ change.icon }}
-                            {{ change.message }}
+                        <p class="emma-hero-side-message">
+                            {{ briefing.summary.message }}
                         </p>
-                    {% endfor %}
+
+                    {% else %}
+
+                        <h2 class="emma-hero-side-title">
+                            Votre activité aujourd’hui
+                        </h2>
+
+                        <p class="emma-hero-side-message">
+                            Retrouvez les décisions et les préparations
+                            qui méritent votre attention.
+                        </p>
+
+                    {% endif %}
                 </div>
-            </div>
-        </section>
-    {% endif %}
 
-    {% if review_opportunities %}
-        <section class="mt-4">
-            <h2 class="h4 mb-3">
-                Opportunités à vérifier
-                <span class="badge bg-secondary">
-                    {{ review_opportunities|length }}
-                </span>
-            </h2>
+                <div class="emma-mini-stats">
 
-            <div class="row g-3">
-                {% for opportunity in review_opportunities %}
-                    <div class="col-lg-6">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
+                    <div class="emma-mini-stat">
+                        <strong>
+                            {{ briefing.activity.products }}
+                        </strong>
+                        <span>Produits</span>
+                    </div>
 
-                                <h3 class="h5">
-                                    {{ opportunity.name }}
-                                </h3>
+                    <div class="emma-mini-stat">
+                        <strong>
+                            {{ briefing.activity.orders }}
+                        </strong>
+                        <span>Commandes</span>
+                    </div>
 
-                                <p class="mb-1">
-                                    <strong>Score :</strong>
-                                    {{ opportunity.opportunity_score }}
+                    <div class="emma-mini-stat">
+                        <strong>
+                            {{ briefing.activity.opportunities }}
+                        </strong>
+                        <span>Opportunités</span>
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </header>
+
+        <div class="emma-layout">
+
+            <main class="emma-stack">
+
+                {% if briefing.priorite %}
+
+                    <section class="emma-card emma-priority">
+                        <div class="emma-card-body">
+
+                            <p class="emma-card-kicker">
+                                La priorité recommandée par Emma
+                            </p>
+
+                            <h2 class="emma-card-title">
+                                {{ briefing.priorite.title }}
+                            </h2>
+
+                            <p class="emma-card-copy">
+                                {{ briefing.priorite.message }}
+                            </p>
+
+                            {% if briefing.priorite.reasons %}
+
+                                <ul class="emma-reasons">
+
+                                    {% for reason in briefing.priorite.reasons %}
+
+                                        <li>
+                                            {{ reason }}
+                                        </li>
+
+                                    {% endfor %}
+
+                                </ul>
+
+                            {% endif %}
+
+                            {% if briefing.priorite.action_url %}
+
+                                <a
+                                    href="{{ briefing.priorite.action_url }}"
+                                    class="btn emma-primary-action"
+                                >
+                                    {{ briefing.priorite.action_label }}
+                                    <span aria-hidden="true">→</span>
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+                    </section>
+
+                {% endif %}
+
+                {% if review_opportunities %}
+
+                    <section class="emma-section">
+
+                        <div class="emma-section-header">
+                            <div>
+                                <h2 class="emma-section-title">
+                                    Décisions à prendre
+                                </h2>
+
+                                <p class="emma-section-note">
+                                    Vérifiez les opportunités détectées
+                                    avant de les confier à la préparation.
                                 </p>
+                            </div>
 
-                                <p class="mb-1">
-                                    <strong>Prix fournisseur :</strong>
-                                    {{ opportunity.supplier_price }}
-                                </p>
+                            <span class="emma-count">
+                                {{ review_opportunities|length }}
+                            </span>
+                        </div>
 
-                                <p class="mb-3">
-                                    <strong>Prix marché :</strong>
-                                    {{ opportunity.market_price }}
-                                </p>
+                        <div class="emma-review-grid">
 
-                                <div class="d-flex gap-2">
+                            {% for opportunity in review_opportunities %}
 
-                                    <form
-                                        method="post"
-                                        action="{% url 'dashboard:approve_opportunity' opportunity.id %}"
-                                    >
-                                        {% csrf_token %}
+                                <article class="emma-card emma-opportunity">
 
-                                        <button
-                                            type="submit"
-                                            class="btn btn-success"
+                                    <div class="emma-opportunity-top">
+
+                                        <h3 class="emma-opportunity-title">
+                                            {{ opportunity.name }}
+                                        </h3>
+
+                                        <span class="emma-score">
+                                            Score
+                                            {{ opportunity.opportunity_score }}
+                                        </span>
+
+                                    </div>
+
+                                    <div class="emma-price-grid">
+
+                                        <div class="emma-price">
+                                            <span>Prix fournisseur</span>
+                                            <strong>
+                                                {{ opportunity.supplier_price }}
+                                            </strong>
+                                        </div>
+
+                                        <div class="emma-price">
+                                            <span>Prix marché</span>
+                                            <strong>
+                                                {{ opportunity.market_price }}
+                                            </strong>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="emma-actions">
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'dashboard:approve_opportunity' opportunity.id %}"
                                         >
-                                            Approuver
-                                        </button>
-                                    </form>
+                                            {% csrf_token %}
 
-                                    <form
-                                        method="post"
-                                        action="{% url 'dashboard:reject_opportunity' opportunity.id %}"
-                                    >
-                                        {% csrf_token %}
+                                            <button
+                                                type="submit"
+                                                class="btn btn-success emma-action-button"
+                                            >
+                                                Approuver
+                                            </button>
+                                        </form>
 
-                                        <button
-                                            type="submit"
-                                            class="btn btn-outline-danger"
+                                        <form
+                                            method="post"
+                                            action="{% url 'dashboard:reject_opportunity' opportunity.id %}"
                                         >
-                                            Refuser
-                                        </button>
-                                    </form>
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-outline-danger emma-action-button"
+                                            >
+                                                Refuser
+                                            </button>
+                                        </form>
+
+                                    </div>
+
+                                </article>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+                {% endif %}
+
+                {% if briefing.preparation %}
+
+                    <section class="emma-section">
+
+                        <div class="emma-section-header">
+                            <div>
+                                <h2 class="emma-section-title">
+                                    Produits à préparer
+                                </h2>
+
+                                <p class="emma-section-note">
+                                    Complétez les informations nécessaires
+                                    avant la mise en ligne.
+                                </p>
+                            </div>
+
+                            <span class="emma-count">
+                                {{ briefing.preparation|length }}
+                            </span>
+                        </div>
+
+                        <div class="emma-work-grid">
+
+                            {% for item in briefing.preparation %}
+
+                                <article class="emma-card emma-work-card">
+
+                                    <p class="emma-work-label">
+                                        Préparation
+                                    </p>
+
+                                    <h3 class="emma-work-title">
+                                        {{ item.title }}
+                                    </h3>
+
+                                    <ul class="emma-missing-list">
+
+                                        {% for missing in item.missing %}
+
+                                            <li>
+                                                {{ missing.label }}
+                                            </li>
+
+                                        {% endfor %}
+
+                                    </ul>
+
+                                    <a
+                                        href="{% url 'recommendations:detail' item.opportunity.id %}"
+                                        class="btn btn-outline-primary emma-action-button"
+                                    >
+                                        Préparer ce produit
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+
+                                </article>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+                {% endif %}
+
+                {% if briefing.restock %}
+
+                    <section class="emma-section">
+
+                        <div class="emma-section-header">
+                            <div>
+                                <h2 class="emma-section-title">
+                                    Réapprovisionnements
+                                </h2>
+
+                                <p class="emma-section-note">
+                                    Les produits existants qui nécessitent
+                                    une nouvelle décision de stock.
+                                </p>
+                            </div>
+
+                            <span class="emma-count">
+                                {{ briefing.restock|length }}
+                            </span>
+                        </div>
+
+                        <div class="emma-work-grid">
+
+                            {% for item in briefing.restock %}
+
+                                <article class="emma-card emma-work-card">
+
+                                    <p class="emma-work-label">
+                                        Stock
+                                    </p>
+
+                                    <h3 class="emma-work-title">
+                                        {{ item.title }}
+                                    </h3>
+
+                                    <div class="emma-restock-data">
+
+                                        <div class="emma-restock-line">
+                                            <span>Stock actuel</span>
+                                            <strong>
+                                                {{ item.current_stock }}
+                                            </strong>
+                                        </div>
+
+                                        {% if item.supplier_stock is not None %}
+
+                                            <div class="emma-restock-line">
+                                                <span>Stock fournisseur</span>
+                                                <strong>
+                                                    {{ item.supplier_stock }}
+                                                </strong>
+                                            </div>
+
+                                        {% endif %}
+
+                                        {% if item.suggested_stock %}
+
+                                            <div class="emma-restock-line">
+                                                <span>Quantité conseillée</span>
+                                                <strong>
+                                                    {{ item.suggested_stock }}
+                                                </strong>
+                                            </div>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                    <a
+                                        href="{% url 'recommendations:detail' item.opportunity.id %}"
+                                        class="btn btn-outline-success emma-action-button"
+                                    >
+                                        Voir le réapprovisionnement
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+
+                                </article>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </section>
+
+                {% endif %}
+
+            </main>
+
+            <aside class="emma-stack">
+
+                {% if briefing.alerts %}
+
+                    <section class="emma-card">
+                        <div class="emma-card-body">
+
+                            <h2 class="emma-side-card-title">
+                                À surveiller
+                            </h2>
+
+                            {% for alert in briefing.alerts %}
+
+                                <article class="emma-alert">
+
+                                    <h3 class="emma-alert-title">
+                                        {{ alert.icon }}
+                                        {{ alert.title }}
+                                    </h3>
+
+                                    <p class="emma-alert-copy">
+                                        {{ alert.message }}
+                                    </p>
+
+                                    {% if alert.action_url %}
+
+                                        <a
+                                            href="{{ alert.action_url }}"
+                                            class="btn btn-sm btn-outline-dark"
+                                        >
+                                            {{ alert.action_label }}
+                                        </a>
+
+                                    {% endif %}
+
+                                </article>
+
+                            {% endfor %}
+
+                        </div>
+                    </section>
+
+                {% endif %}
+
+                {% if briefing.greeting.previous_visit and briefing.changes %}
+
+                    <section class="emma-card">
+                        <div class="emma-card-body">
+
+                            <p class="emma-card-kicker">
+                                Depuis votre dernière visite
+                            </p>
+
+                            <h2 class="emma-side-card-title">
+                                Ce qui a changé
+                            </h2>
+
+                            {% for change in briefing.changes %}
+
+                                <div class="emma-change">
+
+                                    <span aria-hidden="true">
+                                        {{ change.icon }}
+                                    </span>
+
+                                    <span>
+                                        {{ change.message }}
+                                    </span>
 
                                 </div>
 
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
-    {% endif %}
-
-
-    {% if briefing.preparation %}
-        <section class="mt-4">
-            <h2 class="h4 mb-3">
-                📝 À préparer
-                <span class="badge bg-secondary">
-                    {{ briefing.preparation|length }}
-                </span>
-            </h2>
-
-            <div class="row g-3">
-                {% for item in briefing.preparation %}
-                    <div class="col-lg-5">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-
-                                <h3 class="h5">
-                                    {{ item.title }}
-                                </h3>
-
-                                <p class="mb-2">
-                                    <strong>
-                                        Étapes restantes
-                                    </strong>
-                                </p>
-
-                                <ul class="list-unstyled mb-3">
-                                    {% for missing in item.missing %}
-                                        <li class="mb-1">
-                                            📁 {{ missing.label }}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-
-                                <a
-                                    href="{% url 'recommendations:detail' item.opportunity.id %}"
-                                    class="btn btn-primary"
-                                >
-                                    Préparer ce produit
-                                </a>
-
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
-    {% endif %}
-
-    {% if briefing.restock %}
-        <section class="mt-4">
-            <h2 class="h4 mb-3">
-                📦 À réapprovisionner
-                <span class="badge bg-warning text-dark">
-                    {{ briefing.restock|length }}
-                </span>
-            </h2>
-
-            <div class="row g-3">
-
-                {% for item in briefing.restock %}
-
-                    <div class="col-lg-6">
-                        <div class="card h-100 shadow-sm">
-
-                            <div class="card-body">
-
-                                <h3 class="h5">
-                                    {{ item.title }}
-                                </h3>
-
-                                <p class="mb-1">
-                                    <strong>Stock actuel :</strong>
-                                    {{ item.current_stock }}
-                                </p>
-
-                                {% if item.supplier_stock is not None %}
-                                    <p class="mb-1">
-                                        <strong>Stock fournisseur :</strong>
-                                        {{ item.supplier_stock }}
-                                    </p>
-                                {% endif %}
-
-                                {% if item.suggested_stock %}
-                                    <p class="mb-3">
-                                        <strong>Quantité conseillée :</strong>
-                                        {{ item.suggested_stock }}
-                                    </p>
-                                {% endif %}
-
-                                <a
-                                    href="{% url 'recommendations:detail' item.opportunity.id %}"
-                                    class="btn btn-success"
-                                >
-                                    Voir le réapprovisionnement
-                                </a>
-
-                            </div>
+                            {% endfor %}
 
                         </div>
-                    </div>
+                    </section>
 
-                {% endfor %}
+                {% endif %}
 
-            </div>
-        </section>
-    {% endif %}
+                <section class="emma-card">
+                    <div class="emma-card-body">
 
-
-    <section class="mt-5">
-        <h2 class="h4 mb-3">
-            📊 Votre activité
-        </h2>
-
-        <div class="row g-3">
-            <div class="col-md-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <h3 class="h5">
-                            Produits
-                        </h3>
-
-                        <p class="display-6 mb-0">
-                            {{ briefing.activity.products }}
+                        <p class="emma-card-kicker">
+                            Méthode Emma
                         </p>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-md-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <h3 class="h5">
-                            Commandes
-                        </h3>
+                        <h2 class="emma-side-card-title">
+                            Une décision à la fois
+                        </h2>
 
-                        <p class="display-6 mb-0">
-                            {{ briefing.activity.orders }}
+                        <p class="emma-card-copy mb-0">
+                            Emma rassemble les éléments utiles,
+                            explique ses recommandations et vous
+                            laisse toujours la décision finale.
                         </p>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-md-4">
-                <div class="card text-center h-100">
-                    <div class="card-body">
-                        <h3 class="h5">
-                            Opportunités
-                        </h3>
-
-                        <p class="display-6 mb-0">
-                            {{ briefing.activity.opportunities }}
-                        </p>
                     </div>
-                </div>
-            </div>
+                </section>
+
+            </aside>
+
         </div>
-    </section>
 
-</div>
+        <section
+            class="emma-activity"
+            aria-label="Indicateurs d’activité"
+        >
+
+            <article class="emma-activity-card">
+                <span>Produits dans la boutique</span>
+                <strong>
+                    {{ briefing.activity.products }}
+                </strong>
+            </article>
+
+            <article class="emma-activity-card">
+                <span>Commandes enregistrées</span>
+                <strong>
+                    {{ briefing.activity.orders }}
+                </strong>
+            </article>
+
+            <article class="emma-activity-card">
+                <span>Opportunités suivies</span>
+                <strong>
+                    {{ briefing.activity.opportunities }}
+                </strong>
+            </article>
+
+        </section>
+
+    </div>
+</section>
 
 {% endblock %}
-
-
-
-

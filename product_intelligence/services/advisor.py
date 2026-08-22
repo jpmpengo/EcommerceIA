@@ -13,79 +13,124 @@ Ce service :
 - estime le niveau de confiance.
 
 Ce service ne :
-- ne modifie jamais la base de données ;
-- ne crée jamais de produit ;
-- ne prend jamais de décision à la place du commerçant.
-
-Utilisé par
------------
-- BusinessAdvisor
-- Centre de recommandations
-
-Dépend de
-----------
-- OpportunityAnalyzer
-- ProductOpportunity
+- modifie jamais la base de données ;
+- crée jamais de produit ;
+- prend jamais de décision à la place du commerçant.
 """
-
 
 from .analyzer import OpportunityAnalyzer
 
 
 class OpportunityAdvisor:
+
     @staticmethod
     def get_recommendation(opportunity):
         reasons = []
 
-        margin_percent = OpportunityAnalyzer.margin_percent(
-            opportunity
+        margin_percent = (
+            OpportunityAnalyzer.margin_percent(
+                opportunity
+            )
         )
 
-        estimated_margin = OpportunityAnalyzer.estimated_margin(
-            opportunity
+        estimated_margin = (
+            OpportunityAnalyzer.estimated_margin(
+                opportunity
+            )
         )
 
-        score = OpportunityAnalyzer.opportunity_score(
-            opportunity
+        score = (
+            OpportunityAnalyzer.opportunity_score(
+                opportunity
+            )
         )
 
         if margin_percent >= 50:
             reasons.append(
-                f"Marge élevée : {margin_percent:.1f} %."
+                (
+                    "Marge élevée : "
+                    f"{margin_percent:.1f} %."
+                )
             )
+
         elif margin_percent >= 30:
             reasons.append(
-                f"Marge intéressante : {margin_percent:.1f} %."
+                (
+                    "Marge intéressante : "
+                    f"{margin_percent:.1f} %."
+                )
             )
+
         else:
             reasons.append(
-                f"Marge limitée : {margin_percent:.1f} %."
+                (
+                    "Marge limitée : "
+                    f"{margin_percent:.1f} %."
+                )
             )
 
-        if opportunity.demand_score >= 80:
-            reasons.append("Demande forte.")
-        elif opportunity.demand_score >= 60:
-            reasons.append("Demande correcte.")
-        else:
-            reasons.append("Demande faible.")
+        if opportunity.demand_score <= 0:
+            reasons.append(
+                "Demande non renseignée."
+            )
 
-        if opportunity.competition_score <= 30:
-            reasons.append("Concurrence faible.")
-        elif opportunity.competition_score <= 60:
-            reasons.append("Concurrence modérée.")
+        elif opportunity.demand_score >= 80:
+            reasons.append(
+                "Demande forte."
+            )
+
+        elif opportunity.demand_score >= 60:
+            reasons.append(
+                "Demande correcte."
+            )
+
         else:
-            reasons.append("Concurrence élevée.")
+            reasons.append(
+                "Demande faible."
+            )
+
+        if opportunity.competition_score <= 0:
+            reasons.append(
+                "Concurrence non renseignée."
+            )
+
+        elif opportunity.competition_score <= 30:
+            reasons.append(
+                "Concurrence faible."
+            )
+
+        elif opportunity.competition_score <= 60:
+            reasons.append(
+                "Concurrence modérée."
+            )
+
+        else:
+            reasons.append(
+                "Concurrence élevée."
+            )
 
         if score >= 80:
-            decision = "Je recommande d'examiner ce produit."
+            decision = (
+                "Je recommande d'examiner ce produit."
+            )
+
             level = "success"
+
         elif score >= 60:
-            decision = "✅ Cette recommandation peut être publiée."
+            decision = (
+                "Cette opportunité mérite une "
+                "préparation avant décision de "
+                "publication."
+            )
+
             level = "warning"
+
         else:
             decision = (
-                "Je ne recommande pas ce produit actuellement."
+                "Je ne recommande pas ce produit "
+                "actuellement."
             )
+
             level = "danger"
 
         return {
@@ -103,20 +148,22 @@ class OpportunityAdvisor:
         Calcule la priorité actuelle d'une opportunité.
 
         Pour l'instant, la priorité correspond au score
-        intrinsèque calculé par OpportunityAnalyzer.
-
-        Plus tard, des bonus ou malus contextuels pourront
-        être ajoutés ici : stratégie, saison, fournisseur,
-        catégorie à développer, etc.
+        calculé par OpportunityAnalyzer.
         """
-        return OpportunityAnalyzer.opportunity_score(
-            opportunity
+
+        return (
+            OpportunityAnalyzer.opportunity_score(
+                opportunity
+            )
         )
 
     @staticmethod
     def rank_opportunities(opportunities):
         return sorted(
             opportunities,
-            key=OpportunityAdvisor.calculate_priority,
+            key=(
+                OpportunityAdvisor
+                .calculate_priority
+            ),
             reverse=True,
         )

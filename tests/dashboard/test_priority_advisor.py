@@ -138,32 +138,70 @@ class PriorityAdvisorTests(TestCase):
 
         self.assertIsNone(priority)
 
-    def test_ignores_approved_opportunity_without_category(self):
-        opportunity = ProductOpportunity.objects.create(
-            name="Produit sans catégorie",
-            source_name="Test",
-            supplier_price=Decimal("20.00"),
-            market_price=Decimal("60.00"),
-            shipping_cost=Decimal("5.00"),
-            other_costs=Decimal("5.00"),
-            demand_score=90,
-            competition_score=40,
-            status="approved",
-            description="Produit sans catégorie avec une description suffisamment détaillée "
-                        "pour permettre sa publication dans la boutique.",
-            initial_stock=5,
-            category=None,
-            image=SimpleUploadedFile(
-                "casque.jpg",
-                b"fake-image-content",
-                content_type="image/jpeg",
-            ),
+    def test_returns_preparation_priority_for_incomplete_opportunity(
+        self,
+    ):
+        opportunity = (
+            ProductOpportunity.objects.create(
+                name="Produit sans catégorie",
+                source_name="Test",
+                supplier_price=Decimal(
+                    "20.00"
+                ),
+                market_price=Decimal(
+                    "60.00"
+                ),
+                shipping_cost=Decimal(
+                    "5.00"
+                ),
+                other_costs=Decimal(
+                    "5.00"
+                ),
+                demand_score=90,
+                competition_score=40,
+                status="approved",
+                description=(
+                    "Produit sans catégorie avec "
+                    "une description suffisamment "
+                    "détaillée."
+                ),
+                initial_stock=5,
+                category=None,
+                image=SimpleUploadedFile(
+                    "casque.jpg",
+                    b"fake-image-content",
+                    content_type="image/jpeg",
+                ),
+            )
         )
 
-        priority = PriorityAdvisor.get_priority()
+        priority = (
+            PriorityAdvisor.get_priority()
+        )
 
-        self.assertIsNone(priority)
+        self.assertIsNotNone(
+            priority
+        )
 
+        self.assertEqual(
+            priority["title"],
+            "Préparer Produit sans catégorie",
+        )
+
+        self.assertEqual(
+            priority["action_label"],
+            "Préparer ce produit",
+        )
+
+        self.assertEqual(
+            priority["action_url"],
+            reverse(
+                "recommendations:detail",
+                args=[
+                    opportunity.pk,
+                ],
+            ),
+        )
 
 
 

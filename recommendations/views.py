@@ -1,5 +1,8 @@
+from functools import wraps
+
 import httpx
 
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.files.base import ContentFile
 from django.shortcuts import (
@@ -8,6 +11,9 @@ from django.shortcuts import (
     render,
 )
 
+from dashboard.services.access_service import (
+    DashboardAccessService,
+)
 from dashboard.services.business_advisor import (
     BusinessAdvisor,
 )
@@ -44,7 +50,34 @@ from recommendations.services.supplier_image_service import (
     SupplierImageService,
 )
 
+from django.views.decorators.http import (
+    require_POST,
+)
 
+def emma_access_required(view_function):
+    @wraps(view_function)
+    @login_required
+    def protected_view(
+        request,
+        *args,
+        **kwargs,
+    ):
+        if not DashboardAccessService.can_access(
+            request.user
+        ):
+            return redirect(
+                "products:product_list"
+            )
+
+        return view_function(
+            request,
+            *args,
+            **kwargs,
+        )
+
+    return protected_view
+
+@emma_access_required
 def recommendation_list(request):
     advisor = BusinessAdvisor()
     brief = advisor.get_business_brief()
@@ -53,11 +86,13 @@ def recommendation_list(request):
         request,
         "recommendations/list.html",
         {
-            "recommendations": brief["top_opportunities"],
+            "recommendations": brief[
+                "top_opportunities"
+            ],
         },
     )
 
-
+@emma_access_required
 def recommendation_detail(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -151,7 +186,8 @@ def recommendation_detail(request, pk):
         },
     )
 
-
+@emma_access_required
+@require_POST
 def publish_recommendation(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -186,7 +222,8 @@ def publish_recommendation(request, pk):
             pk=opportunity.pk,
         )
 
-
+@emma_access_required
+@require_POST
 def postpone_recommendation(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -214,6 +251,8 @@ def postpone_recommendation(request, pk):
     )
 
 
+@emma_access_required
+@require_POST
 def reject_recommendation(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -240,7 +279,8 @@ def reject_recommendation(request, pk):
         "recommendations:list"
     )
 
-
+@emma_access_required
+@require_POST
 def apply_category(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -278,7 +318,8 @@ def apply_category(request, pk):
         pk=opportunity.pk,
     )
 
-
+@emma_access_required
+@require_POST
 def apply_description(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -317,7 +358,8 @@ def apply_description(request, pk):
         pk=opportunity.pk,
     )
 
-
+@emma_access_required
+@require_POST
 def apply_image(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -359,7 +401,8 @@ def apply_image(request, pk):
         pk=opportunity.pk,
     )
 
-
+@emma_access_required
+@require_POST
 def apply_supplier_image(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -448,7 +491,8 @@ def apply_supplier_image(request, pk):
         pk=opportunity.pk,
     )
 
-
+@emma_access_required
+@require_POST
 def apply_stock(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,
@@ -505,7 +549,8 @@ def apply_stock(request, pk):
         pk=opportunity.pk,
     )
 
-
+@emma_access_required
+@require_POST
 def restock_recommendation(request, pk):
     opportunity = get_object_or_404(
         ProductOpportunity,

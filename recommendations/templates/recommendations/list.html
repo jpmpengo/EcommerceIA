@@ -1,80 +1,593 @@
 {% extends "base.html" %}
 
 {% block title %}
-Centre de recommandations
+Centre de recommandations | Emma
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .recommendation-page {
+        --rec-navy: #101b3a;
+        --rec-blue: #2865ee;
+        --rec-blue-soft: #edf4ff;
+        --rec-yellow: #ffbd19;
+        --rec-green: #17935b;
+        --rec-red: #dc3545;
+        --rec-text: #111a31;
+        --rec-muted: #64748b;
+        --rec-border: #dbe3ef;
+        --rec-background: #f5f8fc;
+
+        min-height: calc(100vh - 5rem);
+        padding: 3.5rem 0 5rem;
+        color: var(--rec-text);
+        background:
+            radial-gradient(
+                circle at 100% 0,
+                rgba(255, 189, 25, 0.12),
+                transparent 28rem
+            ),
+            radial-gradient(
+                circle at 0 15rem,
+                rgba(40, 101, 238, 0.09),
+                transparent 30rem
+            ),
+            var(--rec-background);
+    }
+
+    .recommendation-shell {
+        width: min(100% - 2rem, 1240px);
+        margin: 0 auto;
+    }
+
+    .recommendation-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 2rem;
+        color: var(--rec-muted);
+        font-size: 0.88rem;
+        font-weight: 700;
+    }
+
+    .recommendation-back:hover {
+        color: var(--rec-blue);
+    }
+
+    .recommendation-header {
+        display: flex;
+        gap: 2rem;
+        align-items: end;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+
+    .recommendation-eyebrow {
+        margin-bottom: 0.65rem;
+        color: var(--rec-blue);
+        font-size: 0.74rem;
+        font-weight: 850;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+    }
+
+    .recommendation-title {
+        margin-bottom: 0.75rem;
+        color: var(--rec-text);
+        font-size: clamp(2.5rem, 5vw, 4.4rem);
+        font-weight: 850;
+        letter-spacing: -0.06em;
+        line-height: 0.98;
+    }
+
+    .recommendation-intro {
+        max-width: 48rem;
+        margin: 0;
+        color: var(--rec-muted);
+        font-size: 1.02rem;
+        line-height: 1.7;
+    }
+
+    .recommendation-count {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.7rem 0.9rem;
+        border: 1px solid var(--rec-border);
+        border-radius: 999px;
+        color: var(--rec-navy);
+        background: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 750;
+    }
+
+    .recommendation-count strong {
+        display: grid;
+        min-width: 1.75rem;
+        height: 1.75rem;
+        place-items: center;
+        border-radius: 50%;
+        color: #ffffff;
+        background: var(--rec-blue);
+        font-size: 0.78rem;
+    }
+
+    .recommendation-guide {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 1.15rem 1.3rem;
+        border: 1px solid #c9d8fb;
+        border-radius: 1rem;
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff,
+                #f2f6ff
+            );
+    }
+
+    .recommendation-guide-icon {
+        display: grid;
+        width: 2.7rem;
+        height: 2.7rem;
+        place-items: center;
+        border-radius: 0.8rem;
+        color: var(--rec-navy);
+        background: var(--rec-yellow);
+        font-weight: 900;
+    }
+
+    .recommendation-guide strong,
+    .recommendation-guide span {
+        display: block;
+    }
+
+    .recommendation-guide strong {
+        margin-bottom: 0.2rem;
+        color: var(--rec-text);
+        font-size: 0.95rem;
+    }
+
+    .recommendation-guide span {
+        color: var(--rec-muted);
+        font-size: 0.86rem;
+        line-height: 1.5;
+    }
+
+    .recommendation-guide-step {
+        color: var(--rec-blue);
+        font-size: 0.75rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .recommendation-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.25rem;
+    }
+
+    .recommendation-card {
+        display: flex;
+        min-height: 100%;
+        overflow: hidden;
+        flex-direction: column;
+        border: 1px solid var(--rec-border);
+        border-radius: 1.3rem;
+        background: #ffffff;
+        box-shadow:
+            0 1rem 2.8rem rgba(16, 27, 58, 0.06);
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease,
+            border-color 160ms ease;
+    }
+
+    .recommendation-card:hover {
+        transform: translateY(-3px);
+        border-color: #b9cdfd;
+        box-shadow:
+            0 1.4rem 3.2rem rgba(16, 27, 58, 0.10);
+    }
+
+    .recommendation-card-main {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: clamp(1.35rem, 3vw, 1.8rem);
+    }
+
+    .recommendation-card-top {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 1.1rem;
+    }
+
+    .recommendation-card-label {
+        margin-bottom: 0.4rem;
+        color: var(--rec-blue);
+        font-size: 0.69rem;
+        font-weight: 850;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .recommendation-card-title {
+        margin: 0;
+        color: var(--rec-text);
+        font-size: 1.2rem;
+        font-weight: 820;
+        letter-spacing: -0.025em;
+        line-height: 1.3;
+    }
+
+    .recommendation-priority {
+        display: grid;
+        flex: 0 0 3.4rem;
+        width: 3.4rem;
+        height: 3.4rem;
+        place-items: center;
+        border-radius: 1rem;
+        color: var(--rec-blue);
+        background: var(--rec-blue-soft);
+        text-align: center;
+    }
+
+    .recommendation-priority strong,
+    .recommendation-priority span {
+        display: block;
+    }
+
+    .recommendation-priority strong {
+        font-size: 1rem;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .recommendation-priority span {
+        margin-top: 0.15rem;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .recommendation-finance {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.2rem;
+        padding: 0.9rem 1rem;
+        border-radius: 0.9rem;
+        background: #f7f9fc;
+    }
+
+    .recommendation-finance span,
+    .recommendation-finance strong {
+        display: block;
+    }
+
+    .recommendation-finance span {
+        color: var(--rec-muted);
+        font-size: 0.76rem;
+    }
+
+    .recommendation-finance strong {
+        color: var(--rec-green);
+        font-size: 1.2rem;
+        font-weight: 850;
+    }
+
+    .recommendation-decision {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 1rem;
+        padding: 0.4rem 0.65rem;
+        border-radius: 999px;
+        color: #17633f;
+        background: #e4f8ed;
+        font-size: 0.76rem;
+        font-weight: 800;
+    }
+
+    .recommendation-decision::before {
+        width: 0.48rem;
+        height: 0.48rem;
+        border-radius: 50%;
+        content: "";
+        background: var(--rec-green);
+    }
+
+    .recommendation-reasons {
+        display: grid;
+        gap: 0.55rem;
+        margin: 0 0 1.3rem;
+        padding: 0;
+        list-style: none;
+    }
+
+    .recommendation-reasons li {
+        display: flex;
+        gap: 0.55rem;
+        color: var(--rec-muted);
+        font-size: 0.87rem;
+        line-height: 1.5;
+    }
+
+    .recommendation-reasons li::before {
+        flex: 0 0 auto;
+        color: var(--rec-blue);
+        content: "✓";
+        font-weight: 900;
+    }
+
+    .recommendation-actions {
+        display: flex;
+        gap: 0.6rem;
+        align-items: center;
+        margin-top: auto;
+        flex-wrap: wrap;
+    }
+
+    .recommendation-action-main {
+        padding: 0.72rem 1rem;
+        border-color: var(--rec-blue);
+        color: #ffffff;
+        background: var(--rec-blue);
+        font-weight: 750;
+    }
+
+    .recommendation-action-main:hover {
+        border-color: #174fc8;
+        color: #ffffff;
+        background: #174fc8;
+    }
+
+    .recommendation-secondary-action {
+        padding: 0.72rem 0.9rem;
+        font-weight: 700;
+    }
+
+    .recommendation-empty {
+        padding: clamp(2.5rem, 7vw, 5rem);
+        border: 1px dashed #bdcbe0;
+        border-radius: 1.4rem;
+        background: rgba(255, 255, 255, 0.78);
+        text-align: center;
+    }
+
+    .recommendation-empty-icon {
+        display: grid;
+        width: 4rem;
+        height: 4rem;
+        margin: 0 auto 1rem;
+        place-items: center;
+        border-radius: 1.15rem;
+        color: var(--rec-blue);
+        background: var(--rec-blue-soft);
+        font-size: 1.3rem;
+        font-weight: 900;
+    }
+
+    .recommendation-empty h2 {
+        margin-bottom: 0.6rem;
+        font-size: 1.35rem;
+        font-weight: 820;
+    }
+
+    .recommendation-empty p {
+        max-width: 35rem;
+        margin: 0 auto;
+        color: var(--rec-muted);
+        line-height: 1.65;
+    }
+
+    @media (max-width: 991.98px) {
+        .recommendation-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 767.98px) {
+        .recommendation-header {
+            display: block;
+        }
+
+        .recommendation-count {
+            margin-top: 1rem;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .recommendation-page {
+            padding-top: 2rem;
+        }
+
+        .recommendation-shell {
+            width: min(100% - 1.2rem, 1240px);
+        }
+
+        .recommendation-guide {
+            grid-template-columns: auto 1fr;
+        }
+
+        .recommendation-guide-step {
+            display: none;
+        }
+
+        .recommendation-card-top {
+            align-items: center;
+        }
+
+        .recommendation-actions,
+        .recommendation-actions form,
+        .recommendation-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
-<div class="container py-5">
+<section class="recommendation-page">
+    <div class="recommendation-shell">
 
-    <h1 class="mb-4">
-        🏆 Centre de recommandations
-    </h1>
+        <a
+            href="{% url 'dashboard:home' %}"
+            class="recommendation-back"
+        >
+            <span aria-hidden="true">←</span>
+            Retour au briefing d’Emma
+        </a>
 
-    <p class="lead">
-        EcommerceIA a sélectionné les meilleures recommandations.
-    </p>
+        <header class="recommendation-header">
 
-    {% if recommendations %}
+            <div>
+                <p class="recommendation-eyebrow">
+                    Centre de décision
+                </p>
 
-        <div class="row">
+                <h1 class="recommendation-title">
+                    Recommandations
+                </h1>
 
-            {% for item in recommendations %}
+                <p class="recommendation-intro">
+                    Emma a réuni les opportunités les plus prometteuses.
+                    Consultez son analyse avant de préparer, reporter ou
+                    écarter une proposition.
+                </p>
+            </div>
 
-                <div class="col-md-4 mb-4">
+            {% if recommendations %}
 
-                    <div class="card shadow-sm h-100">
+                <div class="recommendation-count">
+                    <strong>
+                        {{ recommendations|length }}
+                    </strong>
 
-                        <div class="card-body">
+                    <span>
+                        recommandation{{ recommendations|length|pluralize }}
+                    </span>
+                </div>
 
-                            <h4>
-                                {{ item.opportunity.name }}
-                            </h4>
+            {% endif %}
 
-                            <p>
+        </header>
 
-                                <strong>Priorité :</strong>
+        {% if recommendations %}
 
-                                {{ item.priority }}/100
+            <div class="recommendation-guide">
 
-                            </p>
+                <span
+                    class="recommendation-guide-icon"
+                    aria-hidden="true"
+                >
+                    E
+                </span>
 
-                            <p>
+                <div>
+                    <strong>
+                        Emma vous présente d’abord l’essentiel
+                    </strong>
 
-                                <strong>Marge estimée :</strong>
+                    <span>
+                        Ouvrez une recommandation pour consulter
+                        les coûts, la marge, les éléments manquants
+                        et les actions disponibles.
+                    </span>
+                </div>
 
-                                {{ item.recommendation.estimated_margin|floatformat:2 }} €
+                <span class="recommendation-guide-step">
+                    À vous de décider
+                </span>
 
-                            </p>
+            </div>
 
-                            <ul>
+            <div class="recommendation-grid">
 
-                                {% for reason in item.recommendation.reasons %}
+                {% for item in recommendations %}
 
-                                    <li>{{ reason }}</li>
+                    <article class="recommendation-card">
 
-                                {% endfor %}
+                        <div class="recommendation-card-main">
 
-                            </ul>
+                            <div class="recommendation-card-top">
 
-                            <p>
+                                <div>
+                                    <p class="recommendation-card-label">
+                                        Opportunité sélectionnée
+                                    </p>
+
+                                    <h2 class="recommendation-card-title">
+                                        {{ item.opportunity.name }}
+                                    </h2>
+                                </div>
+
+                                <div
+                                    class="recommendation-priority"
+                                    title="Priorité calculée par Emma"
+                                >
+                                    <div>
+                                        <strong>
+                                            {{ item.priority }}
+                                        </strong>
+
+                                        <span>sur 100</span>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="recommendation-finance">
+
+                                <span>
+                                    Marge estimée
+                                </span>
 
                                 <strong>
-
-                                    {{ item.recommendation.decision }}
-
+                                    {{ item.recommendation.estimated_margin|floatformat:2 }} €
                                 </strong>
 
-                            </p>
+                            </div>
 
-                            <div class="d-flex flex-wrap gap-2">
+                            <div class="recommendation-decision">
+                                {{ item.recommendation.decision }}
+                            </div>
+
+                            {% if item.recommendation.reasons %}
+
+                                <ul class="recommendation-reasons">
+
+                                    {% for reason in item.recommendation.reasons %}
+
+                                        <li>
+                                            {{ reason }}
+                                        </li>
+
+                                    {% endfor %}
+
+                                </ul>
+
+                            {% endif %}
+
+                            <div class="recommendation-actions">
 
                                 <a
                                     href="{% url 'recommendations:detail' item.opportunity.id %}"
-                                    class="btn btn-primary"
+                                    class="btn recommendation-action-main"
                                 >
-                                    Voir la recommandation
+                                    Examiner
+                                    <span aria-hidden="true">→</span>
                                 </a>
 
                                 <form
@@ -85,26 +598,24 @@ Centre de recommandations
 
                                     <button
                                         type="submit"
-                                        class="btn btn-warning"
+                                        class="btn btn-outline-warning recommendation-secondary-action"
                                     >
-                                        ⏳ Plus tard
+                                        Plus tard
                                     </button>
                                 </form>
 
                                 <form
                                     method="post"
                                     action="{% url 'recommendations:reject' item.opportunity.id %}"
-                                    onsubmit="return confirm(
-                                        'Voulez-vous vraiment rejeter cette recommandation ?'
-                                    );"
+                                    onsubmit="return confirm('Voulez-vous vraiment rejeter cette recommandation ?');"
                                 >
                                     {% csrf_token %}
 
                                     <button
                                         type="submit"
-                                        class="btn btn-danger"
+                                        class="btn btn-outline-danger recommendation-secondary-action"
                                     >
-                                        ❌ Rejeter
+                                        Rejeter
                                     </button>
                                 </form>
 
@@ -112,25 +623,38 @@ Centre de recommandations
 
                         </div>
 
-                    </div>
+                    </article>
 
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <section class="recommendation-empty">
+
+                <div
+                    class="recommendation-empty-icon"
+                    aria-hidden="true"
+                >
+                    ✓
                 </div>
 
-            {% endfor %}
+                <h2>
+                    Aucune décision en attente
+                </h2>
 
-        </div>
+                <p>
+                    Emma n’a actuellement aucune recommandation
+                    à vous présenter. Les nouvelles opportunités
+                    apparaîtront ici après leur analyse.
+                </p>
 
-    {% else %}
+            </section>
 
-        <div class="alert alert-info">
+        {% endif %}
 
-            Aucune recommandation disponible.
-
-        </div>
-
-    {% endif %}
-
-</div>
+    </div>
+</section>
 
 {% endblock %}
-

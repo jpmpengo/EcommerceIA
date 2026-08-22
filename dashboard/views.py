@@ -89,7 +89,9 @@ def approve_opportunity(request, opportunity_id):
 
 @login_required
 def reject_opportunity(request, opportunity_id):
-    if not request.user.is_staff:
+    if not DashboardAccessService.can_access(
+        request.user
+    ):
         return redirect(
             "products:product_list"
         )

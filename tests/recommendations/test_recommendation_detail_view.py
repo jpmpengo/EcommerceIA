@@ -15,9 +15,41 @@ from unittest.mock import Mock, patch
 
 from django.core.files.base import ContentFile
 
+from django.contrib.auth import (
+    get_user_model,
+)
+from django.contrib.auth.models import Group
+
 
 
 class RecommendationDetailViewTests(TestCase):
+
+    def setUp(self):
+        self.emma_user = (
+            get_user_model()
+            .objects.create_user(
+                username="emma_operator",
+                email="emma@example.com",
+                password=(
+                    "MotDePasse-Test-2026!"
+                ),
+            )
+        )
+
+        emma_group = Group.objects.create(
+            name="Emma Operators"
+        )
+
+        self.emma_user.groups.add(
+            emma_group
+        )
+
+        self.client.login(
+            username="emma_operator",
+            password=(
+                "MotDePasse-Test-2026!"
+            ),
+        )
 
     def test_detail_exposes_suggested_stock(self):
         supplier = Supplier.objects.create(

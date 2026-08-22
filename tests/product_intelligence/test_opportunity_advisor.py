@@ -117,3 +117,106 @@ class OpportunityAdvisorTests(TestCase):
             ranked[0].opportunity_score,
             ranked[-1].opportunity_score,
         )
+
+    def test_medium_score_requires_preparation_before_publication(
+        self,
+    ):
+        opportunity = (
+            ProductOpportunity.objects.create(
+                name="Produit à préparer",
+                source_name="Test",
+                supplier_price=Decimal(
+                    "20.00"
+                ),
+                market_price=Decimal(
+                    "60.00"
+                ),
+                shipping_cost=Decimal(
+                    "5.00"
+                ),
+                other_costs=Decimal(
+                    "5.00"
+                ),
+                demand_score=20,
+                competition_score=40,
+                status="approved",
+                description=(
+                    "Produit nécessitant encore "
+                    "une préparation."
+                ),
+                initial_stock=5,
+            )
+        )
+
+        recommendation = (
+            OpportunityAdvisor
+            .get_recommendation(
+                opportunity
+            )
+        )
+
+        self.assertEqual(
+            recommendation["score"],
+            60,
+        )
+
+        self.assertEqual(
+            recommendation["decision"],
+            (
+                "Cette opportunité mérite une "
+                "préparation avant décision de "
+                "publication."
+            ),
+        )
+
+    def test_zero_market_scores_are_reported_as_unknown(
+        self,
+    ):
+        opportunity = (
+            ProductOpportunity.objects.create(
+                name="Produit sans données marché",
+                source_name="Test",
+                supplier_price=Decimal(
+                    "10.00"
+                ),
+                market_price=Decimal(
+                    "30.00"
+                ),
+                shipping_cost=Decimal(
+                    "0.00"
+                ),
+                other_costs=Decimal(
+                    "0.00"
+                ),
+                demand_score=0,
+                competition_score=0,
+                status="approved",
+            )
+        )
+
+        recommendation = (
+            OpportunityAdvisor
+            .get_recommendation(
+                opportunity
+            )
+        )
+
+        self.assertIn(
+            "Demande non renseignée.",
+            recommendation["reasons"],
+        )
+
+        self.assertIn(
+            "Concurrence non renseignée.",
+            recommendation["reasons"],
+        )
+
+        self.assertNotIn(
+            "Demande faible.",
+            recommendation["reasons"],
+        )
+
+        self.assertNotIn(
+            "Concurrence faible.",
+            recommendation["reasons"],
+        )

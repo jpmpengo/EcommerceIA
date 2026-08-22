@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1"
@@ -175,6 +176,19 @@
             white-space: nowrap;
         }
 
+        .store-emma-action {
+            color: var(--store-dark);
+            border-color: var(--store-accent);
+            background: var(--store-accent);
+        }
+
+        .store-emma-action:hover,
+        .store-emma-action:focus {
+            color: var(--store-dark);
+            border-color: #fbbf24;
+            background: #fbbf24;
+        }
+
         .store-cart {
             gap: 0.45rem;
             color: var(--store-dark);
@@ -283,10 +297,7 @@
         @media (max-width: 991.98px) {
             .store-navbar .navbar-collapse {
                 margin-top: 0.8rem;
-                padding:
-                    1rem
-                    0
-                    0.4rem;
+                padding: 1rem 0 0.4rem;
                 border-top:
                     1px solid rgba(255, 255, 255, 0.12);
             }
@@ -303,10 +314,7 @@
 
             .store-account-actions > * {
                 width: 100%;
-                margin:
-                    0
-                    0
-                    0.55rem !important;
+                margin: 0 0 0.55rem !important;
             }
 
             .store-account-actions form .btn {
@@ -314,10 +322,7 @@
             }
 
             .store-user {
-                padding:
-                    0.4rem
-                    0
-                    0.75rem;
+                padding: 0.4rem 0 0.75rem;
             }
         }
     </style>
@@ -387,6 +392,7 @@
                         </li>
 
                         <li class="nav-item dropdown">
+
                             <a
                                 class="nav-link dropdown-toggle"
                                 href="#"
@@ -432,28 +438,60 @@
                 >
                     {% if user.is_authenticated %}
 
-                        <span class="store-user me-lg-1">
-                            Bonjour
-                            <strong>{{ user.username }}</strong>
-                        </span>
+                        {% if can_access_emma %}
 
-                        {% if user.is_staff %}
+                            <span class="store-user me-lg-1">
+                                Opérateur
+                                <strong>{{ user.username }}</strong>
+                            </span>
 
                             <a
-                                href="{% url 'admin:index' %}"
-                                class="btn btn-outline-info store-action"
+                                href="{% url 'dashboard:home' %}"
+                                class="btn store-action store-emma-action"
                             >
-                                Administration
+                                Pilotage
+                            </a>
+
+                            <a
+                                href="{% url 'recommendations:list' %}"
+                                class="btn btn-outline-light store-action"
+                            >
+                                Recommandations
+                            </a>
+
+                            <a
+                                href="{% url 'products:product_list' %}"
+                                class="btn btn-outline-light store-action"
+                            >
+                                Boutique
+                            </a>
+
+                            {% if user.is_staff %}
+
+                                <a
+                                    href="{% url 'admin:index' %}"
+                                    class="btn btn-outline-info store-action"
+                                >
+                                    Administration
+                                </a>
+
+                            {% endif %}
+
+                        {% else %}
+
+                            <span class="store-user me-lg-1">
+                                Bonjour
+                                <strong>{{ user.username }}</strong>
+                            </span>
+
+                            <a
+                                href="{% url 'orders:order_list' %}"
+                                class="btn btn-outline-light store-action"
+                            >
+                                Mes commandes
                             </a>
 
                         {% endif %}
-
-                        <a
-                            href="{% url 'orders:order_list' %}"
-                            class="btn btn-outline-light store-action"
-                        >
-                            Mes commandes
-                        </a>
 
                         <a
                             href="{% url 'password_change' %}"
@@ -514,18 +552,22 @@
 
                     {% endif %}
 
-                    <a
-                        href="{% url 'cart:cart_detail' %}"
-                        class="btn store-action store-cart"
-                    >
-                        <span>Panier</span>
+                    {% if not can_access_emma %}
 
-                        <span class="store-cart-count">
-                            {{ cart|length }}
-                        </span>
-                    </a>
+                        <a
+                            href="{% url 'cart:cart_detail' %}"
+                            class="btn store-action store-cart"
+                        >
+                            <span>Panier</span>
+
+                            <span class="store-cart-count">
+                                {{ cart|length }}
+                            </span>
+                        </a>
+
+                    {% endif %}
+
                 </div>
-
             </div>
         </div>
     </nav>
@@ -563,10 +605,11 @@
 
     <footer class="store-footer">
         <div class="container py-5">
-            <div
-                class="row align-items-center gy-4"
-            >
+
+            <div class="row align-items-center gy-4">
+
                 <div class="col-lg-7">
+
                     <div class="store-footer-title mb-2">
                         EcommerceIA
                     </div>
@@ -576,38 +619,69 @@
                         évalués avec attention avant leur
                         mise en ligne.
                     </p>
+
                 </div>
 
                 <div class="col-lg-5 text-lg-end">
-                    <a
-                        class="store-footer-link me-3"
-                        href="{% url 'products:product_list' %}"
-                    >
-                        Tous les produits
-                    </a>
 
-                    {% if user.is_authenticated or request.session.guest_order_ids %}
+                    {% if can_access_emma %}
 
                         <a
                             class="store-footer-link me-3"
-                            href="{% url 'orders:order_list' %}"
+                            href="{% url 'dashboard:home' %}"
                         >
-                            Mes commandes
+                            Pilotage
+                        </a>
+
+                        <a
+                            class="store-footer-link me-3"
+                            href="{% url 'recommendations:list' %}"
+                        >
+                            Recommandations
+                        </a>
+
+                        <a
+                            class="store-footer-link"
+                            href="{% url 'products:product_list' %}"
+                        >
+                            Boutique
+                        </a>
+
+                    {% else %}
+
+                        <a
+                            class="store-footer-link me-3"
+                            href="{% url 'products:product_list' %}"
+                        >
+                            Tous les produits
+                        </a>
+
+                        {% if user.is_authenticated or request.session.guest_order_ids %}
+
+                            <a
+                                class="store-footer-link me-3"
+                                href="{% url 'orders:order_list' %}"
+                            >
+                                Mes commandes
+                            </a>
+
+                        {% endif %}
+
+                        <a
+                            class="store-footer-link"
+                            href="{% url 'cart:cart_detail' %}"
+                        >
+                            Mon panier
                         </a>
 
                     {% endif %}
 
-                    <a
-                        class="store-footer-link"
-                        href="{% url 'cart:cart_detail' %}"
-                    >
-                        Mon panier
-                    </a>
-
                     <div class="store-footer-note mt-2 ms-lg-auto">
                         © {% now "Y" %} EcommerceIA
                     </div>
+
                 </div>
+
             </div>
         </div>
     </footer>
