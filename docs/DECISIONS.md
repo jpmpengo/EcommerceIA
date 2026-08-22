@@ -1,73 +1,170 @@
-Décision n°1
-Pourquoi OpportunityAnalyzer ?
+# Décisions d'architecture et de produit
 
-Pour séparer les calculs du modèle.
+Ce document conserve uniquement les décisions durables. Les descriptions
+détaillées appartiennent aux documents spécialisés.
 
-Décision n°2
-Pourquoi OpportunityPublisher ?
+## D001 — Séparer les calculs avec OpportunityAnalyzer
 
-Pour séparer la logique de publication de l'interface d'administration.
+**Statut :** Acceptée
 
-Décision n°3
-Pourquoi Dashboard ?
+### Contexte
 
-Parce que le commerçant ne doit pas travailler dans Django Admin.
+Les calculs d'opportunité ne doivent pas être dispersés dans les modèles, les
+vues ou les templates.
 
-Décision n°4
-Pourquoi Provider ?
+### Décision
 
-Parce que nous voulons pouvoir remplacer FakeProvider
-par Amazon, Alibaba, Temu ou un fichier Excel
-sans modifier l'importeur.
+`OpportunityAnalyzer` porte les calculs nécessaires à l'analyse d'une
+opportunité.
 
+### Conséquences
 
-# Décision 001
+Les règles de calcul sont testables et réutilisables. Les autres composants ne
+doivent pas les réimplémenter.
 
-## Sujet
+## D002 — Séparer la publication avec OpportunityPublisher
 
-Création du Dashboard
+**Statut :** Acceptée
 
-## Contexte
+### Contexte
 
-Le commerçant utilisait Django Admin.
+La publication contient des règles métier et ne doit pas dépendre de Django
+Admin ou d'une vue particulière.
 
-## Décision
+### Décision
 
-Créer une application Dashboard qui devient
-la porte d'entrée d'EcommerceIA.
+`OpportunityPublisher` transforme une opportunité validée en produit.
 
-## Conséquences
+### Conséquences
 
-Le Dashboard est l'interface métier.
+L'interface demande la publication, mais le service en protège les règles.
 
-Django Admin reste un outil technique.
+## D003 — Faire du Dashboard l'interface métier
 
+**Statut :** Acceptée
 
-# Décision 002
+### Contexte
 
-## Sujet
+Le commerçant ne doit pas travailler quotidiennement dans Django Admin.
 
-Création d'OpportunityAnalyzer
+### Décision
 
-...
-# Décision n°005 : 
-Créer DailyAssistant pour préparer la journée du commerçant.
-Pourquoi ?
+Le Dashboard devient la porte d'entrée de l'espace commerçant. Django Admin
+reste réservé aux opérations techniques.
 
-Parce que la vue ne doit jamais décider quoi dire.
+### Conséquences
 
-Elle demande simplement au collaborateur :
+Les actions, explications et priorités sont conçues pour le commerçant.
 
-"Qu'as-tu à me dire aujourd'hui ?
+## D004 — Isoler les fournisseurs derrière des contrats
 
-# Décision 006 – Création d'OpportunityAdvisor
+**Statut :** Acceptée
 
-Contexte : Les scores et les marges ne suffisent pas à expliquer une recommandation.
+### Contexte
 
-Décision : Créer un service OpportunityAdvisor chargé de transformer les données en recommandations compréhensibles.
+Les sources peuvent être remplacées ou complétées : API, fichiers ou nouveaux
+fournisseurs.
 
-Conséquences : EcommerceIA ne se contente plus de calculer, il explique ses décisions.
+### Décision
 
-# Décision 007 – Création d'un Advisor
+Les clients, Providers, Importers et Searchers isolent les formats externes du
+domaine métier.
 
-Un Advisor est créé lorsqu'un domaine métier devient suffisamment complexe pour justifier un spécialiste.
+### Conséquences
+
+Une intégration peut évoluer sans réécrire le pipeline complet.
+
+## D005 — Préparer le briefing hors des vues
+
+**Statut :** Acceptée
+
+### Contexte
+
+Une vue ne doit pas décider seule de ce qu'Emma dit au commerçant.
+
+### Décision
+
+Un service de briefing prépare les informations et messages nécessaires à la
+journée du commerçant.
+
+### Conséquences
+
+Le discours d'Emma devient testable, cohérent et indépendant de l'affichage.
+
+## D006 — Expliquer les recommandations avec OpportunityAdvisor
+
+**Statut :** Acceptée
+
+### Contexte
+
+Un score et une marge ne suffisent pas à établir la confiance.
+
+### Décision
+
+`OpportunityAdvisor` transforme les indicateurs en recommandation
+compréhensible.
+
+### Conséquences
+
+EcommerceIA explique ses conclusions et distingue les raisons des actions
+exécutées.
+
+## D007 — Créer un Advisor pour une interprétation complexe
+
+**Statut :** Acceptée
+
+### Contexte
+
+Certains domaines nécessitent une interprétation spécialisée, mais tous les
+services ne doivent pas devenir des Advisors.
+
+### Décision
+
+Un Advisor est créé lorsqu'un domaine devient suffisamment complexe pour
+justifier un spécialiste de l'analyse et de l'explication.
+
+### Conséquences
+
+Un Advisor conseille sans exécuter. Les calculs déterministes restent dans les
+services responsables.
+
+## D008 — Découvrir les produits avant de collecter les catalogues
+
+**Date :** 22 août 2026
+
+**Statut :** Acceptée
+
+### Contexte
+
+Les marketplaces et fournisseurs possèdent des catalogues trop importants pour
+être parcourus ou importés sans ciblage préalable. Une collecte large créerait
+des volumes, coûts, doublons et traitements disproportionnés.
+
+### Décision
+
+Utiliser OpenAI pour proposer une courte liste d'idées sourcées dans un cadre
+commercial défini. Emma permet au commerçant de sélectionner les idées à
+étudier. Les marketplaces et fournisseurs sont ensuite interrogés avec des
+limites explicites uniquement pour ces idées.
+
+### Raisons
+
+- maîtriser les volumes et les coûts ;
+- limiter les appels API ;
+- éviter les imports inutiles ;
+- conserver une décision humaine ;
+- rendre chaque opportunité explicable ;
+- séparer l'hypothèse des preuves commerciales.
+
+### Conséquences
+
+- OpenAI propose mais ne prouve ni ventes ni rentabilité ;
+- Emma sélectionne les idées ;
+- les recherches marketplace sont plafonnées ;
+- les fournisseurs interviennent après validation du marché ;
+- aucune publication n'est automatique ;
+- les données justifiant la décision sont traçables.
+
+### Documentation associée
+
+Voir `PRODUCT_DISCOVERY.md`.

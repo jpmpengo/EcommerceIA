@@ -1,229 +1,73 @@
-# EcommerceIA :
-# Nous ne construisons pas une boutique en ligne. 
-# Nous construisons un assistant qui aide un commerçant à prendre de meilleures décisions.
-# Chaque fonctionnalité doit aider un commerçant à prendre une meilleure décision.
-# Pendant que vous dormiez, EcommerceIA travaillait pour vous."
-# ACCUEIL ne se contente jamais d'afficher des données.
-# Faire en sorte qu'en ouvrant EcommerceIA le matin, le commerçant ait l'impression qu'un collaborateur lui parle, 
-# et non qu'un logiciel lui affiche des statistiques.
-# EcommerceIA n'est pas conçu pour montrer des données. Il est conçu pour aider un commerçant à prendre de meilleures décisions, 
-# au bon moment, avec les bonnes explications.
-# EcommerceIA ne remplace pas le commerçant. Il lui donne les moyens de prendre de meilleures décisions, plus rapidement
-# et en comprenant toujours pourquoi. 
+# Vision d'EcommerceIA
 
-# Je pense que ces cinq documents formeront la colonne vertébrale du projet :
+## Finalité
 
-# BUSINESS.md → Pourquoi ?
-# ROADMAP.md → Où allons-nous ?
-# ARCHITECTURE.md → Comment est conçu le système ?
-# PRINT_VALIDATION.md → Qu'est-ce qui est terminé ?
-# CHANGELOG.md → Qu'est-ce qui a évolué ?
+EcommerceIA aide un commerçant à prendre de meilleures décisions commerciales,
+plus rapidement et en comprenant toujours pourquoi.
 
-# Avec cette base, EcommerceIA sera non seulement un bon logiciel, mais aussi un projet agréable à faire évoluer et à transmettre.
+Le projet ne se limite pas à une boutique en ligne. Il réunit deux espaces
+complémentaires :
 
-# Il explique.
+- la boutique, destinée à l'internaute et orientée vers un achat simple ;
+- Emma, destinée au commerçant et orientée vers l'observation, l'explication,
+  la décision et l'exécution.
 
-# Il conseille.
+## Les deux utilisateurs
 
-# Il propose une action.
+### Elese, l'internaute
 
-# Chaque information doit aider le commerçant à décider.
+Elese doit pouvoir :
 
-# Je voudrais ajouter une onzième règle
-# C'est peut-être la plus importante.
-# Chaque nouveau composant doit pouvoir être expliqué en une phrase.
-# Par exemple :
+- découvrir les produits sans créer de compte ;
+- consulter des informations claires ;
+- remplir son panier ;
+- commander et payer avec le moins de formalités possible ;
+- retrouver une commande de manière sécurisée ;
+- créer un compte après son achat s'il souhaite simplifier ses prochaines
+  visites.
 
-# Dashboard : prépare la journée du commerçant.
-# BusinessAdvisor : choisit les priorités.
-# RecommendationDecisionService : exécute la décision du commerçant.
-# OpportunityPublisher : transforme une opportunité en produit.
+La création d'un compte est un service, pas un obstacle à la vente.
 
-# Si nous ne pouvons pas résumer un composant en une phrase, c'est souvent qu'il a trop de responsabilités.
+### Emma, la collaboratrice du commerçant
 
-# EcommerceIA aide le commerçant à prendre de meilleures décisions et les exécute avec lui.
+Emma doit permettre au commerçant de :
 
-## Vision
+- comprendre ce qui a changé ;
+- identifier ce qui mérite son attention ;
+- recevoir une recommandation expliquée ;
+- décider de publier, reporter ou rejeter ;
+- contrôler les conséquences des actions exécutées.
 
-EcommerceIA est un assistant intelligent qui aide les commerçants à
-prendre de meilleures décisions d'achat afin d'améliorer durablement
-leur rentabilité.
+Emma prépare et explique. Le commerçant décide.
 
-Notre objectif n'est pas seulement de vendre des produits.
+## Promesse
 
-Notre objectif est d'aider le commerçant à choisir les bons produits,
-au bon moment, auprès des bons fournisseurs.
+Chaque information présentée doit aider une personne à accomplir une action
+utile : choisir, acheter, comprendre ou décider.
 
----
+EcommerceIA ne remplit jamais une liste artificiellement. L'absence
+d'opportunité est un résultat normal lorsqu'aucun produit ne satisfait les
+critères métier.
 
-# Notre promesse
+## Principes directeurs
 
-Chaque jour, EcommerceIA analyse les opportunités du marché
-et met en avant celles qui peuvent apporter le plus de valeur.
+1. Le métier précède le code.
+2. Toute décision importante doit pouvoir être expliquée.
+3. L'intelligence artificielle propose et interprète ; elle ne remplace pas
+   les preuves ni la validation humaine.
+4. Une opportunité n'est pas encore un produit vendable.
+5. Aucune collecte massive ne doit être lancée sans objectif limité.
+6. Chaque composant doit pouvoir être décrit en une phrase.
+7. Une action importante doit produire une conséquence visible et
+   compréhensible.
+8. Les automatismes seront introduits progressivement, après validation du
+   parcours manuel ou assisté.
 
-Le commerçant reste toujours le décideur.
+## Identité du projet
 
-EcommerceIA l'aide à décider.
+EcommerceIA devient réellement un produit d'intelligence commerciale lorsque
+les données externes, les calculs déterministes et l'analyse assistée convergent
+vers une recommandation explicable.
 
----
-
-# Nos principes
-
-## Observer
-
-Collecter les informations provenant de différents fournisseurs.
-
-Amazon
-
-Alibaba
-
-Temu
-
-Grossistes
-
-Fichiers Excel
-
-API
-
----
-
-## Comprendre
-
-Transformer les données en informations utiles.
-
-Calcul des marges
-
-Calcul des coûts
-
-Analyse de la concurrence
-
-Analyse de la demande
-
-Détection des opportunités
-
----
-
-## Conseiller
-
-Expliquer pourquoi une opportunité est intéressante.
-
-Le logiciel ne montre pas uniquement un score.
-
-Il explique sa recommandation.
-
----
-
-## Agir
-
-Permettre au commerçant d'agir immédiatement.
-
-Publier
-
-Commander
-
-Réapprovisionner
-
-Archiver
-
----
-
-# Notre architecture
-
-Provider
-
-↓
-
-Importer
-
-↓
-
-Opportunity
-
-↓
-
-Analyzer
-
-↓
-
-Advisor
-
-↓
-
-Publisher
-
-↓
-
-Catalogue
-
-↓
-
-Vente
-
----
-
-# Le Dashboard
-
-Le Dashboard est l'interface principale.
-
-Le commerçant commence toujours sa journée ici.
-
-Le Dashboard doit répondre à quatre questions.
-
-1. Comment va mon activité ?
-
-2. Que dois-je savoir aujourd'hui ?
-
-3. Que me conseille EcommerceIA ?
-
-4. Que dois-je faire maintenant ?
-
----
-
-# Django Admin
-
-Le Django Admin est réservé aux opérations techniques.
-
-Il sert à :
-
-maintenance
-
-configuration
-
-gestion
-
-correction des données
-
-Le commerçant n'a normalement pas besoin de l'utiliser.
-
----
-
-# Notre philosophie
-
-Chaque information affichée doit aider le commerçant
-à prendre une décision.
-
-Chaque fonctionnalité doit apporter une valeur réelle.
-
-Chaque évolution doit respecter cette vision.
-
----
-
-# Notre objectif
-
-Construire un assistant intelligent capable d'aider les commerçants
-à identifier les meilleures opportunités commerciales
-avant leurs concurrents.
-
-Nous ne développons pas des fonctionnalités. 
-Nous développons un assistant capable d'aider un commerçant à prendre de meilleures décisions.
-
-
-# dashboard/
-└── services/
-    ├── emma_briefing_service.py        # Orchestre le briefing
-    ├── emma_memory_service.py          # Dernière visite
-    ├── emma_progress_service.py        # Ce que le commerçant a accompli
-    ├── emma_attention_service.py       # Alertes importantes
-    ├── priority_advisor.py             # Priorité du jour
-    ├── emma_state_service.py           # Comprend la situation globale
-    └── emma_summary_service.py         # Formule le discours d'Emma
+L'objectif n'est pas d'accumuler des données. L'objectif est de collecter les
+données nécessaires à une bonne décision.
