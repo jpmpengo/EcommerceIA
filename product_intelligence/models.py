@@ -124,7 +124,7 @@ class ProductOpportunity(models.Model):
         default=0,
         verbose_name="Stock initial",
     )
-    
+
     supplier_offer = models.ForeignKey(
         "product_intelligence.SupplierOffer",
         on_delete=models.SET_NULL,
@@ -492,8 +492,94 @@ class SupplierOffer(models.Model):
         default=dict,
         blank=True,
     )
-    
+
     def __str__(self):
         return f"{self.supplier} - {self.product_name}"
 
+class MarketplaceStudy(models.Model):
 
+    STATUS_CHOICES = [
+        (
+            "draft",
+            "Brouillon",
+        ),
+        (
+            "running",
+            "En cours",
+        ),
+        (
+            "completed",
+            "Terminée",
+        ),
+        (
+            "failed",
+            "Échouée",
+        ),
+    ]
+
+    product_idea = models.ForeignKey(
+        ProductIdea,
+        on_delete=models.CASCADE,
+        related_name="marketplace_studies",
+        verbose_name="Idée produit",
+    )
+
+    marketplaces = models.JSONField(
+        default=list,
+        verbose_name="Marketplaces ciblées",
+    )
+
+    queries = models.JSONField(
+        default=list,
+        verbose_name="Requêtes ciblées",
+    )
+
+    max_pages_per_marketplace = (
+        models.PositiveSmallIntegerField(
+            default=2,
+            verbose_name=(
+                "Pages maximum par marketplace"
+            ),
+        )
+    )
+
+    max_results_per_query = (
+        models.PositiveSmallIntegerField(
+            default=20,
+            verbose_name=(
+                "Résultats maximum par requête"
+            ),
+        )
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="draft",
+        verbose_name="Statut",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Créée le",
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Mise à jour le",
+    )
+
+    class Meta:
+        ordering = [
+            "-created_at",
+        ]
+        verbose_name = "Étude marketplace"
+        verbose_name_plural = (
+            "Études marketplace"
+        )
+
+    def __str__(self):
+        return (
+            f"Étude #{self.pk} — "
+            f"{self.product_idea.name}"
+        )

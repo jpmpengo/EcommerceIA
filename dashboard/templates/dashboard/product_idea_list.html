@@ -1,0 +1,919 @@
+{% extends "base.html" %}
+
+{% block title %}
+Idées de produits | EcommerceIA
+{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    .idea-page {
+        min-height: calc(100vh - 90px);
+        padding: 3.5rem 0 5rem;
+        background:
+            radial-gradient(
+                circle at 5% 10%,
+                rgba(45, 103, 246, 0.10),
+                transparent 30%
+            ),
+            radial-gradient(
+                circle at 95% 5%,
+                rgba(255, 184, 20, 0.12),
+                transparent 28%
+            ),
+            #f5f8fc;
+    }
+
+    .idea-shell {
+        width: min(1320px, calc(100% - 2rem));
+        margin: 0 auto;
+    }
+
+    .idea-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-bottom: 2rem;
+        color: #5e718f;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .idea-back:hover {
+        color: #2864ee;
+    }
+
+    .idea-hero {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1.5fr)
+            minmax(300px, 0.7fr);
+        overflow: hidden;
+        margin-bottom: 2.5rem;
+        border: 1px solid #d9e2ef;
+        border-radius: 26px;
+        background: #ffffff;
+        box-shadow:
+            0 22px 55px
+            rgba(23, 43, 77, 0.09);
+    }
+
+    .idea-hero-main {
+        padding: 3rem;
+    }
+
+    .idea-kicker,
+    .idea-detail-label {
+        color: #2864ee;
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .idea-title {
+        max-width: 760px;
+        margin: 1rem 0;
+        color: #101a33;
+        font-size: clamp(
+            2.5rem,
+            5vw,
+            4.5rem
+        );
+        font-weight: 900;
+        line-height: 0.98;
+        letter-spacing: -0.045em;
+    }
+
+    .idea-intro {
+        max-width: 760px;
+        margin: 0;
+        color: #60728f;
+        font-size: 1.05rem;
+        line-height: 1.75;
+    }
+
+    .idea-hero-side {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 2.5rem;
+        color: #ffffff;
+        background:
+            linear-gradient(
+                145deg,
+                #111d3c,
+                #203c81
+            );
+    }
+
+    .idea-hero-side-label {
+        margin-bottom: 0.8rem;
+        color: #ffbd18;
+        font-size: 0.75rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .idea-hero-side h2 {
+        margin-bottom: 1rem;
+        font-size: 1.6rem;
+        font-weight: 900;
+    }
+
+    .idea-hero-side p {
+        margin: 0;
+        color: #d9e2f5;
+        line-height: 1.7;
+    }
+
+    .idea-capacity {
+        display: flex;
+        gap: 0.7rem;
+        margin-top: 1.5rem;
+    }
+
+    .idea-capacity-dot {
+        width: 13px;
+        height: 13px;
+        border: 2px solid #ffbd18;
+        border-radius: 50%;
+    }
+
+    .idea-capacity-dot.is-filled {
+        background: #ffbd18;
+    }
+
+    .idea-section {
+        margin-bottom: 3rem;
+    }
+
+    .idea-section-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .idea-section-title {
+        margin: 0 0 0.35rem;
+        color: #101a33;
+        font-size: 1.65rem;
+        font-weight: 900;
+    }
+
+    .idea-section-note {
+        margin: 0;
+        color: #687b97;
+    }
+
+    .idea-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 42px;
+        height: 42px;
+        padding: 0 0.8rem;
+        border-radius: 999px;
+        color: #1554df;
+        font-weight: 900;
+        background: #e7efff;
+    }
+
+    .idea-grid {
+        display: grid;
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+        gap: 1.25rem;
+    }
+
+    .idea-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #d8e2f0;
+        border-radius: 22px;
+        background: #ffffff;
+        box-shadow:
+            0 14px 36px
+            rgba(24, 45, 78, 0.07);
+    }
+
+    .idea-card.is-selected {
+        border-color: #8fb2ff;
+    }
+
+    .idea-card.is-selected::before {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 5px;
+        content: "";
+        background:
+            linear-gradient(
+                90deg,
+                #2864ee,
+                #ffbd18
+            );
+    }
+
+    .idea-card-body {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        padding: 1.6rem;
+    }
+
+    .idea-status {
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        color: #1451d5;
+        font-size: 0.75rem;
+        font-weight: 900;
+        background: #e8f0ff;
+    }
+
+    .idea-status.is-proposed {
+        color: #8a5900;
+        background: #fff1c7;
+    }
+
+    .idea-card-title {
+        margin: 0 0 1rem;
+        color: #101a33;
+        font-size: 1.35rem;
+        font-weight: 900;
+        line-height: 1.25;
+    }
+
+    .idea-detail {
+        margin-bottom: 1rem;
+    }
+
+    .idea-detail-label {
+        display: block;
+        margin-bottom: 0.3rem;
+    }
+
+    .idea-detail p {
+        margin: 0;
+        color: #536782;
+        line-height: 1.6;
+    }
+
+    .idea-study {
+        margin-top: 0.4rem;
+        padding: 1rem;
+        border: 1px solid #a9c3ff;
+        border-radius: 15px;
+        background: #f2f6ff;
+    }
+
+    .idea-study-title {
+        margin: 0 0 0.7rem;
+        color: #101a33;
+        font-weight: 900;
+    }
+
+    .idea-study-note {
+        margin: 0.8rem 0 0;
+        color: #536782;
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    .idea-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+        margin-top: 0.3rem;
+    }
+
+    .idea-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.6rem;
+        border: 1px solid #d7e1ef;
+        border-radius: 999px;
+        color: #506681;
+        font-size: 0.76rem;
+        background: #f7f9fc;
+    }
+
+    .idea-marketplace-form {
+        width: 100%;
+        margin-bottom: 0.7rem;
+        padding: 1rem;
+        border: 1px solid #dbe4f1;
+        border-radius: 15px;
+        background: #f8faff;
+    }
+
+    .idea-marketplace-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0.7rem 0 1rem;
+    }
+
+    .idea-marketplace-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #cad8ec;
+        border-radius: 10px;
+        color: #405876;
+        font-weight: 700;
+        background: #ffffff;
+        cursor: pointer;
+    }
+
+    .idea-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin-top: auto;
+        padding-top: 1.25rem;
+        border-top: 1px solid #e4eaf2;
+    }
+
+    .idea-primary-action,
+    .idea-reject-action {
+        padding: 0.7rem 1rem;
+        border-radius: 11px;
+        font-weight: 900;
+    }
+
+    .idea-primary-action {
+        border: 0;
+        color: #ffffff;
+        background: #2864ee;
+    }
+
+    .idea-primary-action:hover {
+        color: #ffffff;
+        background: #164fd0;
+    }
+
+    .idea-reject-action {
+        border: 1px solid #e7374b;
+        color: #d9273c;
+        background: #ffffff;
+    }
+
+    .idea-reject-action:hover {
+        color: #ffffff;
+        background: #e7374b;
+    }
+
+    .idea-empty {
+        padding: 3.5rem 2rem;
+        border: 1px dashed #b9cae2;
+        border-radius: 22px;
+        text-align: center;
+        background:
+            rgba(
+                255,
+                255,
+                255,
+                0.75
+            );
+    }
+
+    .idea-empty-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        margin-bottom: 1rem;
+        border-radius: 20px;
+        color: #2864ee;
+        font-size: 1.8rem;
+        font-weight: 900;
+        background: #e8f0ff;
+    }
+
+    .idea-empty h2 {
+        color: #101a33;
+        font-weight: 900;
+    }
+
+    .idea-empty p {
+        margin: 0;
+        color: #687b97;
+    }
+
+    @media (max-width: 991px) {
+        .idea-hero,
+        .idea-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 575px) {
+        .idea-page {
+            padding-top: 2rem;
+        }
+
+        .idea-hero-main,
+        .idea-hero-side {
+            padding: 1.5rem;
+        }
+
+        .idea-section-header {
+            align-items: flex-start;
+        }
+
+        .idea-actions,
+        .idea-actions form,
+        .idea-marketplace-form {
+            width: 100%;
+        }
+
+        .idea-actions button,
+        .idea-marketplace-form button {
+            width: 100%;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<main class="idea-page">
+
+    <div class="idea-shell">
+
+        <a
+            href="{% url 'dashboard:home' %}"
+            class="idea-back"
+        >
+            <span aria-hidden="true">←</span>
+            Retour au pilotage
+        </a>
+
+        <section class="idea-hero">
+
+            <div class="idea-hero-main">
+
+                <p class="idea-kicker">
+                    Découverte ciblée
+                </p>
+
+                <h1 class="idea-title">
+                    Idées de produits
+                </h1>
+
+                <p class="idea-intro">
+                    Emma vous présente des hypothèses de produits.
+                    Sélectionnez uniquement celles qui méritent une
+                    étude du marché et des fournisseurs.
+                </p>
+
+            </div>
+
+            <aside class="idea-hero-side">
+
+                <p class="idea-hero-side-label">
+                    Garde-fou
+                </p>
+
+                <h2>
+                    Trois études maximum
+                </h2>
+
+                <p>
+                    Cette limite évite les collectes massives et
+                    concentre l’analyse sur les idées les plus utiles.
+                </p>
+
+                <div
+                    class="idea-capacity"
+                    aria-label="{{ selected_ideas|length }} idée(s) sélectionnée(s) sur 3"
+                >
+                    <span
+                        class="idea-capacity-dot{% if selected_ideas|length >= 1 %} is-filled{% endif %}"
+                    ></span>
+
+                    <span
+                        class="idea-capacity-dot{% if selected_ideas|length >= 2 %} is-filled{% endif %}"
+                    ></span>
+
+                    <span
+                        class="idea-capacity-dot{% if selected_ideas|length >= 3 %} is-filled{% endif %}"
+                    ></span>
+                </div>
+
+            </aside>
+
+        </section>
+
+        {% if selected_ideas %}
+
+            <section class="idea-section">
+
+                <header class="idea-section-header">
+
+                    <div>
+                        <h2 class="idea-section-title">
+                            Idées retenues pour étude
+                        </h2>
+
+                        <p class="idea-section-note">
+                            Ces idées pourront faire l’objet de
+                            recherches marketplace ciblées.
+                        </p>
+                    </div>
+
+                    <span class="idea-count">
+                        {{ selected_ideas|length }}/3
+                    </span>
+
+                </header>
+
+                <div class="idea-grid">
+
+                    {% for idea in selected_ideas %}
+
+                        <article class="idea-card is-selected">
+
+                            <div class="idea-card-body">
+
+                                <span class="idea-status">
+                                    ● Sélectionnée
+                                </span>
+
+                                <h3 class="idea-card-title">
+                                    {{ idea.name }}
+                                </h3>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Problème client
+                                    </span>
+
+                                    <p>
+                                        {{ idea.customer_problem }}
+                                    </p>
+                                </div>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Client cible
+                                    </span>
+
+                                    <p>
+                                        {{ idea.target_customer }}
+                                    </p>
+                                </div>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Pourquoi l’étudier
+                                    </span>
+
+                                    <p>
+                                        {{ idea.reason_to_study }}
+                                    </p>
+                                </div>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Pays
+                                    </span>
+
+                                    <div class="idea-tags">
+
+                                        {% for country in idea.countries %}
+
+                                            <span class="idea-tag">
+                                                {{ country }}
+                                            </span>
+
+                                        {% endfor %}
+
+                                    </div>
+                                </div>
+
+                                {% with study=idea.marketplace_studies.first %}
+
+                                    {% if study %}
+
+                                        <div class="idea-study">
+
+                                            <span class="idea-detail-label">
+                                                Étude marketplace
+                                            </span>
+
+                                            <p class="idea-study-title">
+                                                Étude préparée
+                                            </p>
+
+                                            <div class="idea-tags">
+
+                                                {% for marketplace in study.marketplaces %}
+
+                                                    <span class="idea-tag">
+                                                        {{ marketplace|capfirst }}
+                                                    </span>
+
+                                                {% endfor %}
+
+                                            </div>
+
+                                            <p class="idea-study-note">
+                                                {{ study.queries|length }}
+                                                requête(s),
+                                                {{ study.max_pages_per_marketplace }}
+                                                page(s) maximum par marketplace
+                                                et
+                                                {{ study.max_results_per_query }}
+                                                résultat(s) maximum par requête.
+                                            </p>
+
+                                            {% if study.status == "draft" %}
+
+                                                <p class="idea-study-note">
+                                                    <strong>
+                                                        Aucun appel externe effectué.
+                                                    </strong>
+                                                    Ce brouillon peut encore être modifié.
+                                                </p>
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% endif %}
+
+                                {% endwith %}
+
+                                <div class="idea-actions">
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'dashboard:prepare_marketplace_study' idea.pk %}"
+                                        class="idea-marketplace-form"
+                                    >
+                                        {% csrf_token %}
+
+                                        <span class="idea-detail-label">
+                                            Marketplaces à étudier
+                                        </span>
+
+                                        <div class="idea-marketplace-options">
+
+                                            <label class="idea-marketplace-option">
+                                                <input
+                                                    type="checkbox"
+                                                    name="marketplaces"
+                                                    value="amazon"
+                                                >
+                                                Amazon
+                                            </label>
+
+                                            <label class="idea-marketplace-option">
+                                                <input
+                                                    type="checkbox"
+                                                    name="marketplaces"
+                                                    value="etsy"
+                                                >
+                                                Etsy
+                                            </label>
+
+                                        </div>
+
+                                        <button
+                                            type="submit"
+                                            class="idea-primary-action"
+                                        >
+                                            Préparer l’étude
+                                            <span aria-hidden="true">→</span>
+                                        </button>
+                                    </form>
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'dashboard:reject_product_idea' idea.pk %}"
+                                        onsubmit="return confirm(
+                                            'Voulez-vous vraiment écarter cette idée ?'
+                                        );"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="idea-reject-action"
+                                        >
+                                            Écarter
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+
+                    {% endfor %}
+
+                </div>
+
+            </section>
+
+        {% endif %}
+
+        <section class="idea-section">
+
+            <header class="idea-section-header">
+
+                <div>
+                    <h2 class="idea-section-title">
+                        Idées proposées par Emma
+                    </h2>
+
+                    <p class="idea-section-note">
+                        Ce sont des hypothèses, pas encore des
+                        opportunités commerciales validées.
+                    </p>
+                </div>
+
+                <span class="idea-count">
+                    {{ product_ideas|length }}
+                </span>
+
+            </header>
+
+            {% if product_ideas %}
+
+                <div class="idea-grid">
+
+                    {% for idea in product_ideas %}
+
+                        <article class="idea-card">
+
+                            <div class="idea-card-body">
+
+                                <span class="idea-status is-proposed">
+                                    ● À examiner
+                                </span>
+
+                                <h3 class="idea-card-title">
+                                    {{ idea.name }}
+                                </h3>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Problème client
+                                    </span>
+
+                                    <p>
+                                        {{ idea.customer_problem }}
+                                    </p>
+                                </div>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Client cible
+                                    </span>
+
+                                    <p>
+                                        {{ idea.target_customer }}
+                                    </p>
+                                </div>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Pourquoi l’étudier
+                                    </span>
+
+                                    <p>
+                                        {{ idea.reason_to_study }}
+                                    </p>
+                                </div>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Pays ciblés
+                                    </span>
+
+                                    <div class="idea-tags">
+
+                                        {% for country in idea.countries %}
+
+                                            <span class="idea-tag">
+                                                {{ country }}
+                                            </span>
+
+                                        {% endfor %}
+
+                                    </div>
+                                </div>
+
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Recherches envisagées
+                                    </span>
+
+                                    <div class="idea-tags">
+
+                                        {% for keyword in idea.search_keywords %}
+
+                                            <span class="idea-tag">
+                                                {{ keyword }}
+                                            </span>
+
+                                        {% endfor %}
+
+                                    </div>
+                                </div>
+
+                                <div class="idea-actions">
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'dashboard:select_product_idea' idea.pk %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="idea-primary-action"
+                                        >
+                                            Étudier cette idée
+                                            <span aria-hidden="true">→</span>
+                                        </button>
+                                    </form>
+
+                                    <form
+                                        method="post"
+                                        action="{% url 'dashboard:reject_product_idea' idea.pk %}"
+                                        onsubmit="return confirm(
+                                            'Voulez-vous vraiment écarter cette idée ?'
+                                        );"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="idea-reject-action"
+                                        >
+                                            Écarter
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            </div>
+
+                        </article>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="idea-empty">
+
+                    <div class="idea-empty-icon">
+                        ✓
+                    </div>
+
+                    <h2 class="h4">
+                        Toutes les idées ont été traitées
+                    </h2>
+
+                    <p>
+                        Aucune nouvelle hypothèse n’attend actuellement
+                        votre décision.
+                    </p>
+
+                </div>
+
+            {% endif %}
+
+        </section>
+
+    </div>
+
+</main>
+
+{% endblock %}
