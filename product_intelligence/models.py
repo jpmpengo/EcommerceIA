@@ -48,6 +48,13 @@ class ProductOpportunity(models.Model):
         verbose_name="Frais de livraison",
     )
 
+    shipping_cost_is_known = models.BooleanField(
+        default=False,
+        verbose_name=(
+            "Frais de livraison vérifiés"
+        ),
+    )
+
     other_costs = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -181,6 +188,104 @@ class ProductOpportunity(models.Model):
         self.opportunity_score = self.calculate_opportunity_score()
         super().save(*args, **kwargs)
 
+class ProductIdea(models.Model):
+
+    STATUS_CHOICES = [
+        (
+            "proposed",
+            "Proposée",
+        ),
+        (
+            "selected",
+            "Sélectionnée",
+        ),
+        (
+            "rejected",
+            "Écartée",
+        ),
+        (
+            "validated",
+            "Validée",
+        ),
+    ]
+
+    name = models.CharField(
+        max_length=255,
+        verbose_name="Nom de l'idée",
+    )
+
+    customer_problem = models.TextField(
+        verbose_name="Problème client",
+    )
+
+    target_customer = models.TextField(
+        verbose_name="Client cible",
+    )
+
+    reason_to_study = models.TextField(
+        verbose_name=(
+            "Raison de l'étude"
+        ),
+    )
+
+    countries = models.JSONField(
+        default=list,
+        verbose_name="Pays ciblés",
+    )
+
+    search_keywords = models.JSONField(
+        default=list,
+        verbose_name=(
+            "Mots-clés de recherche"
+        ),
+    )
+
+    source = models.CharField(
+        max_length=100,
+        default="openai",
+        verbose_name="Origine",
+    )
+
+    model_name = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Modèle utilisé",
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="proposed",
+        verbose_name="Statut",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Créée le",
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Mise à jour le",
+    )
+
+    class Meta:
+        ordering = [
+            "-created_at",
+        ]
+
+        verbose_name = "Idée produit"
+
+        verbose_name_plural = (
+            "Idées produits"
+        )
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def is_validated(self):
+        return self.status == "validated"
 
 class MarketObservation(models.Model):
     source = models.CharField(

@@ -1037,16 +1037,30 @@
                             {{ opportunity.other_costs|floatformat:2 }} €
                         </strong>
                     </div>
-
+                    ----
                     <div class="decision-finance-total">
-                        <span>Marge estimée</span>
+                        <span>
+                            {% if recommendation.margin_is_reliable %}
+                                Marge estimée
+                            {% else %}
+                                Marge provisoire estimée
+                            {% endif %}
+                        </span>
+
                         <strong>
                             {{ recommendation.estimated_margin|floatformat:2 }} €
                         </strong>
                     </div>
 
                     <div class="decision-finance-line">
-                        <span>Taux de marge sur coût</span>
+                        <span>
+                            {% if recommendation.margin_is_reliable %}
+                                Taux de marge sur coût
+                            {% else %}
+                                Taux provisoire sur coût
+                            {% endif %}
+                        </span>
+
                         <strong>
                             {{ recommendation.margin_percent|floatformat:1 }} %
                         </strong>

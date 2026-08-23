@@ -220,3 +220,50 @@ class OpportunityAdvisorTests(TestCase):
             "Concurrence faible.",
             recommendation["reasons"],
         )
+
+    def test_recommendation_marks_margin_as_provisional_when_shipping_is_unknown(
+        self,
+    ):
+        opportunity = (
+            ProductOpportunity.objects.create(
+                name="Produit aux frais inconnus",
+                source_name="Test",
+                supplier_price=Decimal(
+                    "10.00"
+                ),
+                market_price=Decimal(
+                    "30.00"
+                ),
+                shipping_cost=Decimal(
+                    "0.00"
+                ),
+                shipping_cost_is_known=False,
+                other_costs=Decimal(
+                    "0.00"
+                ),
+                demand_score=70,
+                competition_score=40,
+                status="approved",
+            )
+        )
+
+        recommendation = (
+            OpportunityAdvisor
+            .get_recommendation(
+                opportunity
+            )
+        )
+
+        self.assertFalse(
+            recommendation[
+                "margin_is_reliable"
+            ]
+        )
+
+        self.assertIn(
+            (
+                "Marge provisoire : les frais "
+                "de livraison ne sont pas vérifiés."
+            ),
+            recommendation["reasons"],
+        )

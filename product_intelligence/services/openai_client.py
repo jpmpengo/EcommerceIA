@@ -28,6 +28,7 @@ class OpenAIClient:
         self,
         instructions,
         context,
+        response_model=OpportunityAIResponse,
     ):
         response = self.client.responses.parse(
             model=self.model,
@@ -37,7 +38,7 @@ class OpenAIClient:
                 ensure_ascii=False,
                 default=str,
             ),
-            text_format=OpportunityAIResponse,
+            text_format=response_model,
         )
 
         for output in response.output:

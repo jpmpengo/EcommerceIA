@@ -178,7 +178,7 @@ La génération doit être encadrée par :
 Pour une campagne :
 
 - lancement manuel par Emma ;
-- dix idées proposées au maximum ;
+- cinq idées proposées au maximum ;
 - trois idées sélectionnées au maximum ;
 - deux marketplaces au maximum par idée ;
 - deux pages au maximum par marketplace ;
@@ -210,7 +210,7 @@ Les réponses brutes non retenues doivent rester temporaires ou supprimables.
 ## Première version fonctionnelle
 
 1. Emma lance une génération manuelle.
-2. OpenAI retourne au maximum dix idées structurées et sourcées.
+2. OpenAI retourne au maximum cinq idées structurées.
 3. Le commerçant en sélectionne au maximum trois.
 4. Le système prépare les requêtes marketplace.
 5. Emma déclenche la recherche.
@@ -222,3 +222,227 @@ Les réponses brutes non retenues doivent rester temporaires ou supprimables.
 
 La planification automatique, Celery et les imports récurrents ne sont pas
 nécessaires pour valider cette première version en local.
+
+## Premier prototype OpenAI validé
+
+### Exécution
+
+- Date : 23 août 2026
+- Modèle : `gpt-5.6-luna`
+- Interface : Responses API avec Structured Outputs
+- Nombre demandé : 5 idées
+- Nombre obtenu : 5 idées
+- Marchés : France, Belgique et Espagne
+- Enregistrement en base : non
+- Recherche Web : non
+- Recherche marketplace : non
+- Recherche fournisseur : non
+
+Ce premier appel avait pour objectif de vérifier qu’OpenAI pouvait produire une
+courte liste d’hypothèses structurées et exploitables, sans importer de catalogue
+et sans inventer de chiffres de ventes.
+
+### Idée 1 — Organisateur modulaire pour coffre de voiture familiale
+
+**Problème client**
+
+Les courses, poussettes, équipements de sport et objets du quotidien se déplacent
+dans le coffre et se renversent pendant les trajets. Le produit serait un système
+pliable composé de compartiments réglables, de séparateurs amovibles, d’un fond
+antidérapant et de sangles de fixation adaptées aux différents coffres.
+
+**Client cible**
+
+Familles, conducteurs utilisant régulièrement leur voiture pour les courses,
+parents de jeunes enfants et personnes transportant plusieurs catégories
+d’objets dans leur coffre.
+
+**Pourquoi l’étudier**
+
+Le besoin est concret, fréquent et lié à l’organisation de l’espace dans un
+véhicule. L’idée mérite une étude des dimensions de coffres les plus courantes,
+des attentes en matière de résistance et de nettoyage, ainsi que des différences
+de compatibilité entre modèles de voitures dans les trois pays.
+
+**Pays**
+
+- France
+- Belgique
+- Espagne
+
+**Mots-clés**
+
+- organisateur coffre voiture pliable
+- rangement coffre voiture familial
+- séparateur coffre voiture
+- coffre voiture poussette courses
+- car trunk organizer adjustable
+
+### Idée 2 — Kit de réduction des courants d’air pour portes et fenêtres anciennes
+
+**Problème client**
+
+Les logements équipés de portes ou fenêtres anciennes peuvent présenter des
+passages d’air autour des ouvrants, avec une sensation d’inconfort et des
+nuisances sonores potentielles. Le kit comprendrait plusieurs solutions
+compatibles avec différents supports : joints adhésifs, boudin de bas de porte,
+profilés de calfeutrage et outils de mesure simples.
+
+**Client cible**
+
+Locataires et propriétaires de logements anciens, occupants souhaitant améliorer
+le confort intérieur sans travaux lourds et personnes recherchant des solutions
+réversibles.
+
+**Pourquoi l’étudier**
+
+Le produit répond à un problème facilement observable et pourrait être proposé
+sous forme de kit guidé par type de fenêtre ou de porte. Une étude devrait
+vérifier la compatibilité avec les matériaux et formats présents en France, en
+Belgique et en Espagne, ainsi que la clarté des instructions d’installation.
+
+**Pays**
+
+- France
+- Belgique
+- Espagne
+
+**Mots-clés**
+
+- kit calfeutrage fenêtre
+- joint isolant fenêtre ancienne
+- bas de porte anti courant d’air
+- joint fenêtre bois PVC
+- réduire courant d’air porte appartement
+
+### Idée 3 — Station de séchage et de rangement pour accessoires de sport humide
+
+**Problème client**
+
+Les chaussures, gants, casques, protections et vêtements utilisés sous la pluie
+ou après une activité sportive restent difficiles à faire sécher et peuvent
+encombrer l’entrée. La station serait un support vertical ventilé, démontable,
+avec bacs de récupération d’eau, crochets et emplacements distincts pour les
+chaussures et petits accessoires.
+
+**Client cible**
+
+Familles pratiquant des sports de plein air, cyclistes, randonneurs, utilisateurs
+de trottinettes ou de vélos et foyers disposant d’un espace d’entrée limité.
+
+**Pourquoi l’étudier**
+
+Cette idée combine rangement, séchage et protection des sols dans un seul
+produit. Elle mérite une étude sur les usages selon les climats et activités
+sportives, la stabilité du support, la facilité de nettoyage et la demande de
+formats compacts pour les appartements.
+
+**Pays**
+
+- France
+- Belgique
+- Espagne
+
+**Mots-clés**
+
+- séchoir chaussures sport
+- rangement équipement sportif humide
+- support séchage chaussures vélo
+- organisateur entrée chaussures mouillées
+- station séchage casque gants chaussures
+
+### Idée 4 — Boîte de conservation ventilée pour fruits et légumes fragiles
+
+**Problème client**
+
+Certains fruits et légumes s’abîment rapidement lorsqu’ils sont stockés ensemble
+ou lorsque l’humidité s’accumule dans le réfrigérateur. Le produit serait une
+boîte empilable avec ventilation réglable, séparateurs, bac récupérateur
+d’humidité et repères indiquant les zones de rangement recommandées.
+
+**Client cible**
+
+Ménages souhaitant mieux organiser leur réfrigérateur, personnes vivant seules
+ou en couple, consommateurs préparant leurs repas à l’avance et foyers cherchant
+à limiter le gaspillage alimentaire.
+
+**Pourquoi l’étudier**
+
+Le concept associe organisation du réfrigérateur et conservation de produits
+frais, avec des possibilités de déclinaison par taille et par catégorie
+d’aliments. Une validation devrait porter sur les dimensions des réfrigérateurs,
+les matériaux acceptés au contact alimentaire, le nettoyage et la compréhension
+des réglages de ventilation.
+
+**Pays**
+
+- France
+- Belgique
+- Espagne
+
+**Mots-clés**
+
+- boîte conservation fruits légumes frigo
+- rangement légumes réfrigérateur ventilé
+- bac anti humidité fruits légumes
+- organisateur frigo fruits légumes
+- boîte conservation légumes empilable
+
+### Idée 5 — Trousse de réparation textile compacte pour vêtements du quotidien
+
+**Problème client**
+
+Les petits accrocs, boutons décousus, ourlets défaits et fermetures endommagées
+sont souvent difficiles à réparer rapidement avec une trousse standard peu
+organisée. Le produit regrouperait des aiguilles adaptées à différents tissus,
+des fils assortis, des mini-ciseaux, un mètre souple, des épingles de sûreté, un
+crochet de reprise et un guide illustré multilingue.
+
+**Client cible**
+
+Adultes souhaitant prolonger la durée de vie de leurs vêtements, étudiants,
+voyageurs, parents et personnes recherchant une solution compacte pour les
+réparations courantes.
+
+**Pourquoi l’étudier**
+
+Le format peut répondre à plusieurs contextes d’usage : domicile, voyage, bureau
+ou résidence étudiante. L’étude devrait comparer les besoins des débutants et
+des utilisateurs expérimentés, identifier les réparations les plus recherchées
+et vérifier la pertinence d’un assortiment de couleurs et d’outils pour les
+marchés ciblés.
+
+**Pays**
+
+- France
+- Belgique
+- Espagne
+
+**Mots-clés**
+
+- kit réparation vêtements couture
+- trousse couture débutant compacte
+- kit réparer bouton fermeture éclair
+- trousse couture voyage
+- kit reprise accroc vêtement
+
+### Conclusion du prototype
+
+Le prototype est concluant.
+
+OpenAI a produit cinq hypothèses :
+
+- limitées en nombre ;
+- homogènes ;
+- centrées sur un problème client ;
+- adaptées aux marchés demandés ;
+- accompagnées de mots-clés exploitables ;
+- dépourvues de chiffres de ventes inventés.
+
+Ces idées ne constituent pas des opportunités commerciales validées et ne
+doivent pas être publiées directement.
+
+L’organisateur modulaire pour coffre de voiture familiale est retenu comme
+premier candidat à une future validation marketplace ciblée. Cette sélection
+reste une décision humaine et ne constitue pas encore une approbation
+commerciale.

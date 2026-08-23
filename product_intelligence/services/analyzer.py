@@ -76,6 +76,12 @@ class OpportunityAnalyzer:
         return min(score, 100)
 
     @staticmethod
+    def margin_is_reliable(opportunity):
+        return bool(
+            opportunity.shipping_cost_is_known
+        )
+
+    @staticmethod
     def recommended_price(opportunity):
         if opportunity.recommended_price is not None:
             return opportunity.recommended_price

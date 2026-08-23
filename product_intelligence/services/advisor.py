@@ -45,7 +45,23 @@ class OpportunityAdvisor:
             )
         )
 
-        if margin_percent >= 50:
+        margin_is_reliable = (
+            OpportunityAnalyzer
+            .margin_is_reliable(
+                opportunity
+            )
+        )
+
+        if not margin_is_reliable:
+            reasons.append(
+                (
+                    "Marge provisoire : les frais "
+                    "de livraison ne sont pas "
+                    "vérifiés."
+                )
+            )
+
+        elif margin_percent >= 50:
             reasons.append(
                 (
                     "Marge élevée : "
@@ -137,6 +153,9 @@ class OpportunityAdvisor:
             "score": score,
             "estimated_margin": estimated_margin,
             "margin_percent": margin_percent,
+            "margin_is_reliable": (
+                margin_is_reliable
+            ),
             "reasons": reasons,
             "decision": decision,
             "level": level,

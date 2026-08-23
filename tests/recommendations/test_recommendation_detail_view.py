@@ -335,3 +335,46 @@ class RecommendationDetailViewTests(TestCase):
             "verify",
             kwargs,
         )
+
+    def test_detail_labels_unreliable_margin_as_provisional(
+        self,
+    ):
+        opportunity = (
+            ProductOpportunity.objects.create(
+                name="Produit aux frais inconnus",
+                source_name="Test",
+                supplier_price=Decimal(
+                    "10.00"
+                ),
+                market_price=Decimal(
+                    "30.00"
+                ),
+                shipping_cost=Decimal(
+                    "0.00"
+                ),
+                shipping_cost_is_known=False,
+                other_costs=Decimal(
+                    "0.00"
+                ),
+                demand_score=70,
+                competition_score=40,
+                status="approved",
+            )
+        )
+
+        response = self.client.get(
+            reverse(
+                "recommendations:detail",
+                args=[opportunity.id],
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            "Marge provisoire estimée",
+        )

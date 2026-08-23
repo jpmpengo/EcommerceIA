@@ -62,3 +62,63 @@ class OpportunityAnalyzerTests(TestCase):
             score,
             40,
         )
+
+    def test_margin_is_unreliable_when_shipping_cost_is_unknown(
+        self,
+    ):
+        opportunity = (
+            ProductOpportunity.objects.create(
+                name="Produit sans frais connus",
+                source_name="Test",
+                supplier_price=Decimal(
+                    "10.00"
+                ),
+                market_price=Decimal(
+                    "30.00"
+                ),
+                shipping_cost=Decimal(
+                    "0.00"
+                ),
+                shipping_cost_is_known=False,
+                other_costs=Decimal(
+                    "0.00"
+                ),
+            )
+        )
+
+        self.assertFalse(
+            OpportunityAnalyzer
+            .margin_is_reliable(
+                opportunity
+            )
+        )
+
+    def test_free_shipping_can_be_reliable_when_known(
+        self,
+    ):
+        opportunity = (
+            ProductOpportunity.objects.create(
+                name="Produit avec livraison gratuite",
+                source_name="Test",
+                supplier_price=Decimal(
+                    "10.00"
+                ),
+                market_price=Decimal(
+                    "30.00"
+                ),
+                shipping_cost=Decimal(
+                    "0.00"
+                ),
+                shipping_cost_is_known=True,
+                other_costs=Decimal(
+                    "0.00"
+                ),
+            )
+        )
+
+        self.assertTrue(
+            OpportunityAnalyzer
+            .margin_is_reliable(
+                opportunity
+            )
+        )
