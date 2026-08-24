@@ -496,7 +496,7 @@ class CJSupplierOfferServiceTests(TestCase):
     ):
         first_observation = (
             MarketObservation.objects.create(
-                source="woocommerce",
+                source="etsy",
                 external_id="WC-A",
                 name="Gaming Mouse Pad",
                 observed_price=Decimal("49.90"),

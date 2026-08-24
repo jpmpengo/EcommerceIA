@@ -11,12 +11,12 @@ class OpportunityDetectionService:
         self,
         ebay_cj_bridge_service,
         etsy_cj_bridge_service=None,
-        woocommerce_cj_bridge_service=None,
     ):
-        self.ebay_cj_bridge_service = ebay_cj_bridge_service
-        self.etsy_cj_bridge_service = etsy_cj_bridge_service
-        self.woocommerce_cj_bridge_service = (
-            woocommerce_cj_bridge_service
+        self.ebay_cj_bridge_service = (
+            ebay_cj_bridge_service
+        )
+        self.etsy_cj_bridge_service = (
+            etsy_cj_bridge_service
         )
 
     def _get_bridge_for_source(
@@ -33,14 +33,6 @@ class OpportunityDetectionService:
                 )
 
             return self.etsy_cj_bridge_service
-
-        if source == "woocommerce":
-            if self.woocommerce_cj_bridge_service is None:
-                raise ValueError(
-                    "WooCommerce CJ bridge service is required."
-                )
-
-            return self.woocommerce_cj_bridge_service
 
         raise ValueError(
             "Unsupported market observation source."

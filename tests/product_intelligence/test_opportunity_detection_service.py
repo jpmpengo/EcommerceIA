@@ -634,7 +634,7 @@ class OpportunityDetectionServiceTests(TestCase):
             observation.id,
         )
 
-    def test_processes_woocommerce_observation_through_woocommerce_bridge(
+    def test_rejects_woocommerce_observation_as_unsupported_source(
         self,
     ):
         observation = MarketObservation.objects.create(
@@ -656,47 +656,23 @@ class OpportunityDetectionServiceTests(TestCase):
             supplier_type="dropshipper",
         )
 
-        class FakeWooCommerceCJBridgeService:
-
-            def search_and_create_opportunity(
-                self,
-                market_observation,
-                supplier,
-            ):
-                self.market_observation = market_observation
-                self.supplier = supplier
-
-                return {
-                    "observation_id": market_observation.id,
-                    "supplier_id": supplier.id,
-                }
-
-        woocommerce_bridge = FakeWooCommerceCJBridgeService()
-
         service = OpportunityDetectionService(
-            ebay_cj_bridge_service=FakeEbayCJBridgeService(),
-            woocommerce_cj_bridge_service=woocommerce_bridge,
+            ebay_cj_bridge_service=(
+                FakeEbayCJBridgeService()
+            ),
         )
 
-        result = service.process_observation(
-            market_observation=observation,
-            supplier=supplier,
-        )
-
-        self.assertEqual(
-            woocommerce_bridge.market_observation,
-            observation,
-        )
-
-        self.assertEqual(
-            woocommerce_bridge.supplier,
-            supplier,
-        )
-
-        self.assertEqual(
-            result["observation_id"],
-            observation.id,
-        )
+        with self.assertRaisesMessage(
+            ValueError,
+            (
+                "Unsupported market observation "
+                "source."
+            ),
+        ):
+            service.process_observation(
+                market_observation=observation,
+                supplier=supplier,
+            )
 
     def test_reprocesses_already_processed_observation_when_product_is_out_of_stock(
         self,

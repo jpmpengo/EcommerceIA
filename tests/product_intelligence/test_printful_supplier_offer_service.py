@@ -319,7 +319,7 @@ class PrintfulSupplierOfferServiceTests(TestCase):
         )
 
         first_observation = MarketObservation.objects.create(
-            source="woocommerce",
+            source="etsy",
             external_id="WC-PRINTFUL-001",
             name="Gaming Mouse Pad",
             observed_price=Decimal("49.90"),

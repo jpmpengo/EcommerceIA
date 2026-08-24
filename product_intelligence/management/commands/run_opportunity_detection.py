@@ -9,7 +9,6 @@ from django.core.management.base import (
     BaseCommand,
     CommandError,
 )
-from woocommerce import API
 
 from product_intelligence.models import (
     MarketObservation,
@@ -44,18 +43,6 @@ from product_intelligence.services.opportunity_detection import (
 )
 from product_intelligence.services.supplier_offer_opportunity import (
     SupplierOfferOpportunityService,
-)
-from product_intelligence.services.woocommerce_cj_bridge import (
-    WooCommerceCJBridgeService,
-)
-from product_intelligence.services.woocommerce_client import (
-    WooCommerceClient,
-)
-from product_intelligence.services.woocommerce_collection import (
-    WooCommerceCollectionService,
-)
-from product_intelligence.services.woocommerce_market_observation import (
-    WooCommerceMarketObservationService,
 )
 
 from decimal import Decimal, InvalidOperation
@@ -113,7 +100,7 @@ from product_intelligence.services.variant_features import (
 
 class Command(BaseCommand):
     help = (
-        "Processes eBay, Etsy and WooCommerce market observations "
+        "Processes eBay, and Etsy market observations "
         "and detects CJdropshipping product opportunities."
     )
 
@@ -197,16 +184,6 @@ class Command(BaseCommand):
                     "OPPORTUNITY_MINIMUM_STOCK must be zero or greater."
                 )
 
-        woocommerce_base_url = os.getenv(
-            "WOOCOMMERCE_BASE_URL"
-        )
-        woocommerce_consumer_key = os.getenv(
-            "WOOCOMMERCE_CONSUMER_KEY"
-        )
-        woocommerce_consumer_secret = os.getenv(
-            "WOOCOMMERCE_CONSUMER_SECRET"
-        )
-
         etsy_api_key = os.getenv(
             "ETSY_API_KEY"
         )
@@ -233,37 +210,6 @@ class Command(BaseCommand):
             raise CommandError(
                 "CJ_API_KEY is missing."
             )
-
-        # Collecte WooCommerce uniquement si les 3 variables
-        # de configuration sont présentes.
-        if (
-            woocommerce_base_url
-            and woocommerce_consumer_key
-            and woocommerce_consumer_secret
-        ):
-            wcapi = API(
-                url=woocommerce_base_url,
-                consumer_key=woocommerce_consumer_key,
-                consumer_secret=woocommerce_consumer_secret,
-                version="wc/v3",
-                wp_api=True,
-                timeout=30,
-            )
-
-            woocommerce_client = WooCommerceClient(
-                api=wcapi,
-            )
-
-            woocommerce_collection_service = (
-                WooCommerceCollectionService(
-                    client=woocommerce_client,
-                    observation_service=(
-                        WooCommerceMarketObservationService()
-                    ),
-                )
-            )
-
-            woocommerce_collection_service.collect()
 
         if (
             etsy_api_key
@@ -309,7 +255,6 @@ class Command(BaseCommand):
                 source__in=[
                     "ebay",
                     "etsy",
-                    "woocommerce",
                 ]
             )
             .order_by("observed_at")
@@ -318,7 +263,7 @@ class Command(BaseCommand):
         if not observations:
             self.stdout.write(
                 self.style.WARNING(
-                    "No eBay, Etsy or WooCommerce "
+                    "No eBay or Etsy "
                     "MarketObservation found."
                 )
             )
@@ -334,12 +279,6 @@ class Command(BaseCommand):
             1
             for observation in observations
             if observation.source == "etsy"
-        )
-
-        woocommerce_count = sum(
-            1
-            for observation in observations
-            if observation.source == "woocommerce"
         )
 
         supplier, _ = Supplier.objects.get_or_create(
@@ -363,9 +302,7 @@ class Command(BaseCommand):
             f"Etsy observations: {etsy_count}"
         )
 
-        self.stdout.write(
-            f"WooCommerce observations: {woocommerce_count}"
-        )
+
 
         ssl_context = truststore.SSLContext(
             ssl.PROTOCOL_TLS_CLIENT
@@ -612,16 +549,10 @@ class Command(BaseCommand):
                 cj_client=cj_client,
             )
 
-            woocommerce_bridge = WooCommerceCJBridgeService(
-                cj_pipeline_service=pipeline,
-                cj_client=cj_client,
-            )
-
             detection_service = (
                 OpportunityDetectionService(
                     ebay_cj_bridge_service=ebay_bridge,
                     etsy_cj_bridge_service=etsy_bridge,
-                    woocommerce_cj_bridge_service=woocommerce_bridge,
                 )
             )
 
