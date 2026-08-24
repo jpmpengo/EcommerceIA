@@ -13,6 +13,11 @@ from product_intelligence.services.market_observation_importer import (
     MarketObservationImporter,
 )
 
+from product_intelligence.models import (
+    MarketplaceStudy,
+    ProductIdea,
+)
+
 
 class FakeCollector(BaseMarketCollector):
     source_name = "fake"
@@ -195,5 +200,56 @@ class MarketObservationImporterTests(TestCase):
                 "19.90",
                 "17.50",
             ],
+        )
+
+    def test_importer_links_observation_to_marketplace_study(
+        self,
+    ):
+        idea = ProductIdea.objects.create(
+            name="Organisateur sous évier",
+            customer_problem="Rangement difficile.",
+            target_customer="Petits logements.",
+            reason_to_study="Besoin concret.",
+            countries=[
+                "FR",
+                "BE",
+                "ES",
+            ],
+            search_keywords=[
+                "organisateur sous évier",
+            ],
+            status="selected",
+        )
+
+        study = MarketplaceStudy.objects.create(
+            product_idea=idea,
+            marketplaces=[
+                "fake",
+            ],
+            queries=[
+                "organisateur sous évier",
+            ],
+            status="draft",
+        )
+
+        importer = MarketObservationImporter(
+            collector=FakeCollector()
+        )
+
+        importer.import_query(
+            query="organisateur sous évier",
+            study=study,
+        )
+
+        observation = MarketObservation.objects.get()
+
+        self.assertIn(
+            observation,
+            study.observations.all(),
+        )
+
+        self.assertEqual(
+            observation.raw_data["query"],
+            "organisateur sous évier",
         )
         

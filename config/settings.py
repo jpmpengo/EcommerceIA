@@ -139,12 +139,39 @@ LOGIN_URL = "/compte/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-STRIPE_PUBLISHABLE_KEY = "pk_test_51TzGOq0UEp9HGEGxjCS6D4NdPYN7w2bbSLjipDxb4DW6KvXqvXWIWlOjr2f92EvAlLzTnFVbw9fGH2Jr2IdLv6md00qQU0sfz5"
-STRIPE_SECRET_KEY = "STRIPE_SECRET_REMOVEDKuUFUzx4rQEzxuCPZbnrWMT6qHwecHPE8qvASr00IGvmxHTt"
+STRIPE_SECRET_KEY = os.getenv(
+    "STRIPE_SECRET_KEY",
+    "",
+)
+
+STRIPE_PUBLISHABLE_KEY = os.getenv(
+    "STRIPE_PUBLISHABLE_KEY",
+    "",
+)
 
 # Secret fourni par la commande :
 # stripe listen --forward-to http://127.0.0.1:8000/commande/stripe/webhook/
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+ETSY_API_KEY = os.getenv(
+    "ETSY_API_KEY",
+    "",
+)
+
+ETSY_SHARED_SECRET = os.getenv(
+    "ETSY_SHARED_SECRET",
+    "",
+)
+
+WOOCOMMERCE_LOCAL_IMPORT_CSV_PATH = os.getenv(
+    "WOOCOMMERCE_LOCAL_IMPORT_CSV_PATH",
+    "",
+)
+
+WOOCOMMERCE_LOCAL_EXPORT_CSV_PATH = os.getenv(
+    "WOOCOMMERCE_LOCAL_EXPORT_CSV_PATH",
+    "",
+)
 
 EMAIL_BACKEND = (
     "django.core.mail.backends.console.EmailBackend"

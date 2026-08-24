@@ -6,11 +6,12 @@ from django.urls import reverse
 
 from django.contrib.auth.models import Group
 
-from product_intelligence.models import (
-    ProductIdea,
-)
+from unittest.mock import patch
+
 from product_intelligence.models import (
     MarketplaceStudy,
+    MarketObservation,
+    ProductIdea,
 )
 
 
@@ -502,8 +503,8 @@ class ProductIdeaViewTests(TestCase):
             ),
             {
                 "marketplaces": [
-                    "amazon",
                     "etsy",
+                    "woocommerce_local",
                 ],
             },
         )
@@ -520,8 +521,8 @@ class ProductIdeaViewTests(TestCase):
         self.assertEqual(
             study.marketplaces,
             [
-                "amazon",
                 "etsy",
+                "woocommerce_local",
             ],
         )
 
@@ -570,8 +571,8 @@ class ProductIdeaViewTests(TestCase):
         MarketplaceStudy.objects.create(
             product_idea=idea,
             marketplaces=[
-                "amazon",
                 "etsy",
+                "woocommerce_local",
             ],
             queries=[
                 "organisateur sous évier",
@@ -601,10 +602,210 @@ class ProductIdeaViewTests(TestCase):
 
         self.assertContains(
             response,
+            "Etsy",
+        )
+
+        self.assertContains(
+            response,
+            "Catalogue local",
+        )
+
+        self.assertNotContains(
+            response,
             "Amazon",
         )
 
         self.assertContains(
             response,
             "Aucun appel externe effectué",
+        )
+
+        self.assertContains(
+            response,
+            "Lancer l’étude",
+        )
+
+        self.assertContains(
+            response,
+            reverse(
+                "dashboard:run_marketplace_study",
+                args=[
+                    idea.marketplace_studies.get().pk,
+                ],
+            ),
+        )
+
+    @patch(
+        (
+            "dashboard.views."
+            "MarketplaceStudyRunner.run"
+        )
+    )
+    def test_emma_operator_can_launch_marketplace_study(
+        self,
+        mock_run,
+    ):
+        group = Group.objects.create(
+            name="Emma Operators"
+        )
+
+        user = (
+            get_user_model()
+            .objects.create_user(
+                username="emma_study_runner",
+                password="test-password",
+            )
+        )
+
+        user.groups.add(
+            group
+        )
+
+        idea = ProductIdea.objects.create(
+            name="Organisateur sous évier",
+            customer_problem="Rangement difficile.",
+            target_customer="Petits logements.",
+            reason_to_study="Besoin concret.",
+            countries=[
+                "FR",
+            ],
+            search_keywords=[
+                "organisateur sous évier",
+            ],
+            status="selected",
+        )
+
+        study = MarketplaceStudy.objects.create(
+            product_idea=idea,
+            marketplaces=[
+                "etsy",
+                "woocommerce_local",
+            ],
+            queries=[
+                "organisateur sous évier",
+            ],
+            status="draft",
+        )
+
+        mock_run.return_value = study
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.post(
+            reverse(
+                "dashboard:run_marketplace_study",
+                args=[
+                    study.pk,
+                ],
+            ),
+            follow=True,
+        )
+
+        mock_run.assert_called_once_with(
+            study
+        )
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "dashboard:product_idea_list"
+            ),
+        )
+
+        self.assertContains(
+            response,
+            "L’étude marketplace est terminée.",
+        )
+
+    def test_completed_study_displays_observation_count(
+        self,
+    ):
+        group = Group.objects.create(
+            name="Emma Operators"
+        )
+
+        user = (
+            get_user_model()
+            .objects.create_user(
+                username="emma_completed_study",
+                password="test-password",
+            )
+        )
+
+        user.groups.add(
+            group
+        )
+
+        idea = ProductIdea.objects.create(
+            name="Organisateur sous évier",
+            customer_problem="Rangement difficile.",
+            target_customer="Petits logements.",
+            reason_to_study="Besoin concret.",
+            countries=[
+                "FR",
+            ],
+            search_keywords=[
+                "organisateur sous évier",
+            ],
+            status="selected",
+        )
+
+        study = MarketplaceStudy.objects.create(
+            product_idea=idea,
+            marketplaces=[
+                "etsy",
+                "woocommerce_local",
+            ],
+            queries=[
+                "organisateur sous évier",
+            ],
+            status="completed",
+        )
+
+        observations = [
+            MarketObservation.objects.create(
+                source="etsy",
+                external_id="ETSY-001",
+                name="Organisateur Etsy",
+                observed_price="29.90",
+                currency="EUR",
+            ),
+            MarketObservation.objects.create(
+                source="woocommerce_local",
+                external_id="LOCAL-001",
+                name="Organisateur local",
+                observed_price="24.90",
+                currency="EUR",
+            ),
+        ]
+
+        study.observations.add(
+            *observations
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.get(
+            reverse(
+                "dashboard:product_idea_list"
+            )
+        )
+
+        self.assertContains(
+            response,
+            "Étude terminée",
+        )
+
+        self.assertContains(
+            response,
+            "2 observations collectées",
+        )
+
+        self.assertNotContains(
+            response,
+            "Lancer l’étude",
         )

@@ -12,6 +12,10 @@ class MarketplaceStudyService:
     MAX_QUERIES = 5
     MAX_PAGES_PER_MARKETPLACE = 2
     MAX_RESULTS_PER_QUERY = 20
+    ALLOWED_MARKETPLACES = {
+        "etsy",
+        "woocommerce_local",
+    }
 
     @staticmethod
     @transaction.atomic
@@ -63,6 +67,23 @@ class MarketplaceStudyService:
                 (
                     "Deux marketplaces maximum "
                     "sont autorisées."
+                )
+            )
+
+        unsupported_marketplaces = [
+            marketplace
+            for marketplace
+            in normalized_marketplaces
+            if marketplace
+            not in MarketplaceStudyService
+            .ALLOWED_MARKETPLACES
+        ]
+
+        if unsupported_marketplaces:
+            raise ValueError(
+                (
+                    "Marketplace non autorisée : "
+                    f"{unsupported_marketplaces[0]}."
                 )
             )
 

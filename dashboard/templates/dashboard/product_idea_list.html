@@ -623,7 +623,15 @@ Idées de produits | EcommerceIA
                                             </span>
 
                                             <p class="idea-study-title">
-                                                Étude préparée
+                                                {% if study.status == "completed" %}
+                                                    Étude terminée
+                                                {% elif study.status == "failed" %}
+                                                    Étude interrompue
+                                                {% elif study.status == "running" %}
+                                                    Étude en cours
+                                                {% else %}
+                                                    Étude préparée
+                                                {% endif %}
                                             </p>
 
                                             <div class="idea-tags">
@@ -631,7 +639,13 @@ Idées de produits | EcommerceIA
                                                 {% for marketplace in study.marketplaces %}
 
                                                     <span class="idea-tag">
-                                                        {{ marketplace|capfirst }}
+                                                        {% if marketplace == "etsy" %}
+                                                            Etsy
+                                                        {% elif marketplace == "woocommerce_local" %}
+                                                            Catalogue local
+                                                        {% else %}
+                                                            {{ marketplace|capfirst }}
+                                                        {% endif %}
                                                     </span>
 
                                                 {% endfor %}
@@ -656,7 +670,28 @@ Idées de produits | EcommerceIA
                                                     </strong>
                                                     Ce brouillon peut encore être modifié.
                                                 </p>
+                                                <form
+                                                    method="post"
+                                                    action="{% url 'dashboard:run_marketplace_study' study.pk %}"
+                                                    class="mt-3"
+                                                >
+                                                    {% csrf_token %}
 
+                                                    <button
+                                                        type="submit"
+                                                        class="idea-primary-action"
+                                                    >
+                                                        Lancer l’étude
+                                                        <span aria-hidden="true">→</span>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            {% if study.status == "completed" %}
+                                                <p class="idea-study-note">
+                                                    <strong>
+                                                        {{ study.observations.count }} observation{{ study.observations.count|pluralize }} collectée{{ study.observations.count|pluralize }}
+                                                    </strong>
+                                                </p>
                                             {% endif %}
 
                                         </div>
@@ -666,7 +701,6 @@ Idées de produits | EcommerceIA
                                 {% endwith %}
 
                                 <div class="idea-actions">
-
                                     <form
                                         method="post"
                                         action="{% url 'dashboard:prepare_marketplace_study' idea.pk %}"
@@ -684,9 +718,9 @@ Idées de produits | EcommerceIA
                                                 <input
                                                     type="checkbox"
                                                     name="marketplaces"
-                                                    value="amazon"
+                                                    value="woocommerce_local"
                                                 >
-                                                Amazon
+                                                Catalogue local
                                             </label>
 
                                             <label class="idea-marketplace-option">

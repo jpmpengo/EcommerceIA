@@ -49,4 +49,10 @@ urlpatterns = [
         name="prepare_marketplace_study",
     ),
 
+    path(
+        "marketplace-studies/<int:study_id>/run/",
+        views.run_marketplace_study,
+        name="run_marketplace_study",
+    ),
+
 ]

@@ -68,6 +68,31 @@ class EtsyClient:
             "product_url": listing.get("url", ""),
         }
 
+    def search_active_listings(
+        self,
+        keywords,
+        limit=25,
+        offset=0,
+    ):
+        url = (
+            f"{self.BASE_URL}/"
+            "listings/active"
+        )
+
+        response = self.http_client.get(
+            url,
+            headers=self._headers(),
+            params={
+                "keywords": keywords,
+                "limit": limit,
+                "offset": offset,
+            },
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+
     
         
         

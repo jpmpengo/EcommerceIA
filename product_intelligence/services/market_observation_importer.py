@@ -10,15 +10,27 @@ from product_intelligence.models import (
 )
 
 
+
 class MarketObservationImporter:
 
     def __init__(self, collector):
         self.collector = collector
 
-    def import_query(self, query):
+    def import_query(
+        self,
+        query,
+        study=None,
+        max_results=None,
+    ):
         results = self.collector.collect(
             query=query
         )
+        if max_results is not None:
+            results = list(
+                results
+            )[
+                :max_results
+            ]
 
         self.collector.validate_results(
             results
@@ -68,7 +80,6 @@ class MarketObservationImporter:
                     },
                 )
             )
-            
             MarketObservationSnapshot.objects.create(
                 observation=observation,
                 observed_price=(
@@ -89,6 +100,10 @@ class MarketObservationImporter:
                     {},
                 ),
             )
+            if study is not None:
+                study.observations.add(
+                    observation
+                )
 
             imported.append(
                 {
@@ -98,5 +113,3 @@ class MarketObservationImporter:
             )
 
         return imported
-
-        

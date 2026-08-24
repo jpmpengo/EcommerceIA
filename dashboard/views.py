@@ -35,6 +35,12 @@ from django.contrib import messages
 from product_intelligence.services.marketplace_study import (
     MarketplaceStudyService,
 )
+from product_intelligence.services.marketplace_study_runner import (
+    MarketplaceStudyRunner,
+)
+from product_intelligence.models import (
+    MarketplaceStudy,
+)
 
 
 @login_required
@@ -275,6 +281,49 @@ def prepare_marketplace_study(
             (
                 "Le brouillon de l’étude "
                 "marketplace est prêt."
+            ),
+        )
+
+    return redirect(
+        "dashboard:product_idea_list"
+    )
+
+@login_required
+@require_POST
+def run_marketplace_study(
+    request,
+    study_id,
+):
+    if not DashboardAccessService.can_access(
+        request.user
+    ):
+        return redirect(
+            "products:product_list"
+        )
+
+    study = get_object_or_404(
+        MarketplaceStudy,
+        pk=study_id,
+    )
+
+    try:
+        MarketplaceStudyRunner.run(
+            study
+        )
+    except (
+        OSError,
+        ValueError,
+    ) as error:
+        messages.error(
+            request,
+            str(error),
+        )
+    else:
+        messages.success(
+            request,
+            (
+                "L’étude marketplace "
+                "est terminée."
             ),
         )
 

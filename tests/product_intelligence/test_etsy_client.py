@@ -35,6 +35,80 @@ class EtsyClientTests(TestCase):
             },
         )
 
+    def test_search_active_listings_uses_targeted_query(
+        self,
+    ):
+        http_client = Mock()
+
+        response = Mock()
+        response.json.return_value = {
+            "count": 1,
+            "results": [
+                {
+                    "listing_id": 987654321,
+                    "title": (
+                        "Under sink organizer"
+                    ),
+                    "price": {
+                        "amount": 2490,
+                        "divisor": 100,
+                        "currency_code": "EUR",
+                    },
+                    "url": (
+                        "https://www.etsy.com/"
+                        "listing/987654321"
+                    ),
+                },
+            ],
+        }
+        response.raise_for_status.return_value = None
+
+        http_client.get.return_value = response
+
+        client = EtsyClient(
+            api_key="test-etsy-key",
+            shared_secret="test-etsy-secret",
+            http_client=http_client,
+        )
+
+        result = client.search_active_listings(
+            keywords="organisateur sous évier",
+            limit=25,
+            offset=0,
+        )
+
+        http_client.get.assert_called_once_with(
+            (
+                "https://openapi.etsy.com/"
+                "v3/application/listings/active"
+            ),
+            headers={
+                "x-api-key": (
+                    "test-etsy-key:"
+                    "test-etsy-secret"
+                ),
+            },
+            params={
+                "keywords": (
+                    "organisateur sous évier"
+                ),
+                "limit": 25,
+                "offset": 0,
+            },
+        )
+
+        self.assertEqual(
+            result["count"],
+            1,
+        )
+
+        self.assertEqual(
+            result["results"][0][
+                "listing_id"
+            ],
+            987654321,
+        )
+
     def test_get_listing_returns_listing_data(self):
         http_client = Mock()
 

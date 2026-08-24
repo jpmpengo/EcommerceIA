@@ -534,6 +534,13 @@ class MarketplaceStudy(models.Model):
         verbose_name="Requêtes ciblées",
     )
 
+    observations = models.ManyToManyField(
+        "product_intelligence.MarketObservation",
+        related_name="marketplace_studies",
+        blank=True,
+        verbose_name="Observations collectées",
+    )
+
     max_pages_per_marketplace = (
         models.PositiveSmallIntegerField(
             default=2,

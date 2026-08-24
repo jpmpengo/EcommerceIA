@@ -34,8 +34,8 @@ class MarketplaceStudyServiceTests(TestCase):
         study = MarketplaceStudyService.prepare(
             idea=idea,
             marketplaces=[
-                "amazon",
                 "etsy",
+                "woocommerce_local",
             ],
         )
 
@@ -47,8 +47,8 @@ class MarketplaceStudyServiceTests(TestCase):
         self.assertEqual(
             study.marketplaces,
             [
-                "amazon",
                 "etsy",
+                "woocommerce_local",
             ],
         )
 
@@ -96,7 +96,7 @@ class MarketplaceStudyServiceTests(TestCase):
             .prepare(
                 idea=idea,
                 marketplaces=[
-                    "amazon",
+                    "etsy",
                 ],
             )
         )
@@ -106,7 +106,7 @@ class MarketplaceStudyServiceTests(TestCase):
             .prepare(
                 idea=idea,
                 marketplaces=[
-                    "amazon",
+                    "etsy",
                 ],
             )
         )
@@ -148,9 +148,9 @@ class MarketplaceStudyServiceTests(TestCase):
             MarketplaceStudyService.prepare(
                 idea=idea,
                 marketplaces=[
-                    "amazon",
                     "etsy",
-                    "ebay",
+                    "woocommerce_local",
+                    "amazon",
                 ],
             )
 
@@ -182,6 +182,39 @@ class MarketplaceStudyServiceTests(TestCase):
                 "Seule une idée sélectionnée "
                 "peut être étudiée."
             ),
+        ):
+            MarketplaceStudyService.prepare(
+                idea=idea,
+                marketplaces=[
+                    "etsy",
+                ],
+            )
+
+        self.assertEqual(
+            idea.marketplace_studies.count(),
+            0,
+        )
+
+    def test_prepare_rejects_unsupported_marketplace(
+        self,
+    ):
+        idea = ProductIdea.objects.create(
+            name="Idée sélectionnée",
+            customer_problem="Problème.",
+            target_customer="Client.",
+            reason_to_study="Raison.",
+            countries=[
+                "FR",
+            ],
+            search_keywords=[
+                "requête ciblée",
+            ],
+            status="selected",
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Marketplace non autorisée : amazon.",
         ):
             MarketplaceStudyService.prepare(
                 idea=idea,
