@@ -487,6 +487,29 @@ Idées de produits | EcommerceIA
                     étude du marché et des fournisseurs.
                 </p>
 
+                {% if not product_ideas %}
+
+                    <form
+                        method="post"
+                        action="{% url 'dashboard:generate_product_ideas' %}"
+                        class="mt-4"
+                        onsubmit="return confirm(
+                            'Voulez-vous demander cinq nouvelles idées à Emma ?'
+                        );"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="idea-primary-action"
+                        >
+                            Générer de nouvelles idées
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    </form>
+
+                {% endif %}
+
             </div>
 
             <aside class="idea-hero-side">

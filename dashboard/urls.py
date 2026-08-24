@@ -55,4 +55,10 @@ urlpatterns = [
         name="run_marketplace_study",
     ),
 
+    path(
+        "product-ideas/generate/",
+        views.generate_product_ideas,
+        name="generate_product_ideas",
+    ),
+
 ]

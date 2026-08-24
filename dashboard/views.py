@@ -41,7 +41,9 @@ from product_intelligence.services.marketplace_study_runner import (
 from product_intelligence.models import (
     MarketplaceStudy,
 )
-
+from product_intelligence.services.product_idea_generation import (
+    ProductIdeaGenerationService,
+)
 
 @login_required
 def home(request):
@@ -237,6 +239,49 @@ def reject_product_idea(
         messages.error(
             request,
             str(error),
+        )
+
+    return redirect(
+        "dashboard:product_idea_list"
+    )
+
+@login_required
+@require_POST
+def generate_product_ideas(
+    request,
+):
+    if not DashboardAccessService.can_access(
+        request.user
+    ):
+        return redirect(
+            "products:product_list"
+        )
+
+    try:
+        generated_count = (
+            ProductIdeaGenerationService
+            .generate()
+        )
+    except ValueError as error:
+        messages.error(
+            request,
+            str(error),
+        )
+    except Exception:
+        messages.error(
+            request,
+            (
+                "Emma n’a pas pu générer "
+                "de nouvelles idées."
+            ),
+        )
+    else:
+        messages.success(
+            request,
+            (
+                f"{generated_count} nouvelle(s) "
+                "idée(s) proposée(s) par Emma."
+            ),
         )
 
     return redirect(

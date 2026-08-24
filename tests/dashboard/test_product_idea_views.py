@@ -14,6 +14,7 @@ from product_intelligence.models import (
     ProductIdea,
 )
 
+from unittest.mock import patch
 
 class ProductIdeaViewTests(TestCase):
 
@@ -803,4 +804,197 @@ class ProductIdeaViewTests(TestCase):
         self.assertNotContains(
             response,
             "Lancer l’étude",
+        )
+
+    @patch(
+        (
+            "dashboard.views."
+            "ProductIdeaGenerationService.generate"
+        )
+    )
+    def test_emma_operator_can_generate_product_ideas(
+        self,
+        mock_generate,
+    ):
+        group = Group.objects.create(
+            name="Emma Operators"
+        )
+
+        user = (
+            get_user_model()
+            .objects.create_user(
+                username="emma_idea_generator",
+                password="test-password",
+            )
+        )
+
+        user.groups.add(
+            group
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        mock_generate.return_value = 5
+
+        response = self.client.post(
+            reverse(
+                "dashboard:generate_product_ideas"
+            )
+        )
+
+        mock_generate.assert_called_once_with()
+
+        self.assertRedirects(
+            response,
+            reverse(
+                "dashboard:product_idea_list"
+            ),
+        )
+
+    def test_product_idea_page_displays_generation_action(
+        self,
+    ):
+        group = Group.objects.create(
+            name="Emma Operators"
+        )
+
+        user = (
+            get_user_model()
+            .objects.create_user(
+                username="emma_generation_action",
+                password="test-password",
+            )
+        )
+
+        user.groups.add(
+            group
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.get(
+            reverse(
+                "dashboard:product_idea_list"
+            )
+        )
+
+        self.assertEqual(
+            response.status_code,
+            200,
+        )
+
+        self.assertContains(
+            response,
+            "Générer de nouvelles idées",
+        )
+
+        self.assertContains(
+            response,
+            reverse(
+                "dashboard:generate_product_ideas"
+            ),
+        )
+
+    @patch(
+        (
+            "dashboard.views."
+            "ProductIdeaGenerationService.generate"
+        )
+    )
+    def test_generation_displays_business_error(
+        self,
+        mock_generate,
+    ):
+        group = Group.objects.create(
+            name="Emma Operators"
+        )
+
+        user = (
+            get_user_model()
+            .objects.create_user(
+                username="emma_generation_guard",
+                password="test-password",
+            )
+        )
+
+        user.groups.add(
+            group
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        mock_generate.side_effect = ValueError(
+            (
+                "Des idées sont déjà "
+                "en attente d’examen."
+            )
+        )
+
+        response = self.client.post(
+            reverse(
+                "dashboard:generate_product_ideas"
+            ),
+            follow=True,
+        )
+
+        self.assertContains(
+            response,
+            (
+                "Des idées sont déjà "
+                "en attente d’examen."
+            ),
+        )
+
+    def test_generation_action_is_hidden_when_proposed_ideas_exist(
+        self,
+    ):
+        group = Group.objects.create(
+            name="Emma Operators"
+        )
+
+        user = (
+            get_user_model()
+            .objects.create_user(
+                username="emma_existing_ideas",
+                password="test-password",
+            )
+        )
+
+        user.groups.add(
+            group
+        )
+
+        ProductIdea.objects.create(
+            name="Idée existante",
+            customer_problem="Problème client.",
+            target_customer="Client cible.",
+            reason_to_study="Raison.",
+            countries=[
+                "FR",
+            ],
+            search_keywords=[
+                "requête ciblée",
+            ],
+            status="proposed",
+        )
+
+        self.client.force_login(
+            user
+        )
+
+        response = self.client.get(
+            reverse(
+                "dashboard:product_idea_list"
+            )
+        )
+
+        self.assertNotContains(
+            response,
+            "Générer de nouvelles idées",
         )
