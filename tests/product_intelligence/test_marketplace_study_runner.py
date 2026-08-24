@@ -16,7 +16,7 @@ from product_intelligence.services.marketplace_study_runner import (
 
 class RunnerFakeCollector(BaseMarketCollector):
 
-    source_name = "woocommerce_local"
+    source_name = "etsy"
 
     def collect(
         self,
@@ -25,12 +25,15 @@ class RunnerFakeCollector(BaseMarketCollector):
         return [
             {
                 "source": self.source_name,
-                "external_id": "LOCAL-001",
+                "external_id": "ETSY-001",
                 "name": "Organisateur sous évier",
                 "description": "Rangement modulable.",
                 "observed_price": "29.90",
                 "currency": "EUR",
-                "product_url": "",
+                "product_url": (
+                    "https://www.etsy.com/"
+                    "listing/ETSY-001"
+                ),
                 "image_url": "",
                 "raw_data": {
                     "query": query,
@@ -69,7 +72,7 @@ class MarketplaceStudyRunnerTests(TestCase):
         study = MarketplaceStudy.objects.create(
             product_idea=idea,
             marketplaces=[
-                "woocommerce_local",
+                "etsy",
             ],
             queries=[
                 "organisateur sous évier",
@@ -79,9 +82,7 @@ class MarketplaceStudyRunnerTests(TestCase):
         )
 
         mock_build.return_value = {
-            "woocommerce_local": (
-                RunnerFakeCollector()
-            ),
+            "etsy": RunnerFakeCollector(),
         }
 
         executed_study = (
@@ -94,7 +95,7 @@ class MarketplaceStudyRunnerTests(TestCase):
 
         mock_build.assert_called_once_with(
             marketplaces=[
-                "woocommerce_local",
+                "etsy",
             ],
         )
 

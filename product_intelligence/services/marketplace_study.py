@@ -14,7 +14,6 @@ class MarketplaceStudyService:
     MAX_RESULTS_PER_QUERY = 20
     ALLOWED_MARKETPLACES = {
         "etsy",
-        "woocommerce_local",
     }
 
     @staticmethod

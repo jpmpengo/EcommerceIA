@@ -5,9 +5,6 @@ from django.conf import settings
 from product_intelligence.services.collectors.etsy import (
     EtsyMarketCollector,
 )
-from product_intelligence.services.collectors.woocommerce_local import (
-    WooCommerceLocalCollector,
-)
 from product_intelligence.services.etsy_client import (
     EtsyClient,
 )
@@ -26,13 +23,6 @@ class MarketplaceCollectorFactory:
                 collectors[marketplace] = (
                     MarketplaceCollectorFactory
                     ._build_etsy_collector()
-                )
-                continue
-
-            if marketplace == "woocommerce_local":
-                collectors[marketplace] = (
-                    MarketplaceCollectorFactory
-                    ._build_local_collector()
                 )
                 continue
 
@@ -79,25 +69,4 @@ class MarketplaceCollectorFactory:
 
         return EtsyMarketCollector(
             client=client,
-        )
-
-    @staticmethod
-    def _build_local_collector():
-        csv_path = getattr(
-            settings,
-            "WOOCOMMERCE_LOCAL_EXPORT_CSV_PATH",
-            "",
-        )
-
-        if not csv_path:
-            raise ValueError(
-                (
-                    "Le chemin du catalogue "
-                    "WooCommerce local "
-                    "n'est pas configuré."
-                )
-            )
-
-        return WooCommerceLocalCollector(
-            csv_path=csv_path,
         )

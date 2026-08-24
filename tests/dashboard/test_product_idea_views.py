@@ -504,7 +504,6 @@ class ProductIdeaViewTests(TestCase):
             {
                 "marketplaces": [
                     "etsy",
-                    "woocommerce_local",
                 ],
             },
         )
@@ -522,7 +521,6 @@ class ProductIdeaViewTests(TestCase):
             study.marketplaces,
             [
                 "etsy",
-                "woocommerce_local",
             ],
         )
 
@@ -572,7 +570,6 @@ class ProductIdeaViewTests(TestCase):
             product_idea=idea,
             marketplaces=[
                 "etsy",
-                "woocommerce_local",
             ],
             queries=[
                 "organisateur sous évier",
@@ -605,7 +602,7 @@ class ProductIdeaViewTests(TestCase):
             "Etsy",
         )
 
-        self.assertContains(
+        self.assertNotContains(
             response,
             "Catalogue local",
         )
@@ -679,7 +676,6 @@ class ProductIdeaViewTests(TestCase):
             product_idea=idea,
             marketplaces=[
                 "etsy",
-                "woocommerce_local",
             ],
             queries=[
                 "organisateur sous évier",
@@ -756,7 +752,6 @@ class ProductIdeaViewTests(TestCase):
             product_idea=idea,
             marketplaces=[
                 "etsy",
-                "woocommerce_local",
             ],
             queries=[
                 "organisateur sous évier",
@@ -773,9 +768,9 @@ class ProductIdeaViewTests(TestCase):
                 currency="EUR",
             ),
             MarketObservation.objects.create(
-                source="woocommerce_local",
-                external_id="LOCAL-001",
-                name="Organisateur local",
+                source="etsy",
+                external_id="ETSY-002",
+                name="Organisateur Etsy alternatif",
                 observed_price="24.90",
                 currency="EUR",
             ),

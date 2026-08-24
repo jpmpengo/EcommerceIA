@@ -163,16 +163,6 @@ ETSY_SHARED_SECRET = os.getenv(
     "",
 )
 
-WOOCOMMERCE_LOCAL_IMPORT_CSV_PATH = os.getenv(
-    "WOOCOMMERCE_LOCAL_IMPORT_CSV_PATH",
-    "",
-)
-
-WOOCOMMERCE_LOCAL_EXPORT_CSV_PATH = os.getenv(
-    "WOOCOMMERCE_LOCAL_EXPORT_CSV_PATH",
-    "",
-)
-
 EMAIL_BACKEND = (
     "django.core.mail.backends.console.EmailBackend"
 )

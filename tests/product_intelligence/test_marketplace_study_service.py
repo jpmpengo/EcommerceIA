@@ -35,7 +35,6 @@ class MarketplaceStudyServiceTests(TestCase):
             idea=idea,
             marketplaces=[
                 "etsy",
-                "woocommerce_local",
             ],
         )
 
@@ -48,7 +47,6 @@ class MarketplaceStudyServiceTests(TestCase):
             study.marketplaces,
             [
                 "etsy",
-                "woocommerce_local",
             ],
         )
 
@@ -149,8 +147,8 @@ class MarketplaceStudyServiceTests(TestCase):
                 idea=idea,
                 marketplaces=[
                     "etsy",
-                    "woocommerce_local",
                     "amazon",
+                    "ebay",
                 ],
             )
 
@@ -220,6 +218,42 @@ class MarketplaceStudyServiceTests(TestCase):
                 idea=idea,
                 marketplaces=[
                     "amazon",
+                ],
+            )
+
+        self.assertEqual(
+            idea.marketplace_studies.count(),
+            0,
+        )
+
+    def test_prepare_rejects_local_catalog_as_marketplace(
+        self,
+    ):
+        idea = ProductIdea.objects.create(
+            name="Idée sélectionnée",
+            customer_problem="Problème.",
+            target_customer="Client.",
+            reason_to_study="Raison.",
+            countries=[
+                "FR",
+            ],
+            search_keywords=[
+                "requête ciblée",
+            ],
+            status="selected",
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            (
+                "Marketplace non autorisée : "
+                "woocommerce_local."
+            ),
+        ):
+            MarketplaceStudyService.prepare(
+                idea=idea,
+                marketplaces=[
+                    "woocommerce_local",
                 ],
             )
 
