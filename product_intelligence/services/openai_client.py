@@ -29,16 +29,32 @@ class OpenAIClient:
         instructions,
         context,
         response_model=OpportunityAIResponse,
+        use_web_search=False,
     ):
-        response = self.client.responses.parse(
-            model=self.model,
-            instructions=instructions,
-            input=json.dumps(
+        request_options = {
+            "model": self.model,
+            "instructions": instructions,
+            "input": json.dumps(
                 context,
                 ensure_ascii=False,
                 default=str,
             ),
-            text_format=response_model,
+            "text_format": response_model,
+        }
+
+        if use_web_search:
+            request_options["tools"] = [
+                {
+                    "type": "web_search",
+                },
+            ]
+
+            request_options["tool_choice"] = (
+                "required"
+            )
+
+        response = self.client.responses.parse(
+            **request_options
         )
 
         for output in response.output:
@@ -55,6 +71,8 @@ class OpenAIClient:
                 return item.parsed.model_dump()
 
         raise ValueError(
-            "La réponse IA structurée est introuvable."
+            (
+                "La réponse IA structurée "
+                "est introuvable."
+            )
         )
-        

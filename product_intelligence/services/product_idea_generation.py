@@ -113,6 +113,12 @@ class ProductIdeaGenerationService:
                     search_keywords=(
                         idea["search_keywords"]
                     ),
+                    demand_signals=(
+                        idea["demand_signals"]
+                    ),
+                    evidence_sources=(
+                        idea["evidence_sources"]
+                    ),
                     source="openai",
                     model_name=model,
                     status="proposed",

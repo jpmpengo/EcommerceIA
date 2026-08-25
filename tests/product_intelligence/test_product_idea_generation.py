@@ -80,6 +80,27 @@ class ProductIdeaGenerationServiceTests(TestCase):
                     "search_keywords": [
                         f"requête {number}",
                     ],
+                    "demand_signals": [
+                        (
+                            "Signal de demande "
+                            f"{number}."
+                        ),
+                    ],
+                    "evidence_sources": [
+                        {
+                            "title": (
+                                f"Source {number}"
+                            ),
+                            "url": (
+                                "https://example.com/"
+                                f"source-{number}"
+                            ),
+                            "evidence": (
+                                "Cette source confirme "
+                                "un intérêt public."
+                            ),
+                        },
+                    ],
                 }
                 for number in range(
                     1,
@@ -112,6 +133,36 @@ class ProductIdeaGenerationServiceTests(TestCase):
                 model_name="test-model",
             ).count(),
             5,
+        )
+
+        first_idea = (
+            ProductIdea.objects
+            .order_by("id")
+            .first()
+        )
+
+        self.assertEqual(
+            first_idea.demand_signals,
+            [
+                "Signal de demande 1.",
+            ],
+        )
+
+        self.assertEqual(
+            first_idea.evidence_sources,
+            [
+                {
+                    "title": "Source 1",
+                    "url": (
+                        "https://example.com/"
+                        "source-1"
+                    ),
+                    "evidence": (
+                        "Cette source confirme "
+                        "un intérêt public."
+                    ),
+                },
+            ],
         )
 
     @patch.object(

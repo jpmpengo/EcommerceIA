@@ -90,6 +90,30 @@ class ProductIdeaViewTests(TestCase):
             search_keywords=[
                 "organisateur sous évier",
             ],
+            demand_signals=[
+                (
+                    "Les recherches publiques "
+                    "montrent un intérêt pour "
+                    "le rangement compact."
+                ),
+            ],
+            evidence_sources=[
+                {
+                    "title": (
+                        "Étude sur le rangement "
+                        "des petits logements"
+                    ),
+                    "url": (
+                        "https://example.com/"
+                        "rangement-compact"
+                    ),
+                    "evidence": (
+                        "La source décrit une "
+                        "demande pour des solutions "
+                        "de rangement compactes."
+                    ),
+                },
+            ],
             status="proposed",
         )
 
@@ -123,6 +147,42 @@ class ProductIdeaViewTests(TestCase):
         self.assertContains(
             response,
             idea.name,
+        )
+
+        self.assertContains(
+            response,
+            "Signaux de demande",
+        )
+
+        self.assertContains(
+            response,
+            (
+                "Les recherches publiques "
+                "montrent un intérêt pour "
+                "le rangement compact."
+            ),
+        )
+
+        self.assertContains(
+            response,
+            "Sources consultées",
+        )
+
+        self.assertContains(
+            response,
+            (
+                "Étude sur le rangement "
+                "des petits logements"
+            ),
+        )
+
+        self.assertContains(
+            response,
+            (
+                'href="https://example.com/'
+                'rangement-compact"'
+            ),
+            html=False,
         )
 
     def test_emma_operator_can_select_product_idea(

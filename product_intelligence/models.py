@@ -233,6 +233,20 @@ class ProductIdea(models.Model):
         verbose_name="Pays ciblés",
     )
 
+    demand_signals = models.JSONField(
+        default=list,
+        verbose_name=(
+            "Signaux de demande"
+        ),
+    )
+
+    evidence_sources = models.JSONField(
+        default=list,
+        verbose_name=(
+            "Sources justificatives"
+        ),
+    )
+
     search_keywords = models.JSONField(
         default=list,
         verbose_name=(

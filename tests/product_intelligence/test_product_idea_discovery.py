@@ -5,6 +5,8 @@ from product_intelligence.services.product_idea_discovery import (
     ProductIdeaDiscoveryService,
 )
 
+from pydantic import ValidationError
+
 
 class FakeDiscoveryClient:
 
@@ -18,6 +20,7 @@ class FakeDiscoveryClient:
         instructions,
         context,
         response_model,
+        use_web_search=False,
     ):
         self.received_instructions = (
             instructions
@@ -27,6 +30,9 @@ class FakeDiscoveryClient:
 
         self.received_response_model = (
             response_model
+        )
+        self.received_use_web_search = (
+            use_web_search
         )
 
         return {
@@ -108,6 +114,67 @@ class ProductIdeaDiscoveryServiceTests(
         )
 
         self.assertIn(
-            "hypothèses",
+            "catégories",
             client.received_instructions,
         )
+
+        self.assertIn(
+            "sources",
+            client.received_instructions,
+        )
+
+        self.assertIn(
+            "signaux de demande",
+            client.received_instructions,
+        )
+
+        self.assertNotIn(
+            "marketplace",
+            (
+                client.received_instructions
+                .lower()
+            ),
+        )
+
+        self.assertTrue(
+            client.received_use_web_search
+        )
+
+    def test_response_rejects_categories_without_demand_evidence(
+        self,
+    ):
+        categories = [
+            {
+                "name": (
+                    f"Catégorie test {index}"
+                ),
+                "customer_problem": (
+                    "Problème client."
+                ),
+                "target_customer": (
+                    "Client européen."
+                ),
+                "reason_to_study": (
+                    "Catégorie à vérifier."
+                ),
+                "countries": [
+                    "FR",
+                ],
+                "search_keywords": [
+                    "catégorie test",
+                ],
+            }
+            for index in range(
+                1,
+                6,
+            )
+        ]
+
+        with self.assertRaises(
+            ValidationError
+        ):
+            ProductDiscoveryResponse.model_validate(
+                {
+                    "ideas": categories,
+                }
+            )

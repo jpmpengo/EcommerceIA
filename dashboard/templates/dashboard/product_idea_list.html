@@ -717,6 +717,57 @@ Idées de produits | EcommerceIA
                                     </div>
                                 </div>
 
+                                {% if idea.demand_signals %}
+
+                                    <div class="idea-detail">
+                                        <span class="idea-detail-label">
+                                            Signaux de demande
+                                        </span>
+
+                                        <ul>
+                                            {% for signal in idea.demand_signals %}
+                                                <li>
+                                                    {{ signal }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+
+                                {% endif %}
+
+                                {% if idea.evidence_sources %}
+
+                                    <div class="idea-detail">
+                                        <span class="idea-detail-label">
+                                            Sources consultées
+                                        </span>
+
+                                        <p>
+                                            Recherche effectuée le
+                                            {{ idea.created_at|date:"d/m/Y" }}.
+                                        </p>
+
+                                        <ul>
+                                            {% for source in idea.evidence_sources %}
+                                                <li>
+                                                    <a
+                                                        href="{{ source.url }}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {{ source.title }}
+                                                    </a>
+
+                                                    <p>
+                                                        {{ source.evidence }}
+                                                    </p>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+
+                                {% endif %}
+
                                 <div class="idea-actions">
 
                                     <form
