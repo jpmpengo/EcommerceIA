@@ -58,7 +58,7 @@ Les actions, explications et priorités sont conçues pour le commerçant.
 
 ## D004 — Isoler les fournisseurs derrière des contrats
 
-**Statut :** Acceptée
+**Statut :** Remplacée par D009
 
 ### Contexte
 
@@ -168,3 +168,79 @@ limites explicites uniquement pour ces idées.
 ### Documentation associée
 
 Voir `PRODUCT_DISCOVERY.md`.
+
+## D009 — Remplacer les intégrations marketplaces par une recherche web sourcée
+
+**Date :** 25 août 2026
+
+**Statut :** Acceptée
+
+### Contexte
+
+L’accès développeur aux grandes marketplaces est difficile, instable ou soumis
+à l’acceptation d’un compte vendeur ou partenaire.
+
+Une marketplace spécialisée ne convient pas nécessairement à toutes les
+catégories de produits. Une absence de résultats peut alors provenir d’une
+source inadaptée et non d’un manque d’intérêt commercial pour le produit.
+
+Les intégrations directes aux marketplaces compliquent donc le projet sans
+garantir une validation fiable de toutes les idées.
+
+### Décision
+
+Abandonner les intégrations directes aux marketplaces dans le parcours de
+découverte des opportunités.
+
+Le nouveau parcours est le suivant :
+
+1. OpenAI recherche et propose cinq catégories prometteuses documentées ;
+2. les fournisseurs configurés proposent jusqu’à cinq produits correspondant
+   à chaque catégorie ;
+3. les produits sont préclassés selon les données disponibles auprès des
+   fournisseurs ;
+4. OpenAI effectue une recherche web sourcée pour trouver jusqu’à cinq prix
+   comparables pour chaque produit retenu ;
+5. EcommerceIA calcule les marges et les différents scores ;
+6. Emma présente les opportunités au commerçant pour décision finale.
+
+### Responsabilités
+
+- OpenAI recherche, rapproche, synthétise et explique ;
+- les fournisseurs fournissent les prix d’achat, stocks, variantes, délais et
+  frais de livraison ;
+- EcommerceIA normalise les données et effectue les calculs déterministes ;
+- Emma présente les résultats et accompagne la décision ;
+- le commerçant conserve la décision finale.
+
+OpenAI ne constitue pas, à lui seul, une preuve de vente, de prix, de stock ou
+de rentabilité. Toute information commerciale actuelle doit être associée à
+une source vérifiable et à une date d’observation.
+
+### Limites
+
+- cinq catégories maximum par génération ;
+- cinq produits maximum par catégorie et par fournisseur ;
+- dix candidats maximum soumis à une recherche concurrentielle approfondie ;
+- cinq observations de prix maximum par candidat ;
+- aucune donnée manquante ne doit être remplacée silencieusement par zéro ;
+- aucune publication de produit ne doit être automatique.
+
+### Conséquences
+
+- EcommerceIA ne dépend plus d’une API Etsy, Amazon, eBay, Cdiscount ou d’une
+  autre marketplace pour découvrir des opportunités ;
+- une page de marketplace peut apparaître comme source dans une recherche web
+  sans nécessiter une intégration à son API ;
+- les anciens modèles et services liés aux marketplaces seront remplacés
+  progressivement ;
+- les données historiques utiles seront conservées ou migrées avant toute
+  suppression ;
+- les scores de marge, stock, livraison et risque restent calculés par du code
+  Python testé et reproductible ;
+- la recherche web et les données fournisseurs restent traçables ;
+- la décision finale reste humaine.
+
+### Documentation associée
+
+Voir `ARCHITECTURE.md`, `PRODUCT_DISCOVERY.md`, `ROADMAP.md` et `EMMA.md`.

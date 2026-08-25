@@ -2,15 +2,23 @@
 
 ## Objectif
 
-Ce document définit comment EcommerceIA obtient des idées de produits sans
-aspirer les catalogues complets des marketplaces ou des fournisseurs.
+Ce document définit comment EcommerceIA découvre, documente et qualifie des
+opportunités de produits sans aspirer de catalogues complets et sans dépendre
+d'une intégration directe à une marketplace.
+
+Le parcours combine :
+
+- une recherche web sourcée assistée par OpenAI ;
+- des données obtenues directement auprès des fournisseurs ;
+- des calculs déterministes réalisés par EcommerceIA ;
+- une décision finale conservée par le commerçant avec l'aide d'Emma.
 
 ## Problème
 
-Les marketplaces contiennent potentiellement des millions d'annonces. Une
-collecte large entraînerait :
+Les catalogues externes contiennent potentiellement des millions de produits.
+Une collecte large entraînerait :
 
-- trop d'appels API ;
+- trop d'appels externes ;
 - beaucoup de doublons ;
 - des traitements longs ;
 - un stockage inutile ;
@@ -18,175 +26,334 @@ collecte large entraînerait :
 - des décisions impossibles à expliquer ;
 - un risque de dépassement des quotas.
 
+L'accès développeur aux grandes marketplaces est également difficile, instable
+ou conditionné à l'acceptation d'un compte vendeur ou partenaire.
+
+Une marketplace spécialisée peut en outre être inadaptée à une catégorie de
+produits. Une absence de résultats ne signifie alors pas nécessairement que
+l'idée est mauvaise.
+
 La question n'est donc pas « comment importer les marketplaces ? », mais
-« quelles idées méritent une étude et pourquoi ? ».
+« quelles catégories semblent prometteuses, quels produits les fournisseurs
+peuvent-ils proposer et quelles données permettent de les évaluer ? ».
 
 ## Décision centrale
 
 > Le système ne collecte pas des catalogues pour découvrir ensuite ce qui
-> pourrait être utile. Il formule d'abord une hypothèse limitée, puis collecte
-> uniquement les données nécessaires pour la vérifier.
+> pourrait être utile. Il formule d'abord des hypothèses limitées, recherche
+> des produits fournisseurs correspondants, puis collecte uniquement les
+> données nécessaires pour évaluer les meilleurs candidats.
 
-L'API OpenAI peut rechercher sur le Web et proposer une courte liste d'idées
-sourcées. Ces idées restent des hypothèses. Les marketplaces mesurent le
-marché, les fournisseurs déterminent la faisabilité et Emma laisse la décision
-finale au commerçant.
+Le parcours de découverte ne dépend plus d'une connexion directe à Etsy,
+Amazon, eBay, Cdiscount ou à une autre marketplace.
+
+Une page provenant d'une marketplace peut apparaître dans les résultats d'une
+recherche web. Elle est alors traitée comme une source publique datée, sans
+utilisation de l'API de la marketplace.
 
 ## Responsabilités
 
-### OpenAI propose
+### OpenAI recherche et propose
 
 OpenAI peut :
 
-- rechercher des signaux publics récents ;
-- repérer des produits fréquemment cités ;
-- regrouper plusieurs formulations d'une même idée ;
-- proposer des produits cohérents avec la boutique ;
-- fournir une justification, des sources, des risques et des mots-clés ;
-- produire une réponse conforme à un schéma structuré.
+- rechercher des signaux publics récents lorsque la recherche web est activée ;
+- proposer exactement cinq catégories prometteuses ;
+- regrouper plusieurs formulations d'un même besoin ;
+- rapprocher une catégorie et des produits fournisseurs ;
+- rechercher des produits et prix comparables ;
+- fournir une justification, des sources, des risques et un niveau de
+  confiance ;
+- produire une réponse conforme à un schéma structuré ;
+- expliquer les résultats calculés par EcommerceIA.
 
 OpenAI ne doit pas :
 
 - inventer des volumes de ventes ;
-- affirmer une rentabilité sans données ;
+- présenter une catégorie comme une meilleure vente certaine sans preuve ;
+- inventer un prix, un stock, un délai ou des frais de livraison ;
+- affirmer une rentabilité sans données suffisantes ;
+- remplacer une donnée inconnue par zéro ;
 - publier un produit ;
-- déclencher seul une collecte massive ;
 - décider à la place du commerçant.
 
-### Les marketplaces valident le marché
-
-Une marketplace répond à des questions ciblées :
-
-- le produit est-il proposé ?
-- dans quelle fourchette de prix ?
-- quelles variantes sont courantes ?
-- combien d'offres comparables apparaissent dans l'échantillon ?
-- quels signaux publics de concurrence ou de demande sont disponibles ?
-
-Elle n'est jamais considérée comme un catalogue à recopier.
-
-### Les fournisseurs valident la faisabilité
+### Les fournisseurs décrivent la faisabilité
 
 Les fournisseurs permettent de vérifier :
 
 - le prix d'achat ;
 - la devise ;
-- le stock ;
+- le stock et la disponibilité ;
 - les caractéristiques et variantes ;
 - les dimensions ou capacités ;
+- le pays d'expédition ;
 - les frais et délais de livraison ;
-- la compatibilité avec le pays de destination ;
-- la marge potentielle.
+- la compatibilité avec le pays de destination.
 
 La présence d'un produit chez un fournisseur ne suffit pas à justifier sa
 publication.
 
-### Emma pilote
+### EcommerceIA calcule
 
-Emma présente les idées, leurs raisons, leurs sources et leurs risques. Elle
-permet au commerçant de sélectionner les idées à étudier, de déclencher les
-recherches limitées et d'accepter, reporter ou rejeter une opportunité.
+EcommerceIA normalise les données et calcule notamment :
+
+- le prix concurrent médian ;
+- la dispersion des prix ;
+- le coût livré estimé ;
+- la marge brute et la marge estimée ;
+- le score de stock ;
+- le score de livraison ;
+- le score de similarité ;
+- le score de complétude et de confiance ;
+- le score global de l'opportunité.
+
+Ces calculs sont déterministes, testés et reproductibles. OpenAI peut les
+expliquer, mais ne constitue pas le moteur de calcul de référence.
+
+### Emma pilote la décision
+
+Emma :
+
+- présente les catégories proposées et leurs sources ;
+- explique les produits fournisseurs présélectionnés ;
+- présente les prix comparables, les scores et les données manquantes ;
+- permet au commerçant de retenir, reporter ou écarter une opportunité.
+
+La décision finale reste humaine. Aucune publication n'est automatique.
 
 ## Concepts métier
 
-### Signal
+### Signal public
 
-Information pouvant indiquer un besoin : tendance publique, recherche interne
-sans résultat, produit fréquemment consulté, demande saisonnière ou produit
-complémentaire.
+Information sourcée et datée pouvant indiquer un besoin ou un intérêt : article
+récent, tendance publique, comparaison de produits, recherche interne sans
+résultat, demande saisonnière ou produit complémentaire.
 
-### Idée produit
+### Catégorie prometteuse
 
-Hypothèse formulée à partir d'un ou plusieurs signaux. Une idée n'est pas une
-opportunité et ne doit pas être publiée.
+Hypothèse commerciale formulée à partir de plusieurs signaux. Une catégorie
+prometteuse n'est ni une meilleure vente certaine ni une opportunité validée.
 
-### Observation de marché
+### Produit fournisseur
 
-Échantillon daté et sourcé permettant d'évaluer le prix, la concurrence, les
-variantes et la confiance associée à l'étude.
+Produit proposé par un fournisseur et susceptible de répondre au besoin associé
+à une catégorie prometteuse.
 
 ### Offre fournisseur
 
-Proposition d'approvisionnement associant un produit comparable à un coût, un
-stock, une livraison et des caractéristiques.
+Proposition d'approvisionnement associant un produit fournisseur à un prix
+d'achat, une devise, un stock, une disponibilité et des informations de
+livraison.
+
+### Observation de prix comparable
+
+Observation publique, datée et sourcée d'un produit suffisamment similaire au
+produit fournisseur étudié.
+
+Elle conserve au minimum :
+
+- le nom du produit comparable ;
+- le prix et la devise ;
+- les frais de livraison lorsqu'ils sont disponibles ;
+- le vendeur ou le site source ;
+- l'URL ;
+- la date d'observation ;
+- le niveau de similarité avec le produit fournisseur.
+
+Une réponse sans URL vérifiable ne constitue pas une observation de prix
+exploitable.
 
 ### Opportunité
 
-Idée confrontée à des données de marché et à une offre fournisseur suffisamment
-fiables pour permettre une décision commerciale.
+Produit fournisseur confronté à des observations de prix et à des données de
+faisabilité suffisamment fiables pour permettre une décision commerciale.
 
 ## Flux retenu
 
 ```text
 Contexte de la boutique
   -> recherche web assistée par OpenAI
-  -> idées sourcées
-  -> sélection par Emma
-  -> recherche marketplace limitée
-  -> recherche fournisseur limitée
-  -> calcul déterministe
-  -> recommandation expliquée
+  -> cinq catégories prometteuses sourcées
+  -> recherche limitée auprès des fournisseurs
+  -> produits et offres fournisseur
+  -> préqualification fournisseur
+  -> dix meilleurs candidats au maximum
+  -> recherche web de prix comparables
+  -> calcul déterministe des indicateurs et scores
+  -> recommandation expliquée par Emma
   -> décision humaine
 ```
+
+## Étape 1 — Découvrir cinq catégories prometteuses
+
+OpenAI recherche et propose exactement cinq catégories adaptées aux pays et à
+la clientèle ciblés.
+
+Chaque proposition contient :
+
+- le nom de la catégorie ;
+- le besoin client ;
+- le client cible ;
+- les pays concernés ;
+- les signaux commerciaux observés ;
+- les sources et leur date ;
+- les risques ;
+- un niveau de confiance ;
+- des termes de recherche fournisseur.
+
+Une proposition sans source peut être conservée comme hypothèse, mais ne doit
+pas être présentée comme une catégorie commercialement confirmée.
+
+## Étape 2 — Rechercher les produits fournisseurs
+
+Pour chaque catégorie, EcommerceIA interroge les fournisseurs configurés et
+récupère au maximum cinq produits correspondants par fournisseur.
+
+Le rapprochement prend notamment en compte :
+
+- la fonction du produit ;
+- le besoin client ;
+- les caractéristiques principales ;
+- les dimensions ou capacités ;
+- les variantes ;
+- les termes exclus.
+
+Les produits sans prix d'achat exploitable ou indisponibles peuvent être
+écartés avant la recherche concurrentielle.
+
+## Étape 3 — Préqualifier les candidats
+
+EcommerceIA effectue un premier classement avec les seules données fournisseur :
+
+- prix d'achat ;
+- stock ;
+- disponibilité ;
+- frais de livraison ;
+- délai de livraison ;
+- pays d'expédition ;
+- complétude des données ;
+- qualité du rapprochement avec la catégorie.
+
+Dix candidats au maximum sont retenus pour la recherche approfondie. Cette
+étape évite de payer des recherches web pour des produits déjà inexploitables.
+
+## Étape 4 — Rechercher cinq prix comparables
+
+Pour chaque candidat retenu, OpenAI utilise la recherche web afin de trouver
+jusqu'à cinq offres réellement comparables.
+
+Chaque résultat est validé avant son enregistrement. Les résultats trop éloignés,
+anciens, incomplets ou dépourvus d'URL sont ignorés.
+
+Une page de marketplace peut être utilisée comme source publique, mais aucune
+connexion à son API développeur n'est nécessaire.
+
+## Étape 5 — Calculer et présenter les opportunités
+
+EcommerceIA calcule les indicateurs et le score global. Emma présente ensuite :
+
+- le produit et son fournisseur ;
+- les coûts et délais connus ;
+- les prix comparables avec leurs sources ;
+- la marge et les scores ;
+- les données manquantes ;
+- les risques ;
+- une recommandation expliquée.
+
+Le commerçant peut :
+
+- retenir l'opportunité ;
+- la reporter ;
+- l'écarter.
 
 ## Contexte fourni à OpenAI
 
 La génération doit être encadrée par :
 
-- le pays et la clientèle visés ;
-- les catégories autorisées ;
-- les produits déjà présents ;
+- les pays et la clientèle visés ;
+- les catégories autorisées ou interdites ;
+- les produits déjà présents dans la boutique ;
 - la fourchette de prix souhaitée ;
-- les contraintes de poids, fragilité et livraison ;
+- les contraintes de poids, de fragilité et de livraison ;
 - les produits réglementés ou interdits ;
 - les signaux internes disponibles ;
-- le nombre maximal d'idées attendu.
+- le nombre exact de catégories attendu ;
+- l'obligation de citer les sources utilisées ;
+- l'interdiction d'inventer des données commerciales.
 
-## Structure minimale d'une idée
+## Structure minimale d'une catégorie
 
 ```json
 {
-  "name": "Souris verticale silencieuse",
-  "category": "Informatique",
-  "customer_need": "Réduire l'inconfort pendant le travail",
-  "reason": "Produit complémentaire aux accessoires de bureau",
-  "target_price_min": 25,
-  "target_price_max": 60,
-  "marketplace_queries": [
-    "souris verticale silencieuse",
-    "silent ergonomic vertical mouse"
+  "name": "Accessoires ergonomiques pour poste de travail",
+  "customer_need": "Améliorer le confort pendant le travail quotidien",
+  "target_customer": "Télétravailleurs et utilisateurs de bureau",
+  "countries": [
+    "FR",
+    "BE",
+    "ES"
+  ],
+  "supplier_queries": [
+    "ergonomic desk accessory",
+    "accessoire bureau ergonomique"
   ],
   "excluded_terms": [
+    "used",
     "replacement part",
-    "broken",
-    "used"
+    "broken"
   ],
   "signals": [
-    "présence dans plusieurs sources récentes"
+    "besoin mentionné dans plusieurs sources récentes"
   ],
   "risks": [
     "marché concurrentiel",
     "qualité ergonomique difficile à vérifier"
   ],
   "confidence": "medium",
-  "sources": []
+  "sources": [
+    {
+      "title": "Titre de la source",
+      "url": "https://example.com/source",
+      "observed_at": "2026-08-25"
+    }
+  ]
 }
 ```
 
-## Garde-fous de la première version locale
+## Structure minimale d'une observation de prix
+
+```json
+{
+  "product_name": "Accessoire ergonomique comparable",
+  "price": "39.90",
+  "currency": "EUR",
+  "shipping_cost": null,
+  "seller": "Nom du vendeur ou du site",
+  "product_url": "https://example.com/product",
+  "observed_at": "2026-08-25",
+  "similarity_score": 0.87
+}
+```
+
+Une valeur `null` représente une donnée inconnue. Elle ne doit pas être
+interprétée comme une valeur nulle ou gratuite.
+
+## Garde-fous de la première version
 
 Pour une campagne :
 
 - lancement manuel par Emma ;
-- cinq idées proposées au maximum ;
-- trois idées sélectionnées au maximum ;
-- deux marketplaces au maximum par idée ;
-- deux pages au maximum par marketplace ;
-- vingt résultats utiles au maximum par recherche ;
-- nombre d'offres fournisseur plafonné ;
-- aucune image téléchargée pendant la phase d'idée ;
+- cinq catégories proposées exactement ;
+- cinq produits maximum par catégorie et par fournisseur ;
+- dix candidats maximum après préqualification ;
+- cinq observations de prix maximum par candidat ;
+- nombre de fournisseurs configurés limité ;
+- aucune collecte complète de catalogue ;
+- aucune image téléchargée pendant la phase de découverte ;
 - aucune publication automatique ;
-- déduplication par source et identifiant externe.
+- déduplication par fournisseur et identifiant externe ;
+- déduplication des observations de prix par URL et date ;
+- conservation explicite des données manquantes.
 
 Ces valeurs constituent des plafonds initiaux. Toute augmentation doit être
 précédée d'une mesure de durée, de coût, de quota et de croissance de la base.
@@ -195,254 +362,68 @@ précédée d'une mesure de durée, de coût, de quota et de croissance de la ba
 
 Le système doit conserver ce qui permet d'expliquer une décision :
 
-- origine de l'idée ;
-- contexte et instructions envoyés ;
+- contexte et instructions envoyés à OpenAI ;
 - date de génération ;
+- catégories proposées ;
 - sources publiques utilisées ;
-- sélection ou rejet par Emma ;
-- requêtes marketplace exécutées ;
-- nombre de résultats examinés ;
-- offres fournisseur comparées ;
-- calculs et raisons de la décision.
+- produits et offres fournisseur examinés ;
+- raisons de la préqualification ;
+- requêtes web exécutées ;
+- prix comparables retenus et rejetés ;
+- URLs et dates d'observation ;
+- données manquantes ;
+- calculs et scores ;
+- recommandation présentée ;
+- décision humaine.
 
 Les réponses brutes non retenues doivent rester temporaires ou supprimables.
 
 ## Première version fonctionnelle
 
-1. Emma lance une génération manuelle.
-2. OpenAI retourne au maximum cinq idées structurées.
-3. Le commerçant en sélectionne au maximum trois.
-4. Le système prépare les requêtes marketplace.
-5. Emma déclenche la recherche.
-6. Les résultats sont plafonnés, normalisés et dédupliqués.
-7. Les fournisseurs sont interrogés seulement pour les idées retenues.
-8. Les calculs déterministes évaluent la faisabilité.
-9. Emma présente une recommandation expliquée.
-10. Le commerçant décide.
+1. Emma lance manuellement une campagne de découverte.
+2. OpenAI retourne exactement cinq catégories structurées et sourcées.
+3. EcommerceIA interroge les fournisseurs configurés pour ces catégories.
+4. Chaque fournisseur retourne au maximum cinq produits par catégorie.
+5. EcommerceIA normalise, déduplique et préqualifie les produits.
+6. Dix candidats maximum sont conservés.
+7. OpenAI recherche jusqu'à cinq prix comparables par candidat.
+8. EcommerceIA valide et enregistre les observations sourcées.
+9. Les calculs déterministes évaluent la marge, le stock, la livraison, la
+   similarité et la confiance.
+10. Emma présente une recommandation expliquée.
+11. Le commerçant retient, reporte ou écarte l'opportunité.
 
 La planification automatique, Celery et les imports récurrents ne sont pas
 nécessaires pour valider cette première version en local.
 
-## Premier prototype OpenAI validé
+## Prototype OpenAI du 23 août 2026
 
-### Exécution
+Le premier prototype a confirmé qu'OpenAI pouvait produire cinq hypothèses
+structurées :
 
-- Date : 23 août 2026
-- Modèle : `gpt-5.6-luna`
-- Interface : Responses API avec Structured Outputs
-- Nombre demandé : 5 idées
-- Nombre obtenu : 5 idées
-- Marchés : France, Belgique et Espagne
-- Enregistrement en base : non
-- Recherche Web : non
-- Recherche marketplace : non
-- Recherche fournisseur : non
-
-Ce premier appel avait pour objectif de vérifier qu’OpenAI pouvait produire une
-courte liste d’hypothèses structurées et exploitables, sans importer de catalogue
-et sans inventer de chiffres de ventes.
-
-### Idée 1 — Organisateur modulaire pour coffre de voiture familiale
-
-**Problème client**
-
-Les courses, poussettes, équipements de sport et objets du quotidien se déplacent
-dans le coffre et se renversent pendant les trajets. Le produit serait un système
-pliable composé de compartiments réglables, de séparateurs amovibles, d’un fond
-antidérapant et de sangles de fixation adaptées aux différents coffres.
-
-**Client cible**
-
-Familles, conducteurs utilisant régulièrement leur voiture pour les courses,
-parents de jeunes enfants et personnes transportant plusieurs catégories
-d’objets dans leur coffre.
-
-**Pourquoi l’étudier**
-
-Le besoin est concret, fréquent et lié à l’organisation de l’espace dans un
-véhicule. L’idée mérite une étude des dimensions de coffres les plus courantes,
-des attentes en matière de résistance et de nettoyage, ainsi que des différences
-de compatibilité entre modèles de voitures dans les trois pays.
-
-**Pays**
-
-- France
-- Belgique
-- Espagne
-
-**Mots-clés**
-
-- organisateur coffre voiture pliable
-- rangement coffre voiture familial
-- séparateur coffre voiture
-- coffre voiture poussette courses
-- car trunk organizer adjustable
-
-### Idée 2 — Kit de réduction des courants d’air pour portes et fenêtres anciennes
-
-**Problème client**
-
-Les logements équipés de portes ou fenêtres anciennes peuvent présenter des
-passages d’air autour des ouvrants, avec une sensation d’inconfort et des
-nuisances sonores potentielles. Le kit comprendrait plusieurs solutions
-compatibles avec différents supports : joints adhésifs, boudin de bas de porte,
-profilés de calfeutrage et outils de mesure simples.
-
-**Client cible**
-
-Locataires et propriétaires de logements anciens, occupants souhaitant améliorer
-le confort intérieur sans travaux lourds et personnes recherchant des solutions
-réversibles.
-
-**Pourquoi l’étudier**
-
-Le produit répond à un problème facilement observable et pourrait être proposé
-sous forme de kit guidé par type de fenêtre ou de porte. Une étude devrait
-vérifier la compatibilité avec les matériaux et formats présents en France, en
-Belgique et en Espagne, ainsi que la clarté des instructions d’installation.
-
-**Pays**
-
-- France
-- Belgique
-- Espagne
-
-**Mots-clés**
-
-- kit calfeutrage fenêtre
-- joint isolant fenêtre ancienne
-- bas de porte anti courant d’air
-- joint fenêtre bois PVC
-- réduire courant d’air porte appartement
-
-### Idée 3 — Station de séchage et de rangement pour accessoires de sport humide
-
-**Problème client**
-
-Les chaussures, gants, casques, protections et vêtements utilisés sous la pluie
-ou après une activité sportive restent difficiles à faire sécher et peuvent
-encombrer l’entrée. La station serait un support vertical ventilé, démontable,
-avec bacs de récupération d’eau, crochets et emplacements distincts pour les
-chaussures et petits accessoires.
-
-**Client cible**
-
-Familles pratiquant des sports de plein air, cyclistes, randonneurs, utilisateurs
-de trottinettes ou de vélos et foyers disposant d’un espace d’entrée limité.
-
-**Pourquoi l’étudier**
-
-Cette idée combine rangement, séchage et protection des sols dans un seul
-produit. Elle mérite une étude sur les usages selon les climats et activités
-sportives, la stabilité du support, la facilité de nettoyage et la demande de
-formats compacts pour les appartements.
-
-**Pays**
-
-- France
-- Belgique
-- Espagne
-
-**Mots-clés**
-
-- séchoir chaussures sport
-- rangement équipement sportif humide
-- support séchage chaussures vélo
-- organisateur entrée chaussures mouillées
-- station séchage casque gants chaussures
-
-### Idée 4 — Boîte de conservation ventilée pour fruits et légumes fragiles
-
-**Problème client**
-
-Certains fruits et légumes s’abîment rapidement lorsqu’ils sont stockés ensemble
-ou lorsque l’humidité s’accumule dans le réfrigérateur. Le produit serait une
-boîte empilable avec ventilation réglable, séparateurs, bac récupérateur
-d’humidité et repères indiquant les zones de rangement recommandées.
-
-**Client cible**
-
-Ménages souhaitant mieux organiser leur réfrigérateur, personnes vivant seules
-ou en couple, consommateurs préparant leurs repas à l’avance et foyers cherchant
-à limiter le gaspillage alimentaire.
-
-**Pourquoi l’étudier**
-
-Le concept associe organisation du réfrigérateur et conservation de produits
-frais, avec des possibilités de déclinaison par taille et par catégorie
-d’aliments. Une validation devrait porter sur les dimensions des réfrigérateurs,
-les matériaux acceptés au contact alimentaire, le nettoyage et la compréhension
-des réglages de ventilation.
-
-**Pays**
-
-- France
-- Belgique
-- Espagne
-
-**Mots-clés**
-
-- boîte conservation fruits légumes frigo
-- rangement légumes réfrigérateur ventilé
-- bac anti humidité fruits légumes
-- organisateur frigo fruits légumes
-- boîte conservation légumes empilable
-
-### Idée 5 — Trousse de réparation textile compacte pour vêtements du quotidien
-
-**Problème client**
-
-Les petits accrocs, boutons décousus, ourlets défaits et fermetures endommagées
-sont souvent difficiles à réparer rapidement avec une trousse standard peu
-organisée. Le produit regrouperait des aiguilles adaptées à différents tissus,
-des fils assortis, des mini-ciseaux, un mètre souple, des épingles de sûreté, un
-crochet de reprise et un guide illustré multilingue.
-
-**Client cible**
-
-Adultes souhaitant prolonger la durée de vie de leurs vêtements, étudiants,
-voyageurs, parents et personnes recherchant une solution compacte pour les
-réparations courantes.
-
-**Pourquoi l’étudier**
-
-Le format peut répondre à plusieurs contextes d’usage : domicile, voyage, bureau
-ou résidence étudiante. L’étude devrait comparer les besoins des débutants et
-des utilisateurs expérimentés, identifier les réparations les plus recherchées
-et vérifier la pertinence d’un assortiment de couleurs et d’outils pour les
-marchés ciblés.
-
-**Pays**
-
-- France
-- Belgique
-- Espagne
-
-**Mots-clés**
-
-- kit réparation vêtements couture
-- trousse couture débutant compacte
-- kit réparer bouton fermeture éclair
-- trousse couture voyage
-- kit reprise accroc vêtement
-
-### Conclusion du prototype
-
-Le prototype est concluant.
-
-OpenAI a produit cinq hypothèses :
-
-- limitées en nombre ;
-- homogènes ;
+- en nombre limité ;
 - centrées sur un problème client ;
-- adaptées aux marchés demandés ;
+- adaptées aux pays demandés ;
 - accompagnées de mots-clés exploitables ;
 - dépourvues de chiffres de ventes inventés.
 
-Ces idées ne constituent pas des opportunités commerciales validées et ne
-doivent pas être publiées directement.
+Ce prototype n'utilisait ni recherche web, ni données fournisseur, ni preuve de
+prix. Il validait uniquement le format de génération.
 
-L’organisateur modulaire pour coffre de voiture familiale est retenu comme
-premier candidat à une future validation marketplace ciblée. Cette sélection
-reste une décision humaine et ne constitue pas encore une approbation
-commerciale.
+Les cinq idées obtenues ne constituent donc pas des opportunités commerciales
+validées. Elles restent des données historiques et pourront être réexaminées
+avec le nouveau parcours.
+
+## Hors périmètre immédiat
+
+- intégration directe à une marketplace ;
+- collecte massive de catalogues ;
+- affirmation certaine des cinq meilleures ventes du marché ;
+- publication automatique ;
+- décision commerciale entièrement automatisée ;
+- remplacement des données absentes par des estimations non signalées ;
+- planification récurrente des campagnes.
+
+## Documentation associée
+
+Voir `DECISIONS.md`, `ARCHITECTURE.md`, `ROADMAP.md` et `EMMA.md`.
