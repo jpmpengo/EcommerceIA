@@ -97,3 +97,58 @@ class MultiSupplierSearchServiceTests(
         active_searcher.search_offers.assert_called_once_with(
             market_observation=observation,
         )
+
+    def test_collects_at_most_five_offers_per_supplier_for_idea(
+        self,
+    ):
+        idea = Mock()
+        idea.name = (
+            "Accessoires de bureau ergonomiques"
+        )
+
+        cj_offers = [
+            Mock()
+            for _ in range(6)
+        ]
+
+        printful_offers = [
+            Mock()
+            for _ in range(6)
+        ]
+
+        cj_searcher = Mock()
+        cj_searcher.search_for_idea.return_value = (
+            cj_offers
+        )
+
+        printful_searcher = Mock()
+        printful_searcher.search_for_idea.return_value = (
+            printful_offers
+        )
+
+        service = MultiSupplierSearchService(
+            supplier_searchers=[
+                cj_searcher,
+                printful_searcher,
+            ],
+        )
+
+        offers = service.search_for_idea(
+            product_idea=idea,
+        )
+
+        self.assertEqual(
+            offers,
+            (
+                cj_offers[:5]
+                + printful_offers[:5]
+            ),
+        )
+
+        cj_searcher.search_for_idea.assert_called_once_with(
+            product_idea=idea,
+        )
+
+        printful_searcher.search_for_idea.assert_called_once_with(
+            product_idea=idea,
+        )

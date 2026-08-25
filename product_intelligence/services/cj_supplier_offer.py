@@ -65,6 +65,7 @@ class CJSupplierOfferService:
         variant,
         stock,
         market_observation=None,
+        product_idea=None,
     ):
         variant_features = {}
 
@@ -101,6 +102,11 @@ class CJSupplierOfferService:
         if market_observation is not None:
             lookup["market_observation"] = (
                 market_observation
+            )
+
+        if product_idea is not None:
+            lookup["product_idea"] = (
+                product_idea
             )
 
         offer, _ = (

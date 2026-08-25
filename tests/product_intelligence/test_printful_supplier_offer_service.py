@@ -12,6 +12,7 @@ from product_intelligence.services.variant_features import (
 
 from product_intelligence.models import (
     MarketObservation,
+    ProductIdea,
     Supplier,
     SupplierOffer,
 )
@@ -384,4 +385,86 @@ class PrintfulSupplierOfferServiceTests(TestCase):
         self.assertEqual(
             second_offer.market_observation,
             second_observation,
+        )
+
+    def test_create_offer_from_variant_links_product_idea(
+        self,
+    ):
+        idea = ProductIdea.objects.create(
+            name="Tapis de bureau personnalisables",
+            customer_problem=(
+                "Personnaliser un espace de travail."
+            ),
+            target_customer=(
+                "Télétravailleurs européens."
+            ),
+            reason_to_study=(
+                "Catégorie soutenue par "
+                "des signaux publics."
+            ),
+            countries=[
+                "FR",
+                "BE",
+                "ES",
+            ],
+            search_keywords=[
+                "tapis bureau personnalisable",
+            ],
+            demand_signals=[
+                "Intérêt public documenté.",
+            ],
+            evidence_sources=[
+                {
+                    "title": "Source publique",
+                    "url": (
+                        "https://example.com/source"
+                    ),
+                    "evidence": (
+                        "La source décrit la demande."
+                    ),
+                },
+            ],
+            status="selected",
+        )
+
+        supplier = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+
+        product = {
+            "id": 583,
+            "title": "Custom Desk Mat",
+            "currency": "USD",
+        }
+
+        variant = {
+            "id": 14943,
+            "product_id": 583,
+            "name": (
+                "Custom Desk Mat 18x16"
+            ),
+            "price": "11.72",
+        }
+
+        service = (
+            PrintfulSupplierOfferService()
+        )
+
+        offer = service.create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            product_idea=idea,
+        )
+
+        self.assertEqual(
+            offer.product_idea,
+            idea,
+        )
+
+        self.assertIsNone(
+            offer.market_observation,
         )

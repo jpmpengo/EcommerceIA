@@ -5,7 +5,7 @@ class CJSupplierSearcher:
         client,
         supplier,
         offer_service,
-        max_offers=10,
+        max_offers=5,
     ):
         self.client = client
         self.supplier = supplier
@@ -25,10 +25,32 @@ class CJSupplierSearcher:
         self,
         market_observation,
     ):
+        return self._search(
+            keyword=market_observation.name,
+            market_observation=(
+                market_observation
+            ),
+        )
+
+    def search_for_idea(
+        self,
+        product_idea,
+    ):
+        return self._search(
+            keyword=product_idea.name,
+            product_idea=product_idea,
+        )
+
+    def _search(
+        self,
+        keyword,
+        market_observation=None,
+        product_idea=None,
+    ):
         offers = []
 
         products = self.client.search_products(
-            keyword=market_observation.name,
+            keyword=keyword,
         )
 
         for product_data in products:
@@ -79,6 +101,18 @@ class CJSupplierSearcher:
                     )
                 )
 
+                offer_context = {}
+
+                if market_observation is not None:
+                    offer_context[
+                        "market_observation"
+                    ] = market_observation
+
+                if product_idea is not None:
+                    offer_context[
+                        "product_idea"
+                    ] = product_idea
+
                 offer = (
                     self.offer_service
                     .create_offer_from_variant(
@@ -86,12 +120,12 @@ class CJSupplierSearcher:
                         product=product,
                         variant=variant,
                         stock=stock,
-                        market_observation=(
-                            market_observation
-                        ),
+                        **offer_context,
                     )
                 )
 
-                offers.append(offer)
+                offers.append(
+                    offer
+                )
 
         return offers

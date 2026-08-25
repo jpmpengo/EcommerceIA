@@ -1,5 +1,7 @@
 class MultiSupplierSearchService:
 
+    MAX_OFFERS_PER_SUPPLIER = 5
+
     def __init__(
         self,
         supplier_searchers,
@@ -37,6 +39,27 @@ class MultiSupplierSearchService:
 
             offers.extend(
                 supplier_offers
+            )
+
+        return offers
+
+    def search_for_idea(
+        self,
+        product_idea,
+    ):
+        offers = []
+
+        for searcher in self.supplier_searchers:
+            supplier_offers = (
+                searcher.search_for_idea(
+                    product_idea=product_idea,
+                )
+            )
+
+            offers.extend(
+                supplier_offers[
+                    :self.MAX_OFFERS_PER_SUPPLIER
+                ]
             )
 
         return offers

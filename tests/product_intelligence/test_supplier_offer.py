@@ -10,7 +10,12 @@ from product_intelligence.models import (
     SupplierOffer,
 )
 
-from decimal import Decimal
+from product_intelligence.models import (
+    MarketObservation,
+    ProductIdea,
+    Supplier,
+    SupplierOffer,
+)
 
 class SupplierOfferTests(TestCase):
 
@@ -119,6 +124,74 @@ class SupplierOfferTests(TestCase):
                 "color"
             ],
             "Black",
+        )
+
+    def test_supplier_offer_can_be_linked_to_product_idea(
+        self,
+    ):
+        idea = ProductIdea.objects.create(
+            name="Accessoires de bureau ergonomiques",
+            customer_problem=(
+                "Améliorer le confort de travail."
+            ),
+            target_customer=(
+                "Télétravailleurs européens."
+            ),
+            reason_to_study=(
+                "Des signaux publics indiquent "
+                "un intérêt pour cette catégorie."
+            ),
+            countries=[
+                "FR",
+                "BE",
+                "ES",
+            ],
+            search_keywords=[
+                "accessoire bureau ergonomique",
+            ],
+            demand_signals=[
+                "Intérêt public documenté.",
+            ],
+            evidence_sources=[
+                {
+                    "title": "Source publique",
+                    "url": (
+                        "https://example.com/source"
+                    ),
+                    "evidence": (
+                        "La source décrit la demande."
+                    ),
+                },
+            ],
+            status="selected",
+        )
+
+        supplier = Supplier.objects.create(
+            name="Fournisseur Test",
+            country="FR",
+            website="https://example.com",
+            supplier_type="wholesaler",
+        )
+
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_idea=idea,
+            product_name=(
+                "Support ergonomique réglable"
+            ),
+            purchase_price=Decimal("12.00"),
+            currency="EUR",
+            stock=50,
+        )
+
+        self.assertEqual(
+            offer.product_idea,
+            idea,
+        )
+
+        self.assertIn(
+            offer,
+            idea.supplier_offers.all(),
         )
 
 

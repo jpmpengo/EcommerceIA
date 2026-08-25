@@ -2,7 +2,6 @@ from decimal import Decimal
 
 from django.test import TestCase
 
-from product_intelligence.models import Supplier
 from product_intelligence.services.cj_supplier_offer import (
     CJSupplierOfferService,
 )
@@ -13,6 +12,7 @@ from product_intelligence.services.variant_features import (
 
 from product_intelligence.models import (
     MarketObservation,
+    ProductIdea,
     Supplier,
     SupplierOffer,
 )
@@ -571,6 +571,80 @@ class CJSupplierOfferServiceTests(TestCase):
         self.assertEqual(
             SupplierOffer.objects.count(),
             2,
+        )
+
+    def test_create_offer_from_variant_links_product_idea(
+        self,
+    ):
+        idea = ProductIdea.objects.create(
+            name="Tapis de bureau ergonomiques",
+            customer_problem=(
+                "Améliorer le confort du bureau."
+            ),
+            target_customer=(
+                "Télétravailleurs européens."
+            ),
+            reason_to_study=(
+                "Catégorie soutenue par "
+                "des signaux publics."
+            ),
+            countries=[
+                "FR",
+                "BE",
+                "ES",
+            ],
+            search_keywords=[
+                "tapis bureau ergonomique",
+            ],
+            demand_signals=[
+                "Intérêt public documenté.",
+            ],
+            evidence_sources=[
+                {
+                    "title": "Source publique",
+                    "url": (
+                        "https://example.com/source"
+                    ),
+                    "evidence": (
+                        "La source décrit la demande."
+                    ),
+                },
+            ],
+            status="selected",
+        )
+
+        product = {
+            "external_id": "CJ-PRODUCT-IDEA",
+            "name": "Ergonomic Desk Mat",
+            "currency": "USD",
+        }
+
+        variant = {
+            "vid": "CJ-VARIANT-IDEA",
+            "variantNameEn": (
+                "Ergonomic Desk Mat 90x40"
+            ),
+            "variantSellPrice": "7.33",
+        }
+
+        offer = (
+            self.service
+            .create_offer_from_variant(
+                supplier=self.supplier,
+                product=product,
+                variant=variant,
+                stock=100,
+                product_idea=idea,
+            )
+        )
+
+        self.assertEqual(
+            offer.product_idea,
+            idea,
+        )
+
+        self.assertIsNone(
+            offer.market_observation,
         )
 
     

@@ -6,7 +6,7 @@ class PrintfulSupplierSearcher:
         supplier,
         offer_service,
         matching_service,
-        max_offers=10,
+        max_offers=5,
     ):
         self.client = client
         self.supplier = supplier
@@ -31,6 +31,28 @@ class PrintfulSupplierSearcher:
         self,
         market_observation,
     ):
+        return self._search(
+            keyword=market_observation.name,
+            market_observation=(
+                market_observation
+            ),
+        )
+
+    def search_for_idea(
+        self,
+        product_idea,
+    ):
+        return self._search(
+            keyword=product_idea.name,
+            product_idea=product_idea,
+        )
+
+    def _search(
+        self,
+        keyword,
+        market_observation=None,
+        product_idea=None,
+    ):
         offers = []
 
         products = (
@@ -44,6 +66,7 @@ class PrintfulSupplierSearcher:
             product_id = product_summary.get(
                 "id"
             )
+
             product_title = (
                 product_summary.get("title")
                 or ""
@@ -56,9 +79,7 @@ class PrintfulSupplierSearcher:
                 self.matching_service
                 .are_products_comparable(
                     first_name=product_title,
-                    second_name=(
-                        market_observation.name
-                    ),
+                    second_name=keyword,
                 )
             )
 
@@ -73,6 +94,7 @@ class PrintfulSupplierSearcher:
                 "product",
                 {},
             )
+
             variants = result.get(
                 "variants",
                 [],
@@ -85,15 +107,25 @@ class PrintfulSupplierSearcher:
                 if not variant.get("id"):
                     continue
 
+                offer_context = {}
+
+                if market_observation is not None:
+                    offer_context[
+                        "market_observation"
+                    ] = market_observation
+
+                if product_idea is not None:
+                    offer_context[
+                        "product_idea"
+                    ] = product_idea
+
                 offer = (
                     self.offer_service
                     .create_offer_from_variant(
                         supplier=self.supplier,
                         product=product,
                         variant=variant,
-                        market_observation=(
-                            market_observation
-                        ),
+                        **offer_context,
                     )
                 )
 

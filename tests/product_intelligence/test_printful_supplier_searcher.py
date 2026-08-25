@@ -118,3 +118,82 @@ class PrintfulSupplierSearcherTests(
             variant=variants[1],
             market_observation=market_observation,
         )
+
+    def test_searches_printful_products_from_product_idea(
+        self,
+    ):
+        idea = Mock()
+        idea.name = (
+            "Tapis de bureau personnalisables"
+        )
+
+        client = Mock()
+        client.get_products.return_value = [
+            {
+                "id": 583,
+                "title": "Custom Desk Mat",
+            },
+        ]
+
+        printful_product = {
+            "id": 583,
+            "title": "Custom Desk Mat",
+            "currency": "USD",
+        }
+
+        variant = {
+            "id": 14943,
+            "name": "Custom Desk Mat 18x16",
+            "price": "11.72",
+        }
+
+        client.get_product.return_value = {
+            "product": printful_product,
+            "variants": [
+                variant,
+            ],
+        }
+
+        matching_service = Mock()
+        matching_service.are_products_comparable.return_value = (
+            True
+        )
+
+        expected_offer = Mock()
+        offer_service = Mock()
+
+        offer_service.create_offer_from_variant.return_value = (
+            expected_offer
+        )
+
+        supplier = Mock()
+
+        searcher = PrintfulSupplierSearcher(
+            client=client,
+            supplier=supplier,
+            offer_service=offer_service,
+            matching_service=matching_service,
+        )
+
+        offers = searcher.search_for_idea(
+            product_idea=idea,
+        )
+
+        matching_service.are_products_comparable.assert_called_once_with(
+            first_name="Custom Desk Mat",
+            second_name=idea.name,
+        )
+
+        offer_service.create_offer_from_variant.assert_called_once_with(
+            supplier=supplier,
+            product=printful_product,
+            variant=variant,
+            product_idea=idea,
+        )
+
+        self.assertEqual(
+            offers,
+            [
+                expected_offer,
+            ],
+        )

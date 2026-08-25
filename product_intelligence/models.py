@@ -439,6 +439,14 @@ class SupplierOffer(models.Model):
         blank=True,
     )
 
+    product_idea = models.ForeignKey(
+        ProductIdea,
+        on_delete=models.CASCADE,
+        related_name="supplier_offers",
+        null=True,
+        blank=True,
+    )
+
     product_name = models.CharField(
         max_length=255,
     )
