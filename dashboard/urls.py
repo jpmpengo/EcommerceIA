@@ -44,18 +44,6 @@ urlpatterns = [
     ),
 
     path(
-        "product-ideas/<int:idea_id>/prepare-study/",
-        views.prepare_marketplace_study,
-        name="prepare_marketplace_study",
-    ),
-
-    path(
-        "marketplace-studies/<int:study_id>/run/",
-        views.run_marketplace_study,
-        name="run_marketplace_study",
-    ),
-
-    path(
         "product-ideas/generate/",
         views.generate_product_ideas,
         name="generate_product_ideas",

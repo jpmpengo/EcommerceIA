@@ -32,15 +32,6 @@ from product_intelligence.services.product_idea_selection import (
 )
 from django.contrib import messages
 
-from product_intelligence.services.marketplace_study import (
-    MarketplaceStudyService,
-)
-from product_intelligence.services.marketplace_study_runner import (
-    MarketplaceStudyRunner,
-)
-from product_intelligence.models import (
-    MarketplaceStudy,
-)
 from product_intelligence.services.product_idea_generation import (
     ProductIdeaGenerationService,
 )
@@ -164,9 +155,6 @@ def product_idea_list(request):
         .filter(
             status="selected"
         )
-        .prefetch_related(
-            "marketplace_studies"
-        )
         .order_by(
             "-updated_at"
         )
@@ -287,93 +275,3 @@ def generate_product_ideas(
     return redirect(
         "dashboard:product_idea_list"
     )
-
-@login_required
-@require_POST
-def prepare_marketplace_study(
-    request,
-    idea_id,
-):
-    if not DashboardAccessService.can_access(
-        request.user
-    ):
-        return redirect(
-            "products:product_list"
-        )
-
-    idea = get_object_or_404(
-        ProductIdea,
-        pk=idea_id,
-    )
-
-    marketplaces = request.POST.getlist(
-        "marketplaces"
-    )
-
-    try:
-        MarketplaceStudyService.prepare(
-            idea=idea,
-            marketplaces=marketplaces,
-        )
-    except ValueError as error:
-        messages.error(
-            request,
-            str(error),
-        )
-    else:
-        messages.success(
-            request,
-            (
-                "Le brouillon de l’étude "
-                "marketplace est prêt."
-            ),
-        )
-
-    return redirect(
-        "dashboard:product_idea_list"
-    )
-
-@login_required
-@require_POST
-def run_marketplace_study(
-    request,
-    study_id,
-):
-    if not DashboardAccessService.can_access(
-        request.user
-    ):
-        return redirect(
-            "products:product_list"
-        )
-
-    study = get_object_or_404(
-        MarketplaceStudy,
-        pk=study_id,
-    )
-
-    try:
-        MarketplaceStudyRunner.run(
-            study
-        )
-    except (
-        OSError,
-        ValueError,
-    ) as error:
-        messages.error(
-            request,
-            str(error),
-        )
-    else:
-        messages.success(
-            request,
-            (
-                "L’étude marketplace "
-                "est terminée."
-            ),
-        )
-
-    return redirect(
-        "dashboard:product_idea_list"
-    )
-
-
