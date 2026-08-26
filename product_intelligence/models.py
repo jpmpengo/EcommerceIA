@@ -527,6 +527,21 @@ class SupplierOffer(models.Model):
 
 class ComparablePrice(models.Model):
 
+    QUALIFICATION_STATUS_CHOICES = [
+        (
+            "collected",
+            "Collecté",
+        ),
+        (
+            "retained",
+            "Retenu",
+        ),
+        (
+            "rejected",
+            "Rejeté",
+        ),
+    ]
+
     supplier_offer = models.ForeignKey(
         SupplierOffer,
         on_delete=models.CASCADE,
@@ -557,6 +572,19 @@ class ComparablePrice(models.Model):
 
     search_query = models.CharField(
         max_length=500,
+    )
+
+    qualification_status = models.CharField(
+        max_length=20,
+        choices=(
+            QUALIFICATION_STATUS_CHOICES
+        ),
+        default="collected",
+    )
+
+    qualification_reason = models.TextField(
+        blank=True,
+        default="",
     )
 
     evidence = models.TextField(
