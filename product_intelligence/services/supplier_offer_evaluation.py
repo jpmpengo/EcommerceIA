@@ -4,6 +4,9 @@ from product_intelligence.services.comparable_price_summary import (
 from product_intelligence.services.market_price_reference import (
     MarketPriceReferenceService,
 )
+from product_intelligence.services.supplier_delivery_policy import (
+    SupplierDeliveryPolicyService,
+)
 
 
 class SupplierOfferEvaluationService:
@@ -15,6 +18,7 @@ class SupplierOfferEvaluationService:
         self,
         summary_service=None,
         reference_service=None,
+        delivery_policy=None,
         price_policy=None,
     ):
         self.summary_service = (
@@ -25,6 +29,11 @@ class SupplierOfferEvaluationService:
         self.reference_service = (
             reference_service
             or MarketPriceReferenceService
+        )
+
+        self.delivery_policy = (
+            delivery_policy
+            or SupplierDeliveryPolicyService()
         )
 
         self.price_policy = (
@@ -44,7 +53,35 @@ class SupplierOfferEvaluationService:
             )
         )
 
+        delivery_result = (
+            self.delivery_policy.evaluate(
+                shipping_days=(
+                    supplier_offer.shipping_days
+                ),
+            )
+        )
+
+        delivery_status = (
+            delivery_result["status"]
+        )
+
+        if delivery_status == "rejected":
+            return self._build_dossier(
+                supplier_offer=supplier_offer,
+                market_summary=market_summary,
+                decision_price=None,
+                status="rejected",
+                blockers=[
+                    delivery_result["reason"],
+                ],
+                warnings=[],
+                delivery_result=(
+                    delivery_result
+                ),
+            )
+
         blockers = []
+        warnings = []
 
         if (
             market_summary["retained_count"]
@@ -87,6 +124,16 @@ class SupplierOfferEvaluationService:
                 "Coût de livraison manquant."
             )
 
+        if delivery_status == "incomplete":
+            blockers.append(
+                delivery_result["reason"]
+            )
+
+        if delivery_status == "slow":
+            warnings.append(
+                delivery_result["reason"]
+            )
+
         if (
             supplier_offer.currency
             != market_currency
@@ -106,6 +153,26 @@ class SupplierOfferEvaluationService:
             else "ready_for_cost_analysis"
         )
 
+        return self._build_dossier(
+            supplier_offer=supplier_offer,
+            market_summary=market_summary,
+            decision_price=decision_price,
+            status=status,
+            blockers=blockers,
+            warnings=warnings,
+            delivery_result=delivery_result,
+        )
+
+    def _build_dossier(
+        self,
+        supplier_offer,
+        market_summary,
+        decision_price,
+        status,
+        blockers,
+        warnings,
+        delivery_result,
+    ):
         return {
             "supplier_offer_id": (
                 supplier_offer.pk
@@ -135,6 +202,8 @@ class SupplierOfferEvaluationService:
             "decision_price": (
                 decision_price
             ),
+            "delivery": delivery_result,
             "status": status,
             "blockers": blockers,
+            "warnings": warnings,
         }

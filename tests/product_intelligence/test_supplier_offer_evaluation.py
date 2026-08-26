@@ -11,11 +11,11 @@ from product_intelligence.services.supplier_offer_evaluation import (
 class SupplierOfferEvaluationServiceTests(
     SimpleTestCase
 ):
-
     def _build_offer(
         self,
         currency="USD",
         shipping_cost=None,
+        shipping_days=8,
     ):
         supplier_offer = Mock()
 
@@ -29,6 +29,9 @@ class SupplierOfferEvaluationServiceTests(
         supplier_offer.currency = currency
         supplier_offer.shipping_cost = (
             shipping_cost
+        )
+        supplier_offer.shipping_days = (
+            shipping_days
         )
         supplier_offer.stock = 36901
         supplier_offer.supplier.name = (
@@ -240,4 +243,55 @@ class SupplierOfferEvaluationServiceTests(
                 "sont nécessaires."
             ),
             dossier["blockers"],
+        )
+
+    def test_rejects_offer_over_absolute_delivery_limit(
+        self,
+    ):
+        supplier_offer = self._build_offer(
+            currency="USD",
+            shipping_cost=Decimal("5.06"),
+            shipping_days=50,
+        )
+
+        summary_service = Mock()
+        summary_service.summarize.return_value = (
+            self._build_summary()
+        )
+
+        reference_service = Mock()
+        reference_service.select.return_value = (
+            Decimal("10.62")
+        )
+
+        service = SupplierOfferEvaluationService(
+            summary_service=summary_service,
+            reference_service=reference_service,
+            price_policy="minimum",
+        )
+
+        dossier = service.prepare(
+            supplier_offer=supplier_offer,
+            market_currency="EUR",
+        )
+
+        self.assertEqual(
+            dossier["status"],
+            "rejected",
+        )
+
+        self.assertEqual(
+            dossier["delivery"]["status"],
+            "rejected",
+        )
+
+        self.assertEqual(
+            dossier["blockers"],
+            [
+                (
+                    "Délai de livraison de "
+                    "50 jours supérieur au "
+                    "maximum accepté de 20 jours."
+                ),
+            ],
         )
