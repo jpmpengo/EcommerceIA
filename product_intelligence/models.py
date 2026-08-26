@@ -524,3 +524,66 @@ class SupplierOffer(models.Model):
 
     def __str__(self):
         return f"{self.supplier} - {self.product_name}"
+
+class ComparablePrice(models.Model):
+
+    supplier_offer = models.ForeignKey(
+        SupplierOffer,
+        on_delete=models.CASCADE,
+        related_name="comparable_prices",
+    )
+
+    product_name = models.CharField(
+        max_length=255,
+    )
+
+    observed_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+    )
+
+    currency = models.CharField(
+        max_length=3,
+        default="EUR",
+    )
+
+    source_title = models.CharField(
+        max_length=255,
+    )
+
+    source_url = models.URLField(
+        max_length=1000,
+    )
+
+    search_query = models.CharField(
+        max_length=500,
+    )
+
+    evidence = models.TextField(
+        blank=True,
+        default="",
+    )
+
+    model_name = models.CharField(
+        max_length=100,
+        blank=True,
+        default="",
+    )
+
+    observed_at = models.DateTimeField(
+        default=timezone.now,
+    )
+
+    class Meta:
+        ordering = [
+            "-observed_at",
+        ]
+
+    def __str__(
+        self,
+    ):
+        return (
+            f"{self.product_name} - "
+            f"{self.observed_price} "
+            f"{self.currency}"
+        )
