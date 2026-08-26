@@ -42,8 +42,20 @@ class PrintfulSupplierSearcher:
         self,
         product_idea,
     ):
+        supplier_keywords = (
+            product_idea
+            .supplier_search_keywords
+            or []
+        )
+
+        keyword = (
+            supplier_keywords[0]
+            if supplier_keywords
+            else product_idea.name
+        )
+
         return self._search(
-            keyword=product_idea.name,
+            keyword=keyword,
             product_idea=product_idea,
         )
 

@@ -113,6 +113,11 @@ class ProductIdeaGenerationService:
                     search_keywords=(
                         idea["search_keywords"]
                     ),
+                    supplier_search_keywords=(
+                        idea[
+                            "supplier_search_keywords"
+                        ]
+                    ),
                     demand_signals=(
                         idea["demand_signals"]
                     ),

@@ -6,11 +6,15 @@ class CJSupplierSearcher:
         supplier,
         offer_service,
         max_offers=5,
+        category_matching_service=None,
     ):
         self.client = client
         self.supplier = supplier
         self.offer_service = offer_service
         self.max_offers = max_offers
+        self.category_matching_service = (
+            category_matching_service
+        )
 
     def can_handle(
         self,
@@ -36,25 +40,69 @@ class CJSupplierSearcher:
         self,
         product_idea,
     ):
-        return self._search(
-            keyword=product_idea.name,
-            product_idea=product_idea,
+        supplier_keywords = list(
+            product_idea
+            .supplier_search_keywords
+            or []
         )
+
+        if not supplier_keywords:
+            supplier_keywords = [
+                product_idea.name,
+            ]
+
+        offers = []
+        seen_product_ids = set()
+
+        for keyword in supplier_keywords:
+            remaining_offers = (
+                self.max_offers
+                - len(offers)
+            )
+
+            if remaining_offers <= 0:
+                break
+
+            keyword_offers = self._search(
+                keyword=keyword,
+                product_idea=product_idea,
+                max_offers=remaining_offers,
+                seen_product_ids=(
+                    seen_product_ids
+                ),
+            )
+
+            offers.extend(
+                keyword_offers
+            )
+
+        return offers
 
     def _search(
         self,
         keyword,
         market_observation=None,
         product_idea=None,
+        max_offers=None,
+        seen_product_ids=None,
     ):
         offers = []
+
+        offer_limit = (
+            max_offers
+            if max_offers is not None
+            else self.max_offers
+        )
+
+        if seen_product_ids is None:
+            seen_product_ids = set()
 
         products = self.client.search_products(
             keyword=keyword,
         )
 
         for product_data in products:
-            if len(offers) >= self.max_offers:
+            if len(offers) >= offer_limit:
                 break
 
             product_id = (
@@ -62,7 +110,11 @@ class CJSupplierSearcher:
                 or product_data.get("pid")
             )
 
-            if not product_id:
+            if (
+                not product_id
+                or product_id
+                in seen_product_ids
+            ):
                 continue
 
             product_detail = (
@@ -80,6 +132,24 @@ class CJSupplierSearcher:
                 )
             )
 
+            if (
+                product_idea is not None
+                and self.category_matching_service
+                is not None
+            ):
+                is_relevant = (
+                    self.category_matching_service
+                    .is_relevant(
+                        product_name=(
+                            product["name"]
+                        ),
+                        search_keyword=keyword,
+                    )
+                )
+
+                if not is_relevant:
+                    continue
+
             variants = (
                 self.client.get_product_variants(
                     product_id=product_id,
@@ -87,10 +157,9 @@ class CJSupplierSearcher:
             )
 
             for variant in variants:
-                if len(offers) >= self.max_offers:
-                    break
-
-                variant_id = variant.get("vid")
+                variant_id = variant.get(
+                    "vid"
+                )
 
                 if not variant_id:
                     continue
@@ -127,5 +196,11 @@ class CJSupplierSearcher:
                 offers.append(
                     offer
                 )
+
+                seen_product_ids.add(
+                    product_id
+                )
+
+                break
 
         return offers

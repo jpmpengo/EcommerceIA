@@ -126,6 +126,9 @@ class PrintfulSupplierSearcherTests(
         idea.name = (
             "Tapis de bureau personnalisables"
         )
+        idea.supplier_search_keywords = [
+            "custom desk mat",
+        ]
 
         client = Mock()
         client.get_products.return_value = [
@@ -181,7 +184,7 @@ class PrintfulSupplierSearcherTests(
 
         matching_service.are_products_comparable.assert_called_once_with(
             first_name="Custom Desk Mat",
-            second_name=idea.name,
+            second_name="custom desk mat",
         )
 
         offer_service.create_offer_from_variant.assert_called_once_with(

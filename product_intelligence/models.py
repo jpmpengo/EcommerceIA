@@ -254,6 +254,13 @@ class ProductIdea(models.Model):
         ),
     )
 
+    supplier_search_keywords = models.JSONField(
+        default=list,
+        verbose_name=(
+            "Mots-clés de recherche fournisseur"
+        ),
+    )
+
     source = models.CharField(
         max_length=100,
         default="openai",

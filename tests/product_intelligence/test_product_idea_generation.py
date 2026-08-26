@@ -10,7 +10,9 @@ from product_intelligence.services.product_idea_generation import (
 )
 
 
-class ProductIdeaGenerationServiceTests(TestCase):
+class ProductIdeaGenerationServiceTests(
+    TestCase
+):
 
     @patch.object(
         ProductIdeaGenerationService,
@@ -22,8 +24,12 @@ class ProductIdeaGenerationServiceTests(TestCase):
     ):
         ProductIdea.objects.create(
             name="Idée existante",
-            customer_problem="Problème client.",
-            target_customer="Client cible.",
+            customer_problem=(
+                "Problème client."
+            ),
+            target_customer=(
+                "Client cible."
+            ),
             reason_to_study="Raison.",
             countries=[
                 "FR",
@@ -62,7 +68,9 @@ class ProductIdeaGenerationServiceTests(TestCase):
         discovery_service.discover.return_value = {
             "ideas": [
                 {
-                    "name": f"Idée {number}",
+                    "name": (
+                        f"Idée {number}"
+                    ),
                     "customer_problem": (
                         f"Problème {number}."
                     ),
@@ -79,6 +87,12 @@ class ProductIdeaGenerationServiceTests(TestCase):
                     ],
                     "search_keywords": [
                         f"requête {number}",
+                    ],
+                    "supplier_search_keywords": [
+                        (
+                            "supplier keyword "
+                            f"{number}"
+                        ),
                     ],
                     "demand_signals": [
                         (
@@ -142,6 +156,13 @@ class ProductIdeaGenerationServiceTests(TestCase):
         )
 
         self.assertEqual(
+            first_idea.supplier_search_keywords,
+            [
+                "supplier keyword 1",
+            ],
+        )
+
+        self.assertEqual(
             first_idea.demand_signals,
             [
                 "Signal de demande 1.",
@@ -180,7 +201,9 @@ class ProductIdeaGenerationServiceTests(TestCase):
         discovery_service.discover.return_value = {
             "ideas": [
                 {
-                    "name": f"Idée {number}",
+                    "name": (
+                        f"Idée {number}"
+                    ),
                     "customer_problem": (
                         f"Problème {number}."
                     ),

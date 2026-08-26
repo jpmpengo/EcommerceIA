@@ -140,7 +140,7 @@ class ProductIdeaDiscoveryServiceTests(
             client.received_use_web_search
         )
 
-    def test_response_rejects_categories_without_demand_evidence(
+    def test_response_rejects_categories_without_supplier_keywords(
         self,
     ):
         categories = [
@@ -162,6 +162,24 @@ class ProductIdeaDiscoveryServiceTests(
                 ],
                 "search_keywords": [
                     "catégorie test",
+                ],
+                "demand_signals": [
+                    "Signal documenté.",
+                ],
+                "evidence_sources": [
+                    {
+                        "title": (
+                            "Source publique"
+                        ),
+                        "url": (
+                            "https://example.com/"
+                            "source"
+                        ),
+                        "evidence": (
+                            "La source décrit "
+                            "la demande."
+                        ),
+                    },
                 ],
             }
             for index in range(

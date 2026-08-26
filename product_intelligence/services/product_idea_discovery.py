@@ -35,6 +35,11 @@ class ProductIdea(BaseModel):
         max_length=5,
     )
 
+    supplier_search_keywords: list[str] = Field(
+        min_length=1,
+        max_length=5,
+    )
+
     demand_signals: list[str] = Field(
         min_length=1,
         max_length=5,
@@ -78,6 +83,9 @@ Pour chaque catégorie :
 - indique les pays concernés ;
 - fournis des mots-clés adaptés à une recherche
   future auprès des fournisseurs et sur le Web ;
+- fournis séparément entre un et cinq mots-clés
+  fournisseur en anglais, précis et adaptés aux
+  catalogues internationaux;
 - présente entre un et cinq signaux de demande ;
 - fournis entre une et cinq sources publiques ;
 - indique pour chaque source son titre, son URL

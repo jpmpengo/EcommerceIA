@@ -22,6 +22,9 @@ from product_intelligence.services.printful_supplier_offer import (
 from product_intelligence.services.printful_supplier_searcher import (
     PrintfulSupplierSearcher,
 )
+from product_intelligence.services.supplier_category_matching import (
+    SupplierCategoryMatchingService,
+)
 from product_intelligence.services.supplier_product_matching import (
     SupplierProductMatchingService,
 )
@@ -111,6 +114,9 @@ class SupplierSearchFactory:
             offer_service=offer_service,
             max_offers=(
                 cls.MAX_OFFERS_PER_SUPPLIER
+            ),
+            category_matching_service=(
+                SupplierCategoryMatchingService()
             ),
         )
 
