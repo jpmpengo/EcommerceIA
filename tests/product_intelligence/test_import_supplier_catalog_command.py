@@ -8,10 +8,28 @@ from django.core.management import call_command
 from django.test import TestCase
 
 
+TEST_ENVIRONMENT = {
+    "CJ_API_KEY": "test-cj-key",
+    "PRINTFUL_API_TOKEN": (
+        "test-printful-token"
+    ),
+}
+
+
 class ImportSupplierCatalogCommandTests(
     TestCase
 ):
 
+    @patch.dict(
+        "os.environ",
+        TEST_ENVIRONMENT,
+        clear=True,
+    )
+    @patch(
+        "product_intelligence.management.commands."
+        "import_supplier_catalog."
+        "CJAuthClient"
+    )
     @patch(
         "product_intelligence.management.commands."
         "import_supplier_catalog."
@@ -20,7 +38,15 @@ class ImportSupplierCatalogCommandTests(
     def test_command_runs_supplier_catalog_import(
         self,
         service_class,
+        cj_auth_client_class,
     ):
+        (
+            cj_auth_client_class
+            .return_value
+            .get_access_token
+            .return_value
+        ) = "test-cj-access-token"
+
         service = Mock()
 
         service.import_catalog.return_value = [
@@ -44,28 +70,47 @@ class ImportSupplierCatalogCommandTests(
             output.getvalue(),
         )
 
+    @patch.dict(
+        "os.environ",
+        TEST_ENVIRONMENT,
+        clear=True,
+    )
+    @patch(
+        "product_intelligence.management.commands."
+        "import_supplier_catalog."
+        "CJAuthClient"
+    )
+    @patch(
+        "product_intelligence.management.commands."
+        "import_supplier_catalog."
+        "SupplierCatalogImportService"
+    )
     def test_command_accepts_catalog_import_options(
         self,
+        service_class,
+        cj_auth_client_class,
     ):
+        (
+            cj_auth_client_class
+            .return_value
+            .get_access_token
+            .return_value
+        ) = "test-cj-access-token"
+
+        service = Mock()
+
+        service.import_catalog.return_value = []
+
+        service_class.return_value = service
+
         output = StringIO()
 
-        with patch(
-            "product_intelligence.management.commands."
-            "import_supplier_catalog."
-            "SupplierCatalogImportService"
-        ) as service_class:
-            service = Mock()
-
-            service.import_catalog.return_value = []
-
-            service_class.return_value = service
-
-            call_command(
-                "import_supplier_catalog",
-                keyword="mouse pad",
-                max_offers=3,
-                stdout=output,
-            )
+        call_command(
+            "import_supplier_catalog",
+            keyword="mouse pad",
+            max_offers=3,
+            stdout=output,
+        )
 
         self.assertIn(
             "0 supplier offers imported",
@@ -74,12 +119,8 @@ class ImportSupplierCatalogCommandTests(
 
     @patch.dict(
         "os.environ",
-        {
-            "CJ_API_KEY": "test-cj-key",
-            "PRINTFUL_API_TOKEN": (
-                "test-printful-token"
-            ),
-        },
+        TEST_ENVIRONMENT,
+        clear=True,
     )
     @patch(
         "product_intelligence.management.commands."
