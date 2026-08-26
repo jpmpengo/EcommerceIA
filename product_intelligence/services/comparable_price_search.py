@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from pydantic import (
     BaseModel,
     Field,
@@ -9,8 +7,7 @@ from pydantic import (
 class ComparablePriceResult(BaseModel):
 
     product_name: str
-
-    observed_price: Decimal = Field(
+    observed_price: float = Field(
         gt=0,
     )
 
