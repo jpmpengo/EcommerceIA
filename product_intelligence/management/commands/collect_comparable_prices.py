@@ -4,6 +4,7 @@ from django.core.management.base import (
 )
 
 from product_intelligence.models import (
+    ComparablePrice,
     ProductIdea,
 )
 from product_intelligence.services.comparable_price_runner_factory import (
@@ -82,7 +83,88 @@ class Command(BaseCommand):
 
         self.stdout.write(
             (
+                f"{summary['offers_researched']} "
+                "offre(s) admise(s) à la recherche "
+                "de prix"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{summary['offers_incomplete']} "
+                "offre(s) incomplète(s)"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{summary['offers_rejected']} "
+                "offre(s) rejetée(s) pour la livraison"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{summary['offers_slow']} "
+                "offre(s) avec livraison lente tolérée"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{summary['offers_fallback']} "
+                "offre(s) de repli entre 21 et 50 jours"
+            )
+        )
+
+        current_prices_count = (
+            ComparablePrice.objects.filter(
+                supplier_offer__product_idea=product_idea,
+                is_current=True,
+            ).count()
+        )
+
+        historical_prices_count = (
+            ComparablePrice.objects.filter(
+                supplier_offer__product_idea=product_idea,
+                is_current=False,
+            ).count()
+        )
+
+        self.stdout.write(
+            (
                 f"{summary['comparable_prices_saved']} "
-                "prix comparable(s) enregistré(s)"
+                "prix comparable(s) créé(s) pendant "
+                "cette collecte"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{current_prices_count} "
+                "prix comparable(s) dans le(s) lot(s) "
+                "actif(s)"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{historical_prices_count} "
+                "prix comparable(s) historique(s) "
+                "conservé(s)"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{summary['comparable_prices_retained']} "
+                "prix comparable(s) retenu(s)"
+            )
+        )
+
+        self.stdout.write(
+            (
+                f"{summary['comparable_prices_rejected']} "
+                "prix comparable(s) rejeté(s)"
             )
         )

@@ -22,6 +22,7 @@ class PrintfulSupplierOfferService:
         variant,
         market_observation=None,
         product_idea=None,
+        supplier_search_keyword="",
     ):
         variant_features = {}
 
@@ -90,6 +91,9 @@ class PrintfulSupplierOfferService:
                     ),
                     "variant_features": (
                         variant_features
+                    ),
+                    "supplier_search_keyword": (
+                        supplier_search_keyword
                     ),
                 },
             )

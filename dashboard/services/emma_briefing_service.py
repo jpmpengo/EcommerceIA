@@ -1,99 +1,48 @@
-from orders.models import Order
-from products.models import Product
-from product_intelligence.models import ProductOpportunity
-
-from dashboard.services.emma_changes_service import (
-    EmmaChangesService,
-)
-from dashboard.services.emma_memory_service import (
-    EmmaMemoryService,
-)
-from dashboard.services.priority_advisor import (
-    PriorityAdvisor,
-)
-from dashboard.services.emma_attention_service import (
-    EmmaAttentionService,
-)
-from dashboard.services.emma_progress_service import (
-    EmmaProgressService,
-)
-from dashboard.services.emma_state_service import (
-    EmmaStateService,
-)
-from dashboard.services.emma_summary_service import (
-    EmmaSummaryService,
-)
-
-from dashboard.services.emma_preparation_service import (
-    EmmaPreparationService,
-)
-
-from dashboard.models import EmmaMemory
+from django.db.models import F
 from django.utils import timezone
 
-from dashboard.services.emma_restock_service import (
-    EmmaRestockService,
-)
+from dashboard.services.emma_changes_service import EmmaChangesService
+from dashboard.services.emma_memory_service import EmmaMemoryService
+from dashboard.services.emma_state_service import EmmaStateService
+from dashboard.services.emma_summary_service import EmmaSummaryService
+from product_intelligence.models import ProductOpportunity
+from product_intelligence.services.comparable_price_summary import ComparablePriceSummaryService
+from product_intelligence.services.opportunity_commercial_recalculation import OpportunityCommercialRecalculationService
+from product_intelligence.services.pricing_policy import get_market_price_reference
 
 
 class EmmaBriefingService:
-    """
-    Prépare le briefing présenté par Emma
-    au commerçant.
-    """
+    """Prepare le briefing presente par Emma au commercant."""
 
     @staticmethod
     def build(user):
-        previous_visit = EmmaMemoryService.record_visit(
-            user
+        previous_visit = EmmaMemoryService.record_visit(user)
+
+        opportunities = (
+            ProductOpportunity.objects
+            .filter(status="review", ai_recommendation__decision__in=["recommend", "reject"])
+            .select_related("supplier_offer", "ai_recommendation")
+            .order_by(F("opportunity_score").desc(nulls_last=True), "-detected_at")
         )
 
-        progress = EmmaProgressService.get_progress(
-            previous_visit
-        )
-
-        priority = PriorityAdvisor.get_priority()
-
-        alerts = EmmaAttentionService.get_alerts(
-            priority
-        )
-
-        changes = EmmaBriefingService._build_changes(
-            previous_visit
-        )
-
-        preparation = EmmaPreparationService.get_items()
-
-        restock = EmmaRestockService.get_items()
+        opportunities = list(opportunities)
+        for opportunity in opportunities:
+            summary = ComparablePriceSummaryService.summarize(opportunity.supplier_offer, "EUR")
+            opportunity.market_summary = summary
+            opportunity.market_reference_type = get_market_price_reference()
+            reference_field = {"minimum": "minimum_price", "median": "commercial_median_price", "maximum": "maximum_price"}[opportunity.market_reference_type]
+            opportunity.market_reference_price = summary.get(reference_field)
+            opportunity.commercial_pricing = OpportunityCommercialRecalculationService.calculate(opportunity, market_summary=summary)
 
         state = EmmaStateService.get_state(
-            progress,
-            priority,
-            alerts,
-            preparation,
-        )
-
-        summary = EmmaSummaryService.build(
-            state
+            review_opportunities_count=len(opportunities),
         )
 
         return {
-            "greeting": (
-                EmmaBriefingService._build_greeting(
-                    previous_visit
-                )
-            ),
-            "summary": summary,
-            "progress": progress,
-            "priorite": priority,
-            "alerts": alerts,
-            "changes": changes,
-            "preparation": preparation,
-            "next_actions": [],
-            "activity": (
-                EmmaBriefingService._build_activity()
-            ),
-            "restock": restock,
+            "greeting": EmmaBriefingService._build_greeting(previous_visit),
+            "summary": EmmaSummaryService.build(state),
+            "changes": EmmaBriefingService._build_changes(previous_visit),
+            "opportunities": opportunities,
         }
 
     @staticmethod
@@ -103,32 +52,26 @@ class EmmaBriefingService:
         if previous_visit is None:
             return {
                 "title": "Bonjour",
-                "message": "J’ai préparé votre journée.",
+                "message": "Voici les opportunites preparees pour votre examen.",
                 "previous_visit": None,
             }
 
-        previous_visit_date = timezone.localtime(
-            previous_visit
-        ).date()
+        previous_visit_date = timezone.localtime(previous_visit).date()
 
         if previous_visit_date < today:
             title = "Bonjour"
-            message = "Voici ce qui mérite votre attention aujourd’hui."
         else:
             title = "Bon retour"
-            message = "Voici ce qui mérite maintenant votre attention."
 
         return {
             "title": title,
-            "message": message,
+            "message": "Voici les opportunites qui attendent votre examen.",
             "previous_visit": previous_visit,
         }
 
     @staticmethod
     def _build_changes(previous_visit):
-        changes = EmmaChangesService.get_changes(
-            previous_visit
-        )
+        changes = EmmaChangesService.get_changes(previous_visit)
 
         if changes:
             return changes
@@ -136,22 +79,6 @@ class EmmaBriefingService:
         return [
             {
                 "icon": "✨",
-                "message": (
-                    "Aucune nouveauté depuis "
-                    "votre dernière visite."
-                ),
+                "message": "Aucune nouvelle opportunite depuis votre derniere visite.",
             }
         ]
-
-    @staticmethod
-    def _build_activity():
-        return {
-            "products": Product.objects.count(),
-            "orders": Order.objects.count(),
-            "opportunities": (
-                ProductOpportunity.objects.count()
-            ),
-        }
-
-           
-

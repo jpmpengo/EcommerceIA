@@ -70,6 +70,52 @@ class CJClientTests(SimpleTestCase):
             "test-token",
         )
 
+    def test_search_products_sends_country_code_when_provided(self):
+        class FakeResponse:
+            def json(self):
+                return {
+                    "code": 200,
+                    "result": True,
+                    "data": {
+                        "content": [],
+                    },
+                }
+
+        class FakeHTTPClient:
+            def __init__(self):
+                self.last_params = None
+
+            def get(
+                self,
+                url,
+                params=None,
+                headers=None,
+            ):
+                self.last_params = params
+                return FakeResponse()
+
+        http_client = FakeHTTPClient()
+
+        client = CJClient(
+            access_token="test-token",
+            http_client=http_client,
+        )
+
+        client.search_products(
+            keyword="wireless mouse",
+            country_code="FR",
+        )
+
+        self.assertEqual(
+            http_client.last_params,
+            {
+                "page": 1,
+                "size": 20,
+                "keyWord": "wireless mouse",
+                "countryCode": "FR",
+            },
+        )
+
     def test_search_products_returns_product_content(
         self,
     ):
@@ -893,7 +939,7 @@ class CJClientTests(SimpleTestCase):
             ],
         )
 
-        mock_sleep.assert_not_called()
+        mock_sleep.assert_called_once_with(1.0)
 
         self.assertEqual(
             http_client.get.call_count,
@@ -930,6 +976,7 @@ class CJClientTests(SimpleTestCase):
                 "image_url": (
                     "https://example.com/image.jpg"
                 ),
+                "product_description": "",
                 "currency": "USD",
             },
         )
@@ -964,6 +1011,7 @@ class CJClientTests(SimpleTestCase):
                     "https://example.com/image.jpg"
                 ),
                 "purchase_price": "8.75",
+                "product_description": "",
                 "currency": "USD",
             },
         )
@@ -1013,6 +1061,39 @@ class CJClientTests(SimpleTestCase):
             normalized["currency"],
             "USD",
         )
+
+    def test_normalize_product_maps_add_mark_status_to_free_shipping(self):
+        client = CJClient(
+            access_token="test-token",
+            http_client=None,
+        )
+
+        normalized = client.normalize_product({
+            "id": "CJ-FREE-001",
+            "nameEn": "Supplier shipped product",
+            "addMarkStatus": 1,
+        })
+
+        self.assertIs(normalized["free_shipping"], True)
+
+    def test_normalize_product_distinguishes_non_free_and_unknown_shipping(self):
+        client = CJClient(
+            access_token="test-token",
+            http_client=None,
+        )
+
+        not_free = client.normalize_product({
+            "id": "CJ-NOT-FREE",
+            "nameEn": "Not free",
+            "addMarkStatus": 0,
+        })
+        unknown = client.normalize_product({
+            "id": "CJ-UNKNOWN",
+            "nameEn": "Unknown",
+        })
+
+        self.assertIs(not_free["free_shipping"], False)
+        self.assertNotIn("free_shipping", unknown)
 
     def test_normalizes_product_currency(self):
         client = CJClient(
@@ -1626,6 +1707,74 @@ class CJClientTests(SimpleTestCase):
             42,
         )
 
+    def test_get_variant_stock_returns_stock_for_requested_country(
+        self,
+    ):
+        response = Mock()
+        response.json.return_value = {
+            "code": 200,
+            "result": True,
+            "data": [
+                {
+                    "vid": "VARIANT-123",
+                    "areaEn": "China Warehouse",
+                    "countryCode": "CN",
+                    "totalInventoryNum": 40000,
+                },
+                {
+                    "vid": "VARIANT-123",
+                    "areaEn": "France Warehouse",
+                    "countryCode": "FR",
+                    "totalInventoryNum": 245,
+                },
+            ],
+        }
+        http_client = Mock()
+        http_client.get.return_value = response
+        client = CJClient(
+            access_token="test-token",
+            http_client=http_client,
+        )
+        stock = client.get_variant_stock(
+            variant_id="VARIANT-123",
+            country_code="FR",
+        )
+        self.assertEqual(stock, 245)
+
+    def test_get_variant_stock_returns_stock_for_requested_country(
+        self,
+    ):
+        response = Mock()
+        response.json.return_value = {
+            "code": 200,
+            "result": True,
+            "data": [
+                {
+                    "vid": "VARIANT-123",
+                    "areaEn": "China Warehouse",
+                    "countryCode": "CN",
+                    "totalInventoryNum": 40000,
+                },
+                {
+                    "vid": "VARIANT-123",
+                    "areaEn": "France Warehouse",
+                    "countryCode": "FR",
+                    "totalInventoryNum": 245,
+                },
+            ],
+        }
+        http_client = Mock()
+        http_client.get.return_value = response
+        client = CJClient(
+            access_token="test-token",
+            http_client=http_client,
+        )
+        stock = client.get_variant_stock(
+            variant_id="VARIANT-123",
+            country_code="FR",
+        )
+        self.assertEqual(stock, 245)
+
     def test_get_variant_stock_returns_none_when_no_stock_data(
         self,
     ):
@@ -1839,6 +1988,60 @@ class CJClientTests(SimpleTestCase):
 
         self.assertIsNone(stock)
 
+    def test_calculate_freight_tip_returns_arrival_time(self):
+        response = Mock()
+        response.status_code = 200
+        response.json.return_value = {
+            "code": 200,
+            "result": True,
+            "data": [
+                {
+                    "arrivalTime": "5-9",
+                    "logisticName": "Supplier Logistics",
+                }
+            ],
+        }
+
+        http_client = Mock()
+        http_client.post.return_value = response
+
+        client = CJClient(
+            access_token="test-token",
+            http_client=http_client,
+        )
+
+        result = client.calculate_freight_tip(
+            product_sku="CJYD2604897",
+            origin_country="DE",
+            destination_country="FR",
+            weight=608,
+            product_properties=["COMMON"],
+            quantity=1,
+        )
+
+        self.assertEqual(result[0]["arrivalTime"], "5-9")
+        http_client.post.assert_called_once_with(
+            "https://developers.cjdropshipping.com/api2.0/v1/logistic/freightCalculateTip",
+            json={
+                "reqDTOS": [
+                    {
+                        "srcAreaCode": "DE",
+                        "destAreaCode": "FR",
+                        "weight": 608,
+                        "productProp": ["COMMON"],
+                        "freightTrialSkuList": [
+                            {
+                                "skuQuantity": 1,
+                                "sku": "CJYD2604897",
+                            }
+                        ],
+                    }
+                ]
+            },
+            headers={"CJ-Access-Token": "test-token"},
+        )
+
+
     def test_calculate_freight_sends_expected_request(
         self,
     ):
@@ -1930,5 +2133,51 @@ class CJClientTests(SimpleTestCase):
             ],
         )
 
-        
-    
+    @patch("product_intelligence.services.cj_client.time.sleep")
+    def test_429_without_retry_after_waits_one_second(self, mock_sleep):
+        first = Mock(status_code=429, headers={})
+        second = Mock(status_code=200)
+        http_client = Mock()
+        http_client.get.side_effect = [first, second]
+        client = CJClient(access_token="test-token", http_client=http_client)
+        client._safe_get("https://example.com/test")
+        mock_sleep.assert_called_once_with(1.0)
+        self.assertEqual(http_client.get.call_count, 2)
+
+    @patch("product_intelligence.services.cj_client.time.sleep")
+    @patch("product_intelligence.services.cj_client.time.monotonic", side_effect=[100.0, 100.2])
+    def test_successive_get_requests_are_rate_limited(self, mock_clock, mock_sleep):
+        http_client = Mock()
+        http_client.get.return_value = Mock(status_code=200)
+        client = CJClient(access_token="test-token", http_client=http_client)
+        client._safe_get("https://example.com/first")
+        client._safe_get("https://example.com/second")
+        mock_sleep.assert_called_once()
+        self.assertAlmostEqual(mock_sleep.call_args.args[0], 0.8, places=6)
+        self.assertEqual(http_client.get.call_count, 2)
+
+    @patch("product_intelligence.services.cj_client.time.sleep")
+    @patch("product_intelligence.services.cj_client.time.monotonic", side_effect=[100.0, 100.2])
+    def test_get_then_post_requests_are_rate_limited(self, mock_clock, mock_sleep):
+        http_client = Mock()
+        http_client.get.return_value = Mock(status_code=200)
+        http_client.post.return_value = Mock(status_code=200)
+        client = CJClient(access_token="test-token", http_client=http_client)
+        client._safe_get("https://example.com/first")
+        client._safe_post("https://example.com/second", json={})
+        mock_sleep.assert_called_once()
+        self.assertAlmostEqual(mock_sleep.call_args.args[0], 0.8, places=6)
+        self.assertEqual(http_client.post.call_count, 1)
+
+    @patch("product_intelligence.services.cj_client.time.sleep")
+    @patch("product_intelligence.services.cj_client.time.monotonic", side_effect=[100.0, 100.2])
+    def test_get_then_patch_requests_are_rate_limited(self, mock_clock, mock_sleep):
+        http_client = Mock()
+        http_client.get.return_value = Mock(status_code=200)
+        http_client.patch.return_value = Mock(status_code=200)
+        client = CJClient(access_token="test-token", http_client=http_client)
+        client._safe_get("https://example.com/first")
+        client._safe_patch("https://example.com/second", json={})
+        mock_sleep.assert_called_once()
+        self.assertAlmostEqual(mock_sleep.call_args.args[0], 0.8, places=6)
+        self.assertEqual(http_client.patch.call_count, 1)

@@ -447,21 +447,28 @@
 
                             <a
                                 href="{% url 'dashboard:home' %}"
-                                class="btn store-action store-emma-action"
+                                class="btn store-action {% if request.resolver_match.view_name == 'dashboard:home' %}store-emma-action{% else %}btn-outline-light{% endif %}"
                             >
-                                Pilotage
+                                Briefing
                             </a>
 
                             <a
                                 href="{% url 'recommendations:list' %}"
-                                class="btn btn-outline-light store-action"
+                                class="btn store-action {% if request.resolver_match.namespace == 'recommendations' %}store-emma-action{% else %}btn-outline-light{% endif %}"
                             >
-                                Recommandations
+                                Publication
+                            </a>
+
+                            <a
+                                href="{% url 'orders:operator_order_list' %}"
+                                class="btn store-action {% if request.resolver_match.url_name == 'operator_order_list' or request.resolver_match.url_name == 'operator_order_detail' %}store-emma-action{% else %}btn-outline-light{% endif %}"
+                            >
+                                Gestion des commandes
                             </a>
 
                             <a
                                 href="{% url 'products:product_list' %}"
-                                class="btn btn-outline-light store-action"
+                                class="btn store-action {% if request.resolver_match.view_name == 'products:product_list' %}store-emma-action{% else %}btn-outline-light{% endif %}"
                             >
                                 Boutique
                             </a>
@@ -630,14 +637,21 @@
                             class="store-footer-link me-3"
                             href="{% url 'dashboard:home' %}"
                         >
-                            Pilotage
+                            Briefing
                         </a>
 
                         <a
                             class="store-footer-link me-3"
                             href="{% url 'recommendations:list' %}"
                         >
-                            Recommandations
+                            Publication
+                        </a>
+
+                        <a
+                            class="store-footer-link me-3"
+                            href="{% url 'orders:operator_order_list' %}"
+                        >
+                            Gestion des commandes
                         </a>
 
                         <a

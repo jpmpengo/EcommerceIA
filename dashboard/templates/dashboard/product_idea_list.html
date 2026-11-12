@@ -369,6 +369,72 @@ Idées de produits | EcommerceIA
         color: #687b97;
     }
 
+    .analysis-wait {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: rgba(9, 21, 52, 0.78);
+        backdrop-filter: blur(5px);
+    }
+
+    .analysis-wait.is-visible {
+        display: flex;
+    }
+
+    .analysis-wait-card {
+        width: min(520px, 100%);
+        padding: 2.25rem;
+        border-radius: 24px;
+        background: #ffffff;
+        text-align: center;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+    }
+
+    .analysis-wait-spinner {
+        width: 58px;
+        height: 58px;
+        margin: 0 auto 1.4rem;
+        border: 6px solid #dce7ff;
+        border-top-color: #2864ee;
+        border-radius: 50%;
+        animation: analysis-spin 0.9s linear infinite;
+    }
+
+    .analysis-wait-title {
+        margin-bottom: 0.65rem;
+        color: #101a33;
+        font-size: 1.55rem;
+        font-weight: 900;
+    }
+
+    .analysis-wait-step,
+    .analysis-wait-note {
+        color: #5e718f;
+    }
+
+    .analysis-wait-time {
+        margin: 1.25rem 0;
+        color: #2864ee;
+        font-size: 2rem;
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .analysis-wait-note {
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+
+    @keyframes analysis-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
     @media (max-width: 991px) {
         .idea-hero,
         .idea-grid {
@@ -412,7 +478,7 @@ Idées de produits | EcommerceIA
             class="idea-back"
         >
             <span aria-hidden="true">←</span>
-            Retour au pilotage
+            Retour au briefing
         </a>
 
         <section class="idea-hero">
@@ -465,7 +531,7 @@ Idées de produits | EcommerceIA
                 </p>
 
                 <h2>
-                    Trois études maximum
+                    Cinq études maximum
                 </h2>
 
                 <p>
@@ -475,7 +541,7 @@ Idées de produits | EcommerceIA
 
                 <div
                     class="idea-capacity"
-                    aria-label="{{ selected_ideas|length }} idée(s) sélectionnée(s) sur 3"
+                    aria-label="{{ selected_ideas|length }} idée(s) sélectionnée(s) sur 5"
                 >
                     <span
                         class="idea-capacity-dot{% if selected_ideas|length >= 1 %} is-filled{% endif %}"
@@ -487,6 +553,14 @@ Idées de produits | EcommerceIA
 
                     <span
                         class="idea-capacity-dot{% if selected_ideas|length >= 3 %} is-filled{% endif %}"
+                    ></span>
+
+                    <span
+                        class="idea-capacity-dot{% if selected_ideas|length >= 4 %} is-filled{% endif %}"
+                    ></span>
+
+                    <span
+                        class="idea-capacity-dot{% if selected_ideas|length >= 5 %} is-filled{% endif %}"
                     ></span>
                 </div>
 
@@ -512,7 +586,7 @@ Idées de produits | EcommerceIA
                     </div>
 
                     <span class="idea-count">
-                        {{ selected_ideas|length }}/3
+                        {{ selected_ideas|length }}/5
                     </span>
 
                 </header>
@@ -584,6 +658,21 @@ Idées de produits | EcommerceIA
                                 <div class="idea-actions">
                                     <form
                                         method="post"
+                                        class="js-analysis-form"
+                                        action="{% url 'dashboard:analyze_product_idea' idea.pk %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="idea-primary-action"
+                                        >
+                                            Lancer l’étude
+                                        </button>
+                                    </form>
+
+                                    <form
+                                        method="post"
                                         action="{% url 'dashboard:reject_product_idea' idea.pk %}"
                                         onsubmit="return confirm(
                                             'Voulez-vous vraiment écarter cette idée ?'
@@ -608,6 +697,47 @@ Idées de produits | EcommerceIA
 
                 </div>
 
+            </section>
+
+        {% endif %}
+
+        {% if analyzed_ideas %}
+
+            <section class="idea-section">
+                <header class="idea-section-header">
+                    <div>
+                        <h2 class="idea-section-title">
+                            Idées déjà étudiées
+                        </h2>
+                        <p class="idea-section-note">
+                            Elles restent conservées dans l’historique
+                            et ne seront pas retraitées automatiquement.
+                        </p>
+                    </div>
+                </header>
+
+                <div class="idea-grid">
+                    {% for idea in analyzed_ideas %}
+                        <article class="idea-card">
+                            <div class="idea-card-body">
+                                <span class="idea-status">
+                                    ● Étudiée
+                                </span>
+                                <h3 class="idea-card-title">
+                                    {{ idea.name }}
+                                </h3>
+                                <div class="idea-detail">
+                                    <span class="idea-detail-label">
+                                        Dernière étude
+                                    </span>
+                                    <p>
+                                        {{ idea.updated_at|date:"d/m/Y à H:i" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
             </section>
 
         {% endif %}
@@ -839,4 +969,73 @@ Idées de produits | EcommerceIA
 
 </main>
 
+<div
+    id="analysis-wait"
+    class="analysis-wait"
+    role="status"
+    aria-live="polite"
+    aria-hidden="true"
+>
+    <div class="analysis-wait-card">
+        <div class="analysis-wait-spinner" aria-hidden="true"></div>
+        <h2 class="analysis-wait-title">Étude en cours</h2>
+        <p id="analysis-wait-step" class="analysis-wait-step">
+            Connexion aux fournisseurs…
+        </p>
+        <div id="analysis-wait-time" class="analysis-wait-time">
+            00:00
+        </div>
+        <p class="analysis-wait-note">
+            Les offres, les délais, les prix du marché et la rentabilité
+            sont vérifiés. Ne fermez pas et n’actualisez pas cette page.
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const forms = document.querySelectorAll(".js-analysis-form");
+        const waitScreen = document.getElementById("analysis-wait");
+        const timeDisplay = document.getElementById("analysis-wait-time");
+        const stepDisplay = document.getElementById("analysis-wait-step");
+        forms.forEach(function (form) {
+            form.addEventListener("submit", function (event) {
+                const confirmed = window.confirm(
+                    "L’étude interrogera les fournisseurs et les sources de prix. Continuer ?"
+                );
+                if (!confirmed) {
+                    event.preventDefault();
+                    return;
+                }
+
+                waitScreen.classList.add("is-visible");
+                waitScreen.setAttribute("aria-hidden", "false");
+
+                document.querySelectorAll("button").forEach(function (button) {
+                    button.disabled = true;
+                });
+
+                const startedAt = Date.now();
+                window.setInterval(function () {
+                    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+                    const minutes = String(Math.floor(elapsed / 60)).padStart(2, "0");
+                    const seconds = String(elapsed % 60).padStart(2, "0");
+                    timeDisplay.textContent = minutes + ":" + seconds;
+
+                    if (elapsed >= 90) {
+                        stepDisplay.textContent = "Finalisation de l’étude…";
+                    } else if (elapsed >= 45) {
+                        stepDisplay.textContent = "Calcul de la rentabilité…";
+                    } else if (elapsed >= 15) {
+                        stepDisplay.textContent = "Comparaison des prix du marché…";
+                    }
+                }, 1000);
+            });
+        });
+
+    });
+</script>
 {% endblock %}

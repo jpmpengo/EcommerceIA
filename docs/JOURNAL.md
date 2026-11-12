@@ -3,6 +3,23 @@
 Le journal conserve des jalons humains et des réflexions datées. Les règles
 durables sont transférées dans les documents de référence.
 
+## 27 août 2026 — Premier parcours complet jusqu'à la livraison simulée
+
+L'idée 16 a traversé toutes les portes humaines : sélection, étude,
+opportunité, préparation et publication. Un client distinct a ensuite payé la
+commande 21 avec Stripe en environnement de test ; le stock est passé de 10 à
+9 et l'adresse de livraison est restée visible dans les espaces client et
+opérateur.
+
+Le dossier fournisseur 1 a été transmis à CJdropshipping avec `isSandbox=1`.
+Après correction de la transition de confirmation, le cycle CJ a été parcouru
+jusqu'à `DELIVERED`. Le statut client, le transporteur et le suivi fictif ont
+été synchronisés sans débit ni expédition réels.
+
+Ce test confirme la structure générale du parcours. Il met aussi en évidence
+les prochains chantiers : BigBuy, politique de prix, demande et concurrence,
+douane réelle, facture client et orchestration nocturne.
+
 ## 22 août 2026 — Origine des idées produit
 
 La réflexion sur les volumes des marketplaces a conduit à reformuler le point

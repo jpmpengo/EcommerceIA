@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from products.models import Product
 
-from orders.models import Order, OrderItem
+from orders.models import MerchantLegalEntity, Order, OrderItem, OrderProcessingEvent
 from orders.services.payment_service import (
     OrderPaymentService,
 )
@@ -44,6 +44,16 @@ class StockPaymentWorkflowTests(TestCase):
             password="test12345",
         )
 
+        MerchantLegalEntity.objects.create(
+            legal_name="EcommerceIA Test",
+            trade_name="EcommerceIA",
+            address="1 rue du Test",
+            postal_code="75000",
+            city="Paris",
+            country="FR",
+            is_active=True,
+        )
+
     def test_stock_is_not_decreased_before_payment(self):
         session = self.client.session
 
@@ -66,6 +76,7 @@ class StockPaymentWorkflowTests(TestCase):
                 "address": "1 rue du Test",
                 "postal_code": "75000",
                 "city": "Paris",
+                "country": "FR",
             },
         )
 
@@ -203,6 +214,35 @@ class StockPaymentWorkflowTests(TestCase):
         self.assertTrue(
             order.paid
         )
+
+    def test_payment_records_single_processing_event_even_if_stripe_repeats(self):
+        order = Order.objects.create(
+            user=self.user,
+            first_name="Jean",
+            last_name="Test",
+            email="jean@example.com",
+            phone="0102030405",
+            address="1 rue du Test",
+            postal_code="75000",
+            city="Paris",
+            paid=False,
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            price=self.product.price,
+            quantity=1,
+        )
+
+        OrderPaymentService.confirm_payment(order.id, "cs_test_event")
+        OrderPaymentService.confirm_payment(order.id, "cs_test_event")
+
+        events = OrderProcessingEvent.objects.filter(
+            order=order,
+            event_type="customer_payment_received",
+        )
+        self.assertEqual(events.count(), 1)
+        self.assertEqual(events.get().source, "automatic")
 
     def test_second_payment_fails_when_stock_is_exhausted(self):
         self.product.stock = 1

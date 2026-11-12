@@ -20,6 +20,7 @@ class OpportunityDecisionServiceTests(TestCase):
             shipping_cost=Decimal("0.00"),
             demand_score=0,
             competition_score=40,
+            opportunity_score=60,
         )
 
         self.assertEqual(
@@ -57,6 +58,7 @@ class OpportunityDecisionServiceTests(TestCase):
             shipping_cost=Decimal("0.00"),
             demand_score=0,
             competition_score=100,
+            opportunity_score=0,
         )
 
         self.assertEqual(
@@ -83,3 +85,10 @@ class OpportunityDecisionServiceTests(TestCase):
             result.status,
             "detected",
         )
+    def test_keeps_opportunity_detected_when_commercial_score_is_missing(self):
+        opportunity = ProductOpportunity.objects.create(name="Pending Score", source_name="CJdropshipping", supplier_price=Decimal("10.00"), market_price=Decimal("20.00"), shipping_cost=Decimal("0.00"))
+        self.assertIsNone(opportunity.opportunity_score)
+        result = OpportunityDecisionService(minimum_score=60).evaluate(opportunity)
+        result.refresh_from_db()
+        self.assertEqual(result.status, "detected")
+        self.assertIsNone(result.opportunity_score)

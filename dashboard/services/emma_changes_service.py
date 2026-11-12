@@ -11,6 +11,8 @@ class EmmaChangesService:
             ProductOpportunity.objects
             .filter(
                 detected_at__gt=previous_visit,
+                status="review",
+                ai_recommendation__decision__in=["recommend", "reject"],
             )
             .count()
         )

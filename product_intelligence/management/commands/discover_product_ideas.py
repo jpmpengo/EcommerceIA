@@ -1,3 +1,5 @@
+from time import perf_counter
+
 from django.core.management.base import (
     BaseCommand,
 )
@@ -35,6 +37,8 @@ class Command(BaseCommand):
         *args,
         **options,
     ):
+        started_at = perf_counter()
+
         generated_count = (
             ProductIdeaGenerationService
             .generate(
@@ -42,11 +46,14 @@ class Command(BaseCommand):
             )
         )
 
+        elapsed_seconds = perf_counter() - started_at
+
         self.stdout.write(
             self.style.SUCCESS(
                 (
                     f"{generated_count} "
-                    "idée(s) proposée(s)"
+                    "idée(s) proposée(s) - "
+                    f"{elapsed_seconds:.1f} seconde(s)"
                 )
             )
         )

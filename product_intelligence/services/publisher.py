@@ -49,6 +49,18 @@ class OpportunityPublisher:
 
         recommended_price = opportunity.get_recommended_price()
 
+        if not opportunity.market_collection_batch_id:
+            raise ValueError(
+                "Publication refusée : aucun lot de prix comparables "
+                "n’est associé à cette opportunité."
+            )
+
+        if opportunity.get_estimated_margin() <= 0:
+            raise ValueError(
+                "Publication refusée : ce produit serait vendu à perte "
+                "avec les coûts actuellement enregistrés."
+            )
+
         missing_fields = []
 
         if not opportunity.description:

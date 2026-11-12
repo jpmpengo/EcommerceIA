@@ -109,3 +109,36 @@ class SupplierSearchFactoryTests(TestCase):
         )
 
         auth_client_class.assert_not_called()
+
+    def test_builds_configured_aw_searcher(self):
+        http_client = Mock()
+
+        searchers = SupplierSearchFactory.build(
+            http_client=http_client,
+            cj_api_key="",
+            printful_api_token="",
+            aw_api_token="aw-test-token",
+            aw_api_base_url="https://api.aiku.io",
+        )
+
+        self.assertEqual(len(searchers), 1)
+
+        searcher = searchers[0]
+
+        self.assertEqual(
+            searcher.supplier.name,
+            "AW Dropship",
+        )
+        self.assertEqual(
+            searcher.supplier.country,
+            "SK",
+        )
+        self.assertEqual(
+            searcher.client.api_token,
+            "aw-test-token",
+        )
+        self.assertEqual(
+            searcher.client.api_base_url,
+            "https://api.aiku.io",
+        )
+        self.assertEqual(searcher.max_offers, 5)

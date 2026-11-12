@@ -3,6 +3,7 @@ class SupplierOfferResearchPipeline:
     ALLOWED_DELIVERY_STATUSES = {
         "accepted",
         "slow",
+        "fallback",
     }
 
     def __init__(

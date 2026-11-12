@@ -60,11 +60,18 @@ class SupplierOfferShippingServiceTests(
             "FR",
         )
 
+        self.assertEqual(
+            offer.shipping_method,
+            "CJPacket",
+        )
+
         offer.save.assert_called_once_with(
             update_fields=[
                 "shipping_cost",
                 "shipping_days",
                 "shipping_country",
+                "shipping_method",
+                "customs_included",
             ]
         )
 
@@ -77,8 +84,44 @@ class SupplierOfferShippingServiceTests(
                 "shipping_days": 12,
                 "shipping_country": "FR",
                 "method": "CJPacket",
+                "customs_included": None,
             },
         )
+
+    def test_persists_customs_included_from_shipping_quote(self):
+        offer = Mock()
+        offer.currency = "USD"
+
+        estimation_service = Mock()
+        estimation_service.estimate.return_value = {
+            "cost": Decimal("12.20"),
+            "currency": "USD",
+            "shipping_days": 18,
+            "shipping_country": "FR",
+            "method": "CJPacket Ordinary I",
+            "customs_included": True,
+        }
+
+        service = SupplierOfferShippingService(
+            estimation_service=estimation_service
+        )
+
+        result = service.enrich(
+            supplier_offer=offer,
+            destination_country="FR",
+        )
+
+        self.assertTrue(offer.customs_included)
+        offer.save.assert_called_once_with(
+            update_fields=[
+                "shipping_cost",
+                "shipping_days",
+                "shipping_country",
+                "shipping_method",
+                "customs_included",
+            ]
+        )
+        self.assertTrue(result["customs_included"])
 
     def test_reports_unavailable_quote(
         self,

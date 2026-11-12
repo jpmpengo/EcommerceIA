@@ -75,7 +75,7 @@ class BusinessAdvisor:
         ranked_opportunities = (
             OpportunityAdvisor.rank_opportunities(
                 approved_opportunities
-            )[:3]
+            )
         )
 
         top_opportunities = []
@@ -83,6 +83,17 @@ class BusinessAdvisor:
         for opportunity in ranked_opportunities:
             recommendation = OpportunityAdvisor.get_recommendation(
                 opportunity
+            )
+
+            ai_recommendation = getattr(opportunity, "ai_recommendation", None)
+            ai_decision_messages = {
+                "recommend": ("Emma recommande de presenter cette opportunite au commercant.", "success"),
+                "study": ("Emma demande des complements d etude avant decision.", "warning"),
+                "reject": ("Emma deconseille cette opportunite.", "danger"),
+            }
+            ai_decision = getattr(ai_recommendation, "decision", None)
+            recommendation["decision"], recommendation["level"] = ai_decision_messages.get(
+                ai_decision, ("Recommandation IA non disponible.", "warning")
             )
 
             top_opportunities.append(

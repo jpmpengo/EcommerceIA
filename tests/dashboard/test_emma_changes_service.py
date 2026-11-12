@@ -30,7 +30,7 @@ class EmmaChangesServiceTests(TestCase):
             other_costs=Decimal("5.00"),
             demand_score=90,
             competition_score=40,
-            status="detected",
+            status="review",
             description="Casque Bluetooth de test avec une description suffisamment détaillée "
                         "pour permettre sa publication dans la boutique.",
             initial_stock=5,
@@ -61,3 +61,21 @@ class EmmaChangesServiceTests(TestCase):
         )
 
         
+    def test_ignores_detected_opportunity_not_ready_for_briefing(self):
+        previous_visit = timezone.now() - timedelta(hours=1)
+
+        ProductOpportunity.objects.create(
+            name="Opportunite encore detectee",
+            source_name="Fournisseur test",
+            supplier_price=Decimal("20.00"),
+            market_price=Decimal("60.00"),
+            shipping_cost=Decimal("5.00"),
+            other_costs=Decimal("5.00"),
+            demand_score=90,
+            competition_score=40,
+            status="detected",
+        )
+
+        changes = EmmaChangesService.get_changes(previous_visit)
+
+        self.assertEqual(changes, [])

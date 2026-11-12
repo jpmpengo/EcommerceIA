@@ -106,6 +106,79 @@ class CategorySuggestionServiceTests(TestCase):
             electronics,
         )
 
+    def test_prefers_existing_category_from_product_idea_category_path(self):
+        from product_intelligence.models import ProductIdea, Supplier, SupplierOffer
+
+        idea = ProductIdea.objects.create(
+            name="Accessoires audio nomades",
+            customer_problem="Écouter en mobilité.",
+            target_customer="Utilisateurs mobiles.",
+            reason_to_study="Demande documentée.",
+            countries=["FR"],
+            category_path=["Électronique", "Audio"],
+        )
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_idea=idea,
+            product_name="Portable Wireless BT Device X200",
+            purchase_price=Decimal("8.00"),
+        )
+        opportunity = ProductOpportunity.objects.create(
+            name=offer.product_name,
+            source_name=supplier.name,
+            supplier_price=Decimal("8.00"),
+            market_price=Decimal("30.00"),
+            supplier_offer=offer,
+        )
+
+        category = CategorySuggestionService.suggest(opportunity)
+
+        self.assertEqual(category, self.audio)
+
+    def test_uses_product_idea_name_when_supplier_name_is_not_commercial(self):
+        from product_intelligence.models import ProductIdea, Supplier, SupplierOffer
+
+        garden = Category.objects.create(
+            name="Jardin",
+            slug="jardin",
+        )
+        idea = ProductIdea.objects.create(
+            name="Kits de jardinage urbain pour balcon",
+            customer_problem="Cultiver sur un petit balcon.",
+            target_customer="Habitants urbains.",
+            reason_to_study="Besoin documenté.",
+            countries=["FR"],
+        )
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_idea=idea,
+            product_name="Thickened Resin Hanging Planter Basket White 20.5x12.5cm",
+            purchase_price=Decimal("4.00"),
+        )
+        opportunity = ProductOpportunity.objects.create(
+            name=offer.product_name,
+            source_name=supplier.name,
+            supplier_price=Decimal("4.00"),
+            market_price=Decimal("20.00"),
+            supplier_offer=offer,
+        )
+
+        category = CategorySuggestionService.suggest(opportunity)
+
+        self.assertEqual(category, garden)
+
     def test_suggests_informatique_for_gaming_mouse_pad(
         self,
     ):

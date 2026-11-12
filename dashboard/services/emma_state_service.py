@@ -1,30 +1,13 @@
-
 class EmmaState:
-    ACTION_REQUIRED = "action_required"
-    PREPARATION_REQUIRED = "preparation_required"
+    REVIEW_REQUIRED = "review_required"
     ALL_CLEAR = "all_clear"
 
 
 class EmmaStateService:
 
     @staticmethod
-    def get_state(
-        progress,
-        priority,
-        alerts,
-        preparation,
-    ):
-
-        if priority:
-            return EmmaState.ACTION_REQUIRED
-
-        if alerts:
-            return EmmaState.ACTION_REQUIRED
-
-        if preparation:
-            return EmmaState.PREPARATION_REQUIRED
+    def get_state(review_opportunities_count):
+        if review_opportunities_count > 0:
+            return EmmaState.REVIEW_REQUIRED
 
         return EmmaState.ALL_CLEAR
-
-   
-        

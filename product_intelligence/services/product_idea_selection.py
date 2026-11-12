@@ -7,9 +7,14 @@ from product_intelligence.models import (
 
 class ProductIdeaSelectionService:
 
+    MAX_SELECTED_IDEAS = 5
+
     @staticmethod
     @transaction.atomic
-    def select(idea):
+    def select(idea, selection_source="manual"):
+        if selection_source not in {"manual", "automatic"}:
+            raise ValueError("Origine de selection invalide.")
+
         locked_idea = (
             ProductIdea.objects
             .select_for_update()
@@ -38,19 +43,24 @@ class ProductIdeaSelectionService:
             .count()
         )
 
-        if selected_count >= 3:
+        if (
+            selected_count
+            >= ProductIdeaSelectionService.MAX_SELECTED_IDEAS
+        ):
             raise ValueError(
                 (
-                    "Trois idées sont déjà "
+                    "Cinq idées sont déjà "
                     "sélectionnées."
                 )
             )
 
         locked_idea.status = "selected"
+        locked_idea.selection_source = selection_source
 
         locked_idea.save(
             update_fields=[
                 "status",
+                "selection_source",
                 "updated_at",
             ]
         )

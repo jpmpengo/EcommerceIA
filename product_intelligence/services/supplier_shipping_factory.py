@@ -1,3 +1,6 @@
+from product_intelligence.services.aw_shipping_estimator import (
+    AWShippingEstimator,
+)
 from product_intelligence.services.cj_auth_client import (
     CJAuthClient,
 )
@@ -16,6 +19,10 @@ from product_intelligence.services.printful_client import (
 from product_intelligence.services.printful_shipping_estimator import (
     PrintfulShippingEstimator,
 )
+from product_intelligence.services.eprolo_client import EproloClient
+from product_intelligence.services.eprolo_shipping_estimator import (
+    EproloShippingEstimator,
+)
 
 
 class SupplierShippingFactory:
@@ -24,10 +31,20 @@ class SupplierShippingFactory:
     def build(
         cls,
         http_client,
+        aw_api_token=None,
         cj_api_key=None,
         printful_api_token=None,
+        eprolo_api_key=None,
+        eprolo_api_secret=None,
+        eprolo_api_base_url=None,
+        maximum_shipping_days=20,
     ):
         estimators = []
+
+        if aw_api_token:
+            estimators.append(
+                AWShippingEstimator()
+            )
 
         if cj_api_key:
             access_token = (
@@ -46,6 +63,9 @@ class SupplierShippingFactory:
             estimators.append(
                 CJShippingEstimator(
                     client=cj_client,
+                    maximum_shipping_days=(
+                        maximum_shipping_days
+                    ),
                 )
             )
 
@@ -56,10 +76,25 @@ class SupplierShippingFactory:
                 ),
                 http_client=http_client,
             )
-
             estimators.append(
                 PrintfulShippingEstimator(
                     client=printful_client,
+                )
+            )
+
+        if eprolo_api_key and eprolo_api_secret:
+            eprolo_client = EproloClient(
+                api_key=eprolo_api_key,
+                api_secret=eprolo_api_secret,
+                http_client=http_client,
+                base_url=eprolo_api_base_url,
+            )
+            estimators.append(
+                EproloShippingEstimator(
+                    client=eprolo_client,
+                    maximum_shipping_days=(
+                        maximum_shipping_days
+                    ),
                 )
             )
 

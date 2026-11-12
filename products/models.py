@@ -3,6 +3,13 @@ from django.db import models
 
 
 class Category(models.Model):
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        related_name="children",
+        null=True,
+        blank=True,
+    )
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)

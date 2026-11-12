@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load emma_analysis %}
 
 {% block title %}
 Briefing d’Emma | EcommerceIA
@@ -136,33 +137,6 @@ Briefing d’Emma | EcommerceIA
         line-height: 1.75;
     }
 
-    .emma-progress-list {
-        display: grid;
-        gap: 0.65rem;
-        margin-top: 1.5rem;
-    }
-
-    .emma-progress-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.65rem;
-        color: #236343;
-        font-size: 0.92rem;
-        line-height: 1.5;
-    }
-
-    .emma-progress-icon {
-        display: grid;
-        flex: 0 0 1.65rem;
-        width: 1.65rem;
-        height: 1.65rem;
-        place-items: center;
-        border-radius: 50%;
-        background: #dcf8e8;
-        font-size: 0.78rem;
-        font-weight: 900;
-    }
-
     .emma-hero-side {
         display: flex;
         flex-direction: column;
@@ -199,37 +173,6 @@ Briefing d’Emma | EcommerceIA
         line-height: 1.65;
     }
 
-    .emma-mini-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.65rem;
-    }
-
-    .emma-mini-stat {
-        padding: 0.85rem 0.65rem;
-        border: 1px solid rgba(255, 255, 255, 0.13);
-        border-radius: 0.85rem;
-        background: rgba(255, 255, 255, 0.06);
-        text-align: center;
-    }
-
-    .emma-mini-stat strong,
-    .emma-mini-stat span {
-        display: block;
-    }
-
-    .emma-mini-stat strong {
-        color: #ffffff;
-        font-size: 1.4rem;
-        font-weight: 850;
-    }
-
-    .emma-mini-stat span {
-        margin-top: 0.15rem;
-        color: #b9c7e5;
-        font-size: 0.72rem;
-    }
-
     .emma-layout {
         display: grid;
         grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.75fr);
@@ -240,6 +183,56 @@ Briefing d’Emma | EcommerceIA
     .emma-stack {
         display: grid;
         gap: 1.5rem;
+    }
+
+    .emma-layout-empty {
+        grid-template-columns: 1fr;
+    }
+
+    .emma-layout-empty > main:empty {
+        display: none;
+    }
+
+    .emma-section {
+        min-width: 0;
+    }
+
+    .emma-section-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .emma-section-title {
+        margin: 0 0 0.35rem;
+        font-size: 1.65rem;
+        font-weight: 800;
+        letter-spacing: -0.035em;
+    }
+
+    .emma-section-note {
+        margin: 0;
+        color: var(--emma-muted);
+        line-height: 1.6;
+    }
+
+    .emma-count {
+        display: inline-grid;
+        min-width: 2.5rem;
+        height: 2.5rem;
+        padding: 0 0.75rem;
+        place-items: center;
+        border-radius: 999px;
+        color: var(--emma-navy);
+        background: var(--emma-yellow);
+        font-weight: 850;
+    }
+
+    .emma-review-grid {
+        display: grid;
+        gap: 1rem;
     }
 
     .emma-card {
@@ -254,142 +247,11 @@ Briefing d’Emma | EcommerceIA
         padding: clamp(1.35rem, 3vw, 2rem);
     }
 
-    .emma-priority {
-        position: relative;
-        border-color: #b9cdfd;
-        background:
-            linear-gradient(
-                135deg,
-                #ffffff,
-                #f4f8ff
-            );
-    }
-
-    .emma-priority::before {
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: 0;
-        height: 0.3rem;
-        content: "";
-        background:
-            linear-gradient(
-                90deg,
-                var(--emma-blue),
-                var(--emma-yellow)
-            );
-    }
-
-    .emma-card-kicker {
-        margin-bottom: 0.6rem;
-        color: var(--emma-blue);
-        font-size: 0.72rem;
-        font-weight: 850;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-    }
-
-    .emma-card-title {
-        margin-bottom: 0.7rem;
-        color: var(--emma-text);
-        font-size: clamp(1.45rem, 3vw, 2rem);
-        font-weight: 820;
-        letter-spacing: -0.04em;
-    }
-
-    .emma-card-copy {
-        color: var(--emma-muted);
-        line-height: 1.65;
-    }
-
-    .emma-reasons {
-        display: grid;
-        gap: 0.65rem;
-        margin: 1.25rem 0 1.5rem;
-        padding: 0;
-        list-style: none;
-    }
-
-    .emma-reasons li {
-        display: flex;
-        gap: 0.65rem;
-        color: #39465f;
-        line-height: 1.5;
-    }
-
-    .emma-reasons li::before {
-        display: grid;
-        flex: 0 0 1.45rem;
-        width: 1.45rem;
-        height: 1.45rem;
-        place-items: center;
-        border-radius: 50%;
-        content: "✓";
-        color: #ffffff;
-        background: var(--emma-blue);
-        font-size: 0.72rem;
-        font-weight: 900;
-    }
-
-    .emma-primary-action {
-        padding: 0.8rem 1.1rem;
-        border-color: var(--emma-blue);
-        border-radius: 0.75rem;
-        color: #ffffff;
-        background: var(--emma-blue);
-        font-weight: 750;
-    }
-
-    .emma-primary-action:hover {
-        border-color: #174fc8;
-        color: #ffffff;
-        background: #174fc8;
-    }
-
-    .emma-section {
-        margin-top: 2rem;
-    }
-
-    .emma-section-header {
-        display: flex;
-        gap: 1rem;
-        align-items: end;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-    }
-
-    .emma-section-title {
-        margin: 0;
-        color: var(--emma-text);
-        font-size: 1.45rem;
-        font-weight: 820;
-        letter-spacing: -0.035em;
-    }
-
-    .emma-section-note {
-        margin: 0.3rem 0 0;
-        color: var(--emma-muted);
-        font-size: 0.9rem;
-    }
-
-    .emma-count {
-        display: inline-flex;
-        min-width: 2rem;
-        height: 2rem;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        color: var(--emma-blue);
-        background: var(--emma-blue-soft);
-        font-size: 0.82rem;
-        font-weight: 850;
-    }
-
     .emma-review-grid,
-    .emma-work-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem;
+    .emma-side-card-title {
+        margin-bottom: 1rem;
+        font-size: 1.08rem;
+        font-weight: 800;
     }
 
     .emma-opportunity {
@@ -399,11 +261,14 @@ Briefing d’Emma | EcommerceIA
         padding: 1.35rem;
     }
 
+    .emma-opportunity-header { display:flex; align-items:center; gap:1rem; margin-bottom:1rem; }
+    .emma-opportunity-header > img { flex:0 0 110px; margin-bottom:0 !important; }
+    .emma-opportunity-header .emma-opportunity-top { flex:1; min-width:0; margin-bottom:0; }
     .emma-opportunity-top {
         display: flex;
-        gap: 0.8rem;
         align-items: flex-start;
         justify-content: space-between;
+        gap: 0.8rem;
         margin-bottom: 1rem;
     }
 
@@ -414,12 +279,18 @@ Briefing d’Emma | EcommerceIA
         font-weight: 800;
     }
 
+    details p { font-weight: 400; font-size: 0.94rem; line-height: 1.75; color: #52617a; }
+    .emma-analysis-text { font-weight: 400; font-size: 0.94rem; line-height: 1.75; color: #52617a; }
+    .emma-analysis-heading { font-weight: 700; font-size: 1rem; color: #14213d; }
+    .emma-summary-preview { font-size:0.94rem; font-weight:400; line-height:1.6; color:#52617a; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+    .emma-decision { display:inline-block; padding:0.45rem 0.8rem; border-radius:999px; font-size:0.9rem; font-weight:800; }
+    .emma-decision-yes { background:#e1f3e8; color:#17663c; }
+    .emma-decision-no { background:#fde8e8; color:#a52a35; }
     .emma-score {
         display: inline-flex;
         flex: 0 0 auto;
         align-items: center;
-        gap: 0.3rem;
-        padding: 0.35rem 0.55rem;
+        padding: 0.35rem 0.6rem;
         border-radius: 999px;
         color: #174fc8;
         background: var(--emma-blue-soft);
@@ -429,14 +300,14 @@ Briefing d’Emma | EcommerceIA
 
     .emma-price-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.7rem;
-        margin-bottom: 1.25rem;
+        margin-bottom: 1rem;
     }
 
     .emma-price {
-        padding: 0.75rem;
-        border-radius: 0.8rem;
+        padding: 0.8rem;
+        border-radius: 0.85rem;
         background: #f7f9fc;
     }
 
@@ -453,93 +324,31 @@ Briefing d’Emma | EcommerceIA
 
     .emma-price strong {
         color: var(--emma-text);
-        font-size: 0.98rem;
+        font-size: 1rem;
+    }
+
+    .emma-stock-info {
+        margin-bottom: 1rem;
+        color: var(--emma-muted);
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .emma-stock-info strong {
+        color: var(--emma-text);
     }
 
     .emma-actions {
         display: flex;
         gap: 0.65rem;
-        margin-top: auto;
         flex-wrap: wrap;
+        margin-top: auto;
     }
 
     .emma-action-button {
-        border-radius: 0.65rem;
+        min-width: 7.5rem;
+        border-radius: 0.7rem;
         font-weight: 700;
-    }
-
-    .emma-work-card {
-        padding: 1.3rem;
-    }
-
-    .emma-work-label {
-        margin-bottom: 0.45rem;
-        color: var(--emma-blue);
-        font-size: 0.7rem;
-        font-weight: 850;
-        letter-spacing: 0.09em;
-        text-transform: uppercase;
-    }
-
-    .emma-work-title {
-        margin-bottom: 0.85rem;
-        font-size: 1.08rem;
-        font-weight: 800;
-    }
-
-    .emma-missing-list {
-        display: grid;
-        gap: 0.5rem;
-        margin: 0 0 1.1rem;
-        padding: 0;
-        list-style: none;
-    }
-
-    .emma-missing-list li {
-        display: flex;
-        gap: 0.55rem;
-        align-items: center;
-        color: var(--emma-muted);
-        font-size: 0.88rem;
-    }
-
-    .emma-missing-list li::before {
-        width: 0.48rem;
-        height: 0.48rem;
-        border-radius: 50%;
-        content: "";
-        background: var(--emma-yellow);
-    }
-
-    .emma-side-card-title {
-        margin-bottom: 1rem;
-        font-size: 1.08rem;
-        font-weight: 800;
-    }
-
-    .emma-alert {
-        padding: 1rem;
-        border: 1px solid #f4d78e;
-        border-radius: 0.85rem;
-        background: #fff9e8;
-    }
-
-    .emma-alert + .emma-alert {
-        margin-top: 0.75rem;
-    }
-
-    .emma-alert-title {
-        margin-bottom: 0.35rem;
-        color: #704508;
-        font-size: 0.92rem;
-        font-weight: 800;
-    }
-
-    .emma-alert-copy {
-        margin-bottom: 0.65rem;
-        color: #7b6135;
-        font-size: 0.85rem;
-        line-height: 1.55;
     }
 
     .emma-change {
@@ -555,63 +364,13 @@ Briefing d’Emma | EcommerceIA
         border-top: 1px solid var(--emma-border);
     }
 
-    .emma-restock-data {
-        display: grid;
-        gap: 0.55rem;
-        margin-bottom: 1rem;
-    }
-
-    .emma-restock-line {
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        color: var(--emma-muted);
-        font-size: 0.88rem;
-    }
-
-    .emma-restock-line strong {
-        color: var(--emma-text);
-    }
-
-    .emma-activity {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    .emma-activity-card {
-        padding: 1.25rem;
-        border: 1px solid var(--emma-border);
-        border-radius: 1rem;
-        background: rgba(255, 255, 255, 0.82);
-    }
-
-    .emma-activity-card span,
-    .emma-activity-card strong {
-        display: block;
-    }
-
-    .emma-activity-card span {
-        margin-bottom: 0.35rem;
-        color: var(--emma-muted);
-        font-size: 0.82rem;
-    }
-
-    .emma-activity-card strong {
-        color: var(--emma-text);
-        font-size: 1.8rem;
-        font-weight: 850;
-    }
-
     @media (max-width: 991.98px) {
         .emma-hero,
         .emma-layout {
             grid-template-columns: 1fr;
         }
 
-        .emma-review-grid,
-        .emma-work-grid {
+        .emma-review-grid {
             grid-template-columns: 1fr;
         }
     }
@@ -628,11 +387,6 @@ Briefing d’Emma | EcommerceIA
         .emma-hero-main,
         .emma-hero-side {
             padding: 1.4rem;
-        }
-
-        .emma-mini-stats,
-        .emma-activity {
-            grid-template-columns: 1fr;
         }
 
         .emma-price-grid {
@@ -652,26 +406,16 @@ Briefing d’Emma | EcommerceIA
     <div class="emma-shell">
 
         <header class="emma-hero">
-
             <div class="emma-hero-main">
-
                 <div class="emma-identity">
-                    <div
-                        class="emma-avatar"
-                        aria-hidden="true"
-                    >
-                        E
-                    </div>
-
+                    <div class="emma-avatar" aria-hidden="true">E</div>
                     <div class="emma-identity-copy">
                         <strong>Emma</strong>
                         <span>Votre collaboratrice commerciale</span>
                     </div>
                 </div>
 
-                <p class="emma-eyebrow">
-                    Briefing du jour
-                </p>
+                <p class="emma-eyebrow">Briefing du jour</p>
 
                 <h1 class="emma-hero-title">
                     {{ briefing.greeting.title }}
@@ -680,555 +424,141 @@ Briefing d’Emma | EcommerceIA
                 <p class="emma-hero-message">
                     {{ briefing.greeting.message }}
                 </p>
-
-                {% if briefing.progress %}
-
-                    <div class="emma-progress-list">
-
-                        {% for item in briefing.progress %}
-
-                            <div class="emma-progress-item">
-                                <span class="emma-progress-icon">
-                                    ✓
-                                </span>
-
-                                <span>
-                                    {{ item.message }}
-                                </span>
-                            </div>
-
-                        {% endfor %}
-
-                    </div>
-
-                {% endif %}
-
             </div>
 
             <aside class="emma-hero-side">
-
                 <div>
-                    <p class="emma-hero-side-label">
-                        Vue d’ensemble
+                    <p class="emma-hero-side-label">Vue d'ensemble</p>
+                    <h2 class="emma-hero-side-title">
+                        {{ briefing.summary.title }}
+                    </h2>
+                    <p class="emma-hero-side-message">
+                        {{ briefing.summary.message }}
                     </p>
-
-                    {% if briefing.summary %}
-
-                        <h2 class="emma-hero-side-title">
-                            {{ briefing.summary.title }}
-                        </h2>
-
-                        <p class="emma-hero-side-message">
-                            {{ briefing.summary.message }}
-                        </p>
-
-                    {% else %}
-
-                        <h2 class="emma-hero-side-title">
-                            Votre activité aujourd’hui
-                        </h2>
-
-                        <p class="emma-hero-side-message">
-                            Retrouvez les décisions et les préparations
-                            qui méritent votre attention.
-                        </p>
-
-                    {% endif %}
                 </div>
-
-                <div class="emma-mini-stats">
-
-                    <div class="emma-mini-stat">
-                        <strong>
-                            {{ briefing.activity.products }}
-                        </strong>
-                        <span>Produits</span>
-                    </div>
-
-                    <div class="emma-mini-stat">
-                        <strong>
-                            {{ briefing.activity.orders }}
-                        </strong>
-                        <span>Commandes</span>
-                    </div>
-
-                    <div class="emma-mini-stat">
-                        <strong>
-                            {{ briefing.activity.opportunities }}
-                        </strong>
-                        <span>Opportunités</span>
-                    </div>
-
-                </div>
-
             </aside>
-
         </header>
 
-        <div class="emma-layout">
-
+        <div class="emma-layout {% if not briefing.opportunities %}emma-layout-empty{% endif %}">
             <main class="emma-stack">
 
-                {% if briefing.priorite %}
-
-                    <section class="emma-card emma-priority">
-                        <div class="emma-card-body">
-
-                            <p class="emma-card-kicker">
-                                La priorité recommandée par Emma
-                            </p>
-
-                            <h2 class="emma-card-title">
-                                {{ briefing.priorite.title }}
-                            </h2>
-
-                            <p class="emma-card-copy">
-                                {{ briefing.priorite.message }}
-                            </p>
-
-                            {% if briefing.priorite.reasons %}
-
-                                <ul class="emma-reasons">
-
-                                    {% for reason in briefing.priorite.reasons %}
-
-                                        <li>
-                                            {{ reason }}
-                                        </li>
-
-                                    {% endfor %}
-
-                                </ul>
-
-                            {% endif %}
-
-                            {% if briefing.priorite.action_url %}
-
-                                <a
-                                    href="{{ briefing.priorite.action_url }}"
-                                    class="btn emma-primary-action"
-                                >
-                                    {{ briefing.priorite.action_label }}
-                                    <span aria-hidden="true">→</span>
-                                </a>
-
-                            {% endif %}
-
-                        </div>
-                    </section>
-
-                {% endif %}
-
-                {% if review_opportunities %}
-
+                {% if briefing.opportunities %}
                     <section class="emma-section">
-
                         <div class="emma-section-header">
                             <div>
-                                <h2 class="emma-section-title">
-                                    Décisions à prendre
-                                </h2>
-
+                                <h2 class="emma-section-title">Décisions à prendre</h2>
                                 <p class="emma-section-note">
-                                    Vérifiez les opportunités détectées
-                                    avant de les confier à la préparation.
+                                    Examinez les opportunités préparées par les assistants avant de prendre une décision.
                                 </p>
                             </div>
-
                             <span class="emma-count">
-                                {{ review_opportunities|length }}
+                                {{ briefing.opportunities|length }}
                             </span>
                         </div>
 
                         <div class="emma-review-grid">
-
-                            {% for opportunity in review_opportunities %}
-
+                            {% for opportunity in briefing.opportunities %}
                                 <article class="emma-card emma-opportunity">
-
-                                    <div class="emma-opportunity-top">
-
+                                    <div class="emma-opportunity-header">
+                                    {% if opportunity.supplier_offer.image_url %}
+                                        <img src="{{ opportunity.supplier_offer.image_url }}" alt="{{ opportunity.name }}" loading="lazy" style="width:110px;height:110px;object-fit:contain;border-radius:12px;margin-bottom:12px;background:#f5f7fb;">
+                                    {% endif %}
+                                        <div class="emma-opportunity-top">
                                         <h3 class="emma-opportunity-title">
                                             {{ opportunity.name }}
                                         </h3>
 
-                                        <span class="emma-score">
-                                            Score
-                                            {{ opportunity.opportunity_score }}
-                                        </span>
-
+                                        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:7px 10px;background:#eef2ff;border-radius:10px;color:#2847b8;font-size:12px;font-weight:600;line-height:1.35;">
+                                            <div>Demande : {% if opportunity.demand_score >= 70 %}Forte{% elif opportunity.demand_score >= 40 %}Moyenne{% else %}Faible{% endif %}</div>
+                                            <div>Concurrence : {% if opportunity.saturation_level == "high" %}Forte{% elif opportunity.saturation_level == "moderate" %}Moyenne{% elif opportunity.saturation_level == "low" %}Faible{% else %}Non évaluée{% endif %}</div>
+                                            <details style="margin-top:6px;"><summary style="cursor:pointer;">Score global : {{ opportunity.opportunity_score|default_if_none:"Non disponible" }}</summary><div style="margin-top:8px;text-align:left;font-weight:normal;font-size:12px;line-height:1.5;"><strong>Pourquoi cette evaluation ?</strong><div style="margin-top:6px;"><strong>Demande :</strong> {% if opportunity.demand_score >= 70 %}forte{% elif opportunity.demand_score >= 40 %}moyenne{% else %}faible{% endif %}. Le niveau de demande est evalue a {{ opportunity.demand_score|default_if_none:"Non disponible" }}/100.</div><div style="margin-top:6px;"><strong>Concurrence :</strong> {% if opportunity.saturation_level == "high" %}forte. Le marche est fortement concurrentiel.{% elif opportunity.saturation_level == "moderate" %}moyenne. Le marche presente une concurrence moderee.{% elif opportunity.saturation_level == "low" %}faible. Le marche presente une concurrence limitee.{% else %}non evaluee.{% endif %}</div><div style="margin-top:8px;"><strong>Conclusion :</strong> {% if opportunity.saturation_level == "high" %}La concurrence elevee limite l attractivite commerciale du produit malgre la demande.{% else %}Emma tient compte de la demande et de la concurrence pour evaluer cette opportunite.{% endif %}</div></div></details>
+                                        </div>
+                                        </div>
                                     </div>
 
                                     <div class="emma-price-grid">
-
-                                        <div class="emma-price">
-                                            <span>Prix fournisseur</span>
-                                            <strong>
-                                                {{ opportunity.supplier_price }}
-                                            </strong>
-                                        </div>
-
-                                        <div class="emma-price">
-                                            <span>Prix marché</span>
-                                            <strong>
-                                                {{ opportunity.market_price }}
-                                            </strong>
-                                        </div>
-
+                                        <div class="emma-price"><span>Prix de vente recommande</span><strong>{% if opportunity.recommended_price is not None %}{{ opportunity.recommended_price }} EUR{% else %}Non disponible{% endif %}</strong></div>
+                                        <div class="emma-price"><span>Prix fournisseur</span><strong>{{ opportunity.supplier_price }}</strong></div>
+                                        <div class="emma-price"><span>Reference marche ({{ opportunity.market_reference_type }})</span><strong>{% if opportunity.market_reference_price is not None %}{{ opportunity.market_reference_price }} EUR{% else %}Non disponible{% endif %}</strong></div>
+                                         {% if opportunity.commercial_pricing.status == "ready" %}
+                                         <div class="emma-price"><span>Prix d’équilibre TTC</span><strong>{{ opportunity.commercial_pricing.break_even_price }} EUR</strong></div>
+                                         <div class="emma-price"><span>Prix minimum rentable TTC (+10 %)</span><strong>{{ opportunity.commercial_pricing.minimum_profitable_price }} EUR</strong></div>
+                                         <div class="emma-price"><span>Politique tarifaire</span><strong>{% if opportunity.commercial_pricing.pricing_policy == "minimum_profitable" %}Concurrence elevee : prix minimum rentable{% elif opportunity.commercial_pricing.pricing_policy == "competitor_minimum_delivery" %}Concurrence elevee : prix minimum concurrent{% elif opportunity.commercial_pricing.pricing_policy == "competitor_minimum_minus_10_delivery" %}Concurrence elevee : prix minimum concurrent -10 % (delai fournisseur plus long){% elif opportunity.saturation_level == "moderate" %}Concurrence moyenne : reference marche -10 %{% else %}Concurrence faible : reference marche +10 %{% endif %}</strong></div>
+                                         {% endif %}
+                                        <div class="emma-price"><span>Delai de livraison fournisseur</span><strong>{% if opportunity.supplier_offer and opportunity.supplier_offer.shipping_days is not None %}{{ opportunity.supplier_offer.shipping_days }} jours{% else %}Non disponible{% endif %}</strong></div>
+                                        <div class="emma-price"><span>Benefice net previsionnel</span><strong>{% if opportunity.projected_profit is not None %}{{ opportunity.projected_profit }} EUR{% else %}Non disponible{% endif %}</strong></div>
+                                        <div class="emma-price"><span>Marge nette previsionnelle</span><strong>{% if opportunity.projected_margin_rate is not None %}{{ opportunity.projected_margin_rate }} %{% else %}Non disponible{% endif %}</strong></div>
                                     </div>
 
+                                    {% if opportunity.supplier_offer and opportunity.supplier_offer.stock is not None %}
+                                        <div class="emma-stock-info">
+                                            <strong>Stock fournisseur : {{ opportunity.supplier_offer.stock }}</strong>
+                                            {% if opportunity.supplier_offer.stock_country %}
+                                                <span> · Entrepôt : {{ opportunity.supplier_offer.stock_country }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="emma-card-body">
+                                        {% if opportunity.ai_recommendation %}
+                                            <p><span class="emma-decision {% if opportunity.ai_recommendation.decision == 'recommend' %}emma-decision-yes{% else %}emma-decision-no{% endif %}">{% if opportunity.ai_recommendation.decision == 'recommend' %}Recommandé par Emma{% else %}Déconseillé par Emma{% endif %}</span></p>
+                                            <p class="emma-summary-preview">{% if opportunity.ai_recommendation.merchant_summary %}{{ opportunity.ai_recommendation.merchant_summary }}{% else %}{{ opportunity.ai_recommendation.summary|truncatewords:45 }}{% endif %}</p>
+                                            <details><summary>Voir l analyse complete d Emma</summary><p>{{ opportunity.ai_recommendation.summary|emma_analysis }}</p></details>
+                                        {% else %}
+                                            <p>Recommandation IA non disponible.</p>
+                                        {% endif %}
+                                    </div>
                                     <div class="emma-actions">
-
-                                        <form
-                                            method="post"
-                                            action="{% url 'dashboard:approve_opportunity' opportunity.id %}"
-                                        >
+                                        <form method="post" action="{% url 'dashboard:approve_opportunity' opportunity.id %}">
                                             {% csrf_token %}
-
-                                            <button
-                                                type="submit"
-                                                class="btn btn-success emma-action-button"
-                                            >
+                                            <button type="submit" class="btn btn-success emma-action-button">
                                                 Approuver
                                             </button>
                                         </form>
 
-                                        <form
-                                            method="post"
-                                            action="{% url 'dashboard:reject_opportunity' opportunity.id %}"
-                                        >
+                                        <form method="post" action="{% url 'dashboard:reject_opportunity' opportunity.id %}">
                                             {% csrf_token %}
-
-                                            <button
-                                                type="submit"
-                                                class="btn btn-outline-danger emma-action-button"
-                                            >
+                                            <button type="submit" class="btn btn-outline-danger emma-action-button">
                                                 Refuser
                                             </button>
                                         </form>
-
                                     </div>
-
                                 </article>
-
                             {% endfor %}
-
                         </div>
-
                     </section>
-
-                {% endif %}
-
-                {% if briefing.preparation %}
-
-                    <section class="emma-section">
-
-                        <div class="emma-section-header">
-                            <div>
-                                <h2 class="emma-section-title">
-                                    Produits à préparer
-                                </h2>
-
-                                <p class="emma-section-note">
-                                    Complétez les informations nécessaires
-                                    avant la mise en ligne.
-                                </p>
-                            </div>
-
-                            <span class="emma-count">
-                                {{ briefing.preparation|length }}
-                            </span>
-                        </div>
-
-                        <div class="emma-work-grid">
-
-                            {% for item in briefing.preparation %}
-
-                                <article class="emma-card emma-work-card">
-
-                                    <p class="emma-work-label">
-                                        Préparation
-                                    </p>
-
-                                    <h3 class="emma-work-title">
-                                        {{ item.title }}
-                                    </h3>
-
-                                    <ul class="emma-missing-list">
-
-                                        {% for missing in item.missing %}
-
-                                            <li>
-                                                {{ missing.label }}
-                                            </li>
-
-                                        {% endfor %}
-
-                                    </ul>
-
-                                    <a
-                                        href="{% url 'recommendations:detail' item.opportunity.id %}"
-                                        class="btn btn-outline-primary emma-action-button"
-                                    >
-                                        Préparer ce produit
-                                        <span aria-hidden="true">→</span>
-                                    </a>
-
-                                </article>
-
-                            {% endfor %}
-
-                        </div>
-
-                    </section>
-
-                {% endif %}
-
-                {% if briefing.restock %}
-
-                    <section class="emma-section">
-
-                        <div class="emma-section-header">
-                            <div>
-                                <h2 class="emma-section-title">
-                                    Réapprovisionnements
-                                </h2>
-
-                                <p class="emma-section-note">
-                                    Les produits existants qui nécessitent
-                                    une nouvelle décision de stock.
-                                </p>
-                            </div>
-
-                            <span class="emma-count">
-                                {{ briefing.restock|length }}
-                            </span>
-                        </div>
-
-                        <div class="emma-work-grid">
-
-                            {% for item in briefing.restock %}
-
-                                <article class="emma-card emma-work-card">
-
-                                    <p class="emma-work-label">
-                                        Stock
-                                    </p>
-
-                                    <h3 class="emma-work-title">
-                                        {{ item.title }}
-                                    </h3>
-
-                                    <div class="emma-restock-data">
-
-                                        <div class="emma-restock-line">
-                                            <span>Stock actuel</span>
-                                            <strong>
-                                                {{ item.current_stock }}
-                                            </strong>
-                                        </div>
-
-                                        {% if item.supplier_stock is not None %}
-
-                                            <div class="emma-restock-line">
-                                                <span>Stock fournisseur</span>
-                                                <strong>
-                                                    {{ item.supplier_stock }}
-                                                </strong>
-                                            </div>
-
-                                        {% endif %}
-
-                                        {% if item.suggested_stock %}
-
-                                            <div class="emma-restock-line">
-                                                <span>Quantité conseillée</span>
-                                                <strong>
-                                                    {{ item.suggested_stock }}
-                                                </strong>
-                                            </div>
-
-                                        {% endif %}
-
-                                    </div>
-
-                                    <a
-                                        href="{% url 'recommendations:detail' item.opportunity.id %}"
-                                        class="btn btn-outline-success emma-action-button"
-                                    >
-                                        Voir le réapprovisionnement
-                                        <span aria-hidden="true">→</span>
-                                    </a>
-
-                                </article>
-
-                            {% endfor %}
-
-                        </div>
-
-                    </section>
-
                 {% endif %}
 
             </main>
 
             <aside class="emma-stack">
-
-                {% if briefing.alerts %}
-
-                    <section class="emma-card">
-                        <div class="emma-card-body">
-
-                            <h2 class="emma-side-card-title">
-                                À surveiller
-                            </h2>
-
-                            {% for alert in briefing.alerts %}
-
-                                <article class="emma-alert">
-
-                                    <h3 class="emma-alert-title">
-                                        {{ alert.icon }}
-                                        {{ alert.title }}
-                                    </h3>
-
-                                    <p class="emma-alert-copy">
-                                        {{ alert.message }}
-                                    </p>
-
-                                    {% if alert.action_url %}
-
-                                        <a
-                                            href="{{ alert.action_url }}"
-                                            class="btn btn-sm btn-outline-dark"
-                                        >
-                                            {{ alert.action_label }}
-                                        </a>
-
-                                    {% endif %}
-
-                                </article>
-
-                            {% endfor %}
-
-                        </div>
-                    </section>
-
-                {% endif %}
-
                 {% if briefing.greeting.previous_visit and briefing.changes %}
-
                     <section class="emma-card">
                         <div class="emma-card-body">
-
-                            <p class="emma-card-kicker">
-                                Depuis votre dernière visite
-                            </p>
-
-                            <h2 class="emma-side-card-title">
-                                Ce qui a changé
-                            </h2>
+                            <p class="emma-card-kicker">Depuis votre dernière visite</p>
+                            <h2 class="emma-side-card-title">Ce qui a changé</h2>
 
                             {% for change in briefing.changes %}
-
                                 <div class="emma-change">
-
-                                    <span aria-hidden="true">
-                                        {{ change.icon }}
-                                    </span>
-
-                                    <span>
-                                        {{ change.message }}
-                                    </span>
-
+                                    <span aria-hidden="true">{{ change.icon }}</span>
+                                    <span>{{ change.message }}</span>
                                 </div>
-
                             {% endfor %}
-
                         </div>
                     </section>
-
                 {% endif %}
 
                 <section class="emma-card">
                     <div class="emma-card-body">
-
-                        <p class="emma-card-kicker">
-                            Découverte produits
-                        </p>
-
-                        <h2 class="emma-side-card-title">
-                            Idées de produits
-                        </h2>
-
-                        <p class="emma-card-copy">
-                            Consultez les hypothèses proposées
-                            et choisissez celles qui méritent
-                            une étude ciblée.
-                        </p>
-
-                        <a
-                            href="{% url 'dashboard:product_idea_list' %}"
-                            class="btn emma-primary-action"
-                        >
-                            Examiner les idées
-                            <span aria-hidden="true">→</span>
-                        </a>
-
-                    </div>
-                </section>
-
-                <section class="emma-card">
-                    <div class="emma-card-body">
-
-                        <p class="emma-card-kicker">
-                            Méthode Emma
-                        </p>
-
-                        <h2 class="emma-side-card-title">
-                            Une décision à la fois
-                        </h2>
-
+                        <p class="emma-card-kicker">Méthode Emma</p>
+                        <h2 class="emma-side-card-title">Une décision à la fois</h2>
                         <p class="emma-card-copy mb-0">
-                            Emma rassemble les éléments utiles,
-                            explique ses recommandations et vous
-                            laisse toujours la décision finale.
+                            Emma rassemble les éléments utiles, explique ses recommandations et vous laisse toujours la décision finale.
                         </p>
-
                     </div>
                 </section>
-
             </aside>
-
         </div>
-
-        <section
-            class="emma-activity"
-            aria-label="Indicateurs d’activité"
-        >
-
-            <article class="emma-activity-card">
-                <span>Produits dans la boutique</span>
-                <strong>
-                    {{ briefing.activity.products }}
-                </strong>
-            </article>
-
-            <article class="emma-activity-card">
-                <span>Commandes enregistrées</span>
-                <strong>
-                    {{ briefing.activity.orders }}
-                </strong>
-            </article>
-
-            <article class="emma-activity-card">
-                <span>Opportunités suivies</span>
-                <strong>
-                    {{ briefing.activity.opportunities }}
-                </strong>
-            </article>
-
-        </section>
 
     </div>
 </section>

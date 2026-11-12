@@ -1,7 +1,12 @@
 import re
+import unicodedata
 
 
 class SupplierCategoryMatchingService:
+
+    ANCHOR_GROUPS = (
+        {"bike", "bicycle", "cycling", "cyclist"},
+    )
 
     IGNORED_WORDS = {
         "a",
@@ -25,10 +30,15 @@ class SupplierCategoryMatchingService:
         cls,
         value,
     ):
+        ascii_value = unicodedata.normalize(
+            "NFKD",
+            (value or "").lower(),
+        ).encode("ascii", "ignore").decode("ascii")
+
         normalized = re.sub(
             r"[^a-z0-9]+",
             " ",
-            (value or "").lower(),
+            ascii_value,
         )
 
         return {
@@ -41,11 +51,33 @@ class SupplierCategoryMatchingService:
             )
         }
 
+    @staticmethod
+    def _token_matches(product_token, keyword_token):
+        if product_token == keyword_token:
+            return True
+
+        shorter = min(len(product_token), len(keyword_token))
+        if shorter < 5:
+            return False
+
+        return (
+            product_token.startswith(keyword_token)
+            or keyword_token.startswith(product_token)
+        )
+
     def is_relevant(
         self,
         product_name,
         search_keyword,
+        alternative_keywords=None,
     ):
+        for alternative_keyword in (alternative_keywords or []):
+            if self.is_relevant(
+                product_name=product_name,
+                search_keyword=alternative_keyword,
+            ):
+                return True
+
         product_tokens = self._tokens(
             product_name
         )
@@ -60,17 +92,32 @@ class SupplierCategoryMatchingService:
         ):
             return False
 
-        common_tokens = (
-            product_tokens
-            & keyword_tokens
-        )
+        for anchor_group in self.ANCHOR_GROUPS:
+            if keyword_tokens & anchor_group:
+                if not product_tokens & anchor_group:
+                    return False
+
+        if "treadmill" in keyword_tokens:
+            return "treadmill" in product_tokens or ("walking" in product_tokens and bool(product_tokens & {"pad", "machine"}))
+
+        matched_keyword_tokens = {
+            keyword_token
+            for keyword_token in keyword_tokens
+            if any(
+                self._token_matches(
+                    product_token,
+                    keyword_token,
+                )
+                for product_token in product_tokens
+            )
+        }
 
         minimum_matches = min(
-            2,
+            3,
             len(keyword_tokens),
         )
 
         return (
-            len(common_tokens)
+            len(matched_keyword_tokens)
             >= minimum_matches
         )

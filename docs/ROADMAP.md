@@ -53,6 +53,17 @@ de valider correctement toutes les catégories de produits.
 - historique Git par lots fonctionnels ;
 - calculs déterministes séparés des explications générées par OpenAI.
 
+### Commande fournisseur en simulation
+
+- contrat de commande indépendant du fournisseur ;
+- regroupement des articles par fournisseur ;
+- adaptateur CJdropshipping limité au sandbox ;
+- protection d'idempotence et conservation des échanges ;
+- cycle CJ validé jusqu'à la livraison simulée ;
+- synchronisation des statuts client ;
+- conservation du transporteur et du suivi ;
+- distinction explicite entre suivi fictif et suivi réel.
+
 ## Changement de cap adopté
 
 Les intégrations directes aux marketplaces sont abandonnées pour le parcours de
@@ -73,7 +84,38 @@ recherche web sourcée
 La stratégie détaillée est définie dans `PRODUCT_DISCOVERY.md`. La décision est
 consignée dans `DECISIONS.md`.
 
-## Priorité 1 — Sécuriser la transition
+
+
+## Priorité CJ - Coût rendu puis commande fournisseur
+
+La stratégie CJ Europe n'est plus dans le pipeline actif. La recherche CJ part désormais directement de Chine (`CN`) pour les marchés cibles France (`FR`), Belgique (`BE`) et Espagne (`ES`).
+
+### Chantier 1 - CJ Landed Cost CN -> FR / BE / ES
+
+Objectifs :
+
+- calculer un coût rendu exploitable avant décision commerciale ;
+- distinguer le prix produit, le transport, les droits éventuels, la TVA/IOSS et les frais IOSS ;
+- utiliser les montants réellement exposés par CJ lorsque l'API les fournit ;
+- ne pas transformer un coût inconnu en zéro ;
+- valider séparément les flux `CN -> FR`, `CN -> BE` et `CN -> ES` ;
+- intégrer ce coût rendu dans l'analyse financière des offres CJ.
+
+Le cas `CN -> FR` a déjà été validé jusqu'au détail de paiement Sandbox et sert de référence pour le chantier.
+
+### Chantier 2 - Commande et facturation CJ
+
+Une fois le Landed Cost fiabilisé, poursuivre avec le cycle de commande fournisseur CJ :
+
+- création de commande ;
+- validation logistique ;
+- panier et confirmation ;
+- génération du paiement ;
+- lecture de `paymentInformation` ;
+- préparation de la facturation et de la traçabilité fournisseur.
+
+CJ Europe et le Free Shipping DE -> FR restent hors priorité et ne doivent plus bloquer ces travaux.
+\n## Priorité 1 — Sécuriser la transition
 
 Objectifs :
 
@@ -214,6 +256,21 @@ Objectifs :
 - approvisionnement assisté puis automatisé ;
 - suivi fournisseur et livraison.
 
+## Priorités issues du test bout en bout
+
+1. Intégrer BigBuy dès que l'accès API est disponible afin d'obtenir une vraie
+   comparaison multi-fournisseur.
+2. Calculer les scores réels de demande, concurrence, similarité et confiance.
+3. Remplacer la politique du prix minimum par une règle commerciale plus
+   robuste et explicable.
+4. Déterminer la douane à partir du produit, de l'origine, de la destination,
+   de la valeur et du traitement IOSS.
+5. Ajouter la facture client et compléter les données d'adresse nécessaires.
+6. Développer un adaptateur et des tests sandbox propres à chaque fournisseur
+   avant toute commande réelle.
+7. Automatiser plus tard la collecte nocturne des assistants d'Emma, sans
+   automatiser les décisions humaines.
+
 ## Backlog UX conservé
 
 - employer « Actions du jour » plutôt que plusieurs sens de « Mission » ;
@@ -232,7 +289,7 @@ Objectifs :
 - import complet d'un catalogue externe ;
 - affirmation certaine des cinq meilleures ventes du marché ;
 - publication autonome par l'intelligence artificielle ;
-- commande fournisseur automatique ;
+- commande fournisseur réelle ou automatique ;
 - décision commerciale entièrement automatisée ;
 - déploiement de Celery avant nécessité mesurée ;
 - apprentissage automatique à partir d'un historique insuffisant ;

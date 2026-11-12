@@ -37,8 +37,11 @@ class CJSupplierOfferServiceTests(TestCase):
             "purchase_price": "8.75",
             "product_url": "https://example.com/cj-product",
             "stock": 42,
+            "stock_country": "FR",
             "shipping_cost": "3.20",
         }
+
+        product["product_description"] = "USB-C 20W, compatible Qi, protection thermique"
 
         offer = self.service.create_offer(
             supplier=self.supplier,
@@ -69,6 +72,34 @@ class CJSupplierOfferServiceTests(TestCase):
             offer.stock,
             42,
         )
+
+        self.assertEqual(
+            offer.stock_country,
+            "FR",
+        )
+
+        self.assertEqual(
+            offer.stock_country,
+            "FR",
+        )
+
+        offer.refresh_from_db()
+        self.assertEqual(offer.product_description, product["product_description"])
+
+    def test_create_offer_persists_explicit_free_shipping(self):
+        product = {
+            "external_id": "CJ-FREE-001",
+            "name": "Supplier Shipped Product",
+            "purchase_price": "8.75",
+            "free_shipping": True,
+        }
+
+        offer = self.service.create_offer(
+            supplier=self.supplier,
+            product=product,
+        )
+
+        self.assertIs(offer.free_shipping, True)
 
     def test_keeps_shipping_cost_unknown_when_missing(self):
         product = {
@@ -332,6 +363,55 @@ class CJSupplierOfferServiceTests(TestCase):
             "CJ-VARIANT-456",
         )
 
+    def test_create_offer_from_variant_persists_free_shipping(self):
+        product = {
+            "external_id": "CJ-FREE-002",
+            "name": "Supplier shipped product",
+            "currency": "USD",
+            "free_shipping": True,
+        }
+        variant = {
+            "vid": "CJ-FREE-VARIANT-002",
+            "pid": "CJ-FREE-002",
+            "variantNameEn": "Supplier shipped product",
+            "variantSellPrice": "7.50",
+        }
+
+        offer = self.service.create_offer_from_variant(
+            supplier=self.supplier,
+            product=product,
+            variant=variant,
+            stock=100,
+        )
+
+        self.assertIs(offer.free_shipping, True)
+
+    def test_create_offer_from_variant_persists_supplier_identity_and_weight(self):
+        product = {
+            "external_id": "CJ-PARENT-001",
+            "name": "Supplier shipped product",
+            "currency": "USD",
+        }
+        variant = {
+            "vid": "CJ-VARIANT-001",
+            "pid": "CJ-PARENT-001",
+            "variantSku": "CJ-SKU-001",
+            "variantNameEn": "Supplier shipped product",
+            "variantSellPrice": "7.50",
+            "variantWeight": 320,
+        }
+
+        offer = self.service.create_offer_from_variant(
+            supplier=self.supplier,
+            product=product,
+            variant=variant,
+            stock=100,
+        )
+
+        self.assertEqual(offer.supplier_parent_product_id, "CJ-PARENT-001")
+        self.assertEqual(offer.supplier_sku, "CJ-SKU-001")
+        self.assertEqual(offer.shipping_weight_grams, 320)
+
     def test_create_offer_from_variant_converts_float_price_cleanly(
         self,
     ):
@@ -421,6 +501,18 @@ class CJSupplierOfferServiceTests(TestCase):
                 "color": "Black",
             },
         )
+
+    def test_variant_features_extracts_apparel_size(self):
+        features = VariantFeaturesService().extract(
+            {
+                "variantNameEn": (
+                    "Women's Physiological Underwear Black 2XL"
+                ),
+            }
+        )
+
+        self.assertEqual(features["color"], "Black")
+        self.assertEqual(features["size"], "2XL")
 
     def test_create_offer_from_variant_updates_existing_offer(
         self,
@@ -648,3 +740,33 @@ class CJSupplierOfferServiceTests(TestCase):
         )
 
     
+
+    def test_create_offer_from_variant_stores_supplier_search_keyword(self):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://cjdropshipping.com",
+            supplier_type="dropshipper",
+        )
+        product = {
+            "external_id": "CJ-PRODUCT-KEYWORD",
+            "name": "Bike Light",
+            "currency": "USD",
+        }
+        variant = {
+            "vid": "CJ-VARIANT-KEYWORD",
+            "pid": "CJ-PRODUCT-KEYWORD",
+            "variantNameEn": "USB Rechargeable Bike Light",
+            "variantSellPrice": "8.50",
+        }
+        offer = CJSupplierOfferService().create_offer_from_variant(
+            supplier=supplier,
+            product=product,
+            variant=variant,
+            stock=100,
+            supplier_search_keyword="USB rechargeable bike light",
+        )
+        self.assertEqual(
+            offer.supplier_search_keyword,
+            "USB rechargeable bike light",
+        )

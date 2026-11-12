@@ -41,7 +41,7 @@ class OpportunityAnalyzer:
     @staticmethod
     def estimated_margin(opportunity):
         return (
-            opportunity.market_price
+            OpportunityAnalyzer.recommended_price(opportunity)
             - OpportunityAnalyzer.total_cost(opportunity)
         )
 

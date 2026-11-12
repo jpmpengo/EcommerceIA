@@ -55,7 +55,7 @@ class Command(BaseCommand):
                 )
             ) from error
 
-        if product_idea.status != "selected":
+        if product_idea.status not in {"selected", "validated"}:
             raise CommandError(
                 (
                     "La catégorie doit être "

@@ -178,6 +178,18 @@ class DashboardAccessTests(TestCase):
 
         self.assertContains(
             response,
+            "Briefing",
+        )
+
+        self.assertContains(
+            response,
+            reverse(
+                "dashboard:product_idea_list"
+            ),
+        )
+
+        self.assertContains(
+            response,
             "Pilotage",
         )
 
@@ -214,6 +226,11 @@ class DashboardAccessTests(TestCase):
 
         self.assertContains(
             response,
+            "Briefing",
+        )
+
+        self.assertContains(
+            response,
             "Pilotage",
         )
 
@@ -225,6 +242,16 @@ class DashboardAccessTests(TestCase):
         self.assertContains(
             response,
             "Boutique",
+        )
+
+        self.assertContains(
+            response,
+            reverse("orders:operator_order_list"),
+        )
+
+        self.assertContains(
+            response,
+            "Gestion des commandes",
         )
 
         self.assertNotContains(

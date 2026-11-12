@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang=fr>
+<head>
+<meta charset=utf-8>
+<meta name=viewport content=width=device-width,initial-scale=1>
+<title>Votre avis - EcommerceIA</title>
+<style>body{margin:0;background:#f3f6fb;color:#243247;font-family:Arial,sans-serif}main{max-width:540px;margin:65px auto;padding:35px;background:white;border-radius:16px;box-shadow:0 8px 30px #dce3ee}h1{font-size:27px;margin-top:0}fieldset{border:0;padding:15px 0}legend{font-weight:bold;margin-bottom:12px}fieldset label{display:inline-block;padding:8px 5px;font-size:18px;cursor:pointer}input[type=radio]{accent-color:#e6a400}textarea{box-sizing:border-box;width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}button{background:#1769c2;color:white;border:0;border-radius:8px;padding:13px 24px;font-size:16px;cursor:pointer}button:hover{background:#10549d}@media(max-width:620px){main{margin:15px;padding:24px}}</style>
+<style>.rating-choice{display:inline-flex;cursor:pointer}.rating-choice input{position:absolute;opacity:0;width:1px;height:1px}.rating-choice span{font-size:38px;color:#a0a8b5;padding:0 4px}.rating-choice span.active{color:#e6a400}.rating-choice input:focus-visible+span{outline:2px solid #1769c2;border-radius:4px}</style>
+</head>
+<body>
+<main>
+<h1>Votre avis sur votre commande</h1>
+<div style="display:flex;align-items:center;gap:15px;margin:20px 0;padding:12px;border:1px solid #e2e8f0;border-radius:10px">{% if product and product.image %}<img src="{{ product.image.url }}" alt="Photo du produit" style="width:75px;height:75px;object-fit:contain;border-radius:8px">{% endif %}<div><strong>{% if product %}{{ product.name }}{% else %}Votre commande{% endif %}</strong><p style="margin:6px 0 0;color:#64748b;font-size:14px">Commande numero {{ order.id }}</p></div></div>
+<p>Votre avis est facultatif.</p>
+<form method=post>
+{% csrf_token %}
+<fieldset>
+<legend>Votre note</legend>
+{% for n in notes %}
+<label class=rating-choice><input type=radio name=rating value={{ n }} {% if n == selected_rating %}checked{% endif %} required><span data-star={{ n }}>&#9733;</span></label>
+{% endfor %}
+</fieldset><script>const stars=document.querySelectorAll(".rating-choice span");const radios=document.querySelectorAll("input[name=rating]");function updateStars(){const selected=Number(document.querySelector("input[name=rating]:checked")?.value||0);stars.forEach(star=>star.classList.toggle("active",Number(star.dataset.star)<=selected))}radios.forEach(radio=>radio.addEventListener("change",updateStars));updateStars();</script>
+<p><label for=comment>Commentaire facultatif</label></p>
+<textarea id=comment name=comment rows=4 cols=45></textarea>
+<p><button type=submit>Envoyer mon avis</button></p>
+</form>
+</main>
+</body>
+</html>

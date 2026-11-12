@@ -156,3 +156,40 @@ class CollectSupplierCandidatesCommandTests(
             )
 
         collect.assert_not_called()
+    @patch(
+        (
+            "product_intelligence.management."
+            "commands.collect_supplier_candidates."
+            "SupplierCandidateCollectionRunner."
+            "collect"
+        )
+    )
+    def test_collects_candidates_for_validated_idea(
+        self,
+        collect,
+    ):
+        idea = ProductIdea.objects.create(
+            name="Categorie validee",
+            customer_problem="Probleme client.",
+            target_customer="Client europeen.",
+            reason_to_study="Categorie validee.",
+            countries=["FR"],
+            search_keywords=["categorie test"],
+            status="validated",
+        )
+
+        collect.return_value = {
+            "product_idea_id": idea.id,
+            "suppliers_searched": 0,
+            "offers_found": 0,
+            "offers_by_supplier": {},
+        }
+
+        call_command(
+            "collect_supplier_candidates",
+            idea.id,
+        )
+
+        collect.assert_called_once_with(
+            product_idea=idea,
+        )

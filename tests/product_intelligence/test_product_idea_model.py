@@ -1,63 +1,48 @@
 from django.test import TestCase
 
-from product_intelligence.models import (
-    ProductIdea,
-)
+from product_intelligence.models import ProductIdea
 
 
 class ProductIdeaModelTests(TestCase):
 
-    def test_product_idea_is_stored_as_unvalidated_hypothesis(
-        self,
-    ):
+    def test_demand_signal_assessments_defaults_to_empty_list(self):
         idea = ProductIdea.objects.create(
-            name=(
-                "Organisateur modulaire "
-                "pour coffre"
-            ),
-            customer_problem=(
-                "Les objets se déplacent "
-                "pendant les trajets."
-            ),
-            target_customer=(
-                "Familles et conducteurs."
-            ),
-            reason_to_study=(
-                "Besoin concret à vérifier."
-            ),
-            countries=[
-                "FR",
-                "BE",
-                "ES",
-            ],
-            search_keywords=[
-                (
-                    "organisateur coffre "
-                    "voiture pliable"
-                ),
-            ],
-            source="openai",
-            model_name="gpt-5.6-luna",
+            name="Produit test",
+            customer_problem="Problème test",
+            target_customer="Client test",
+            reason_to_study="Raison test",
+            countries=["FR"],
         )
 
         self.assertEqual(
-            idea.status,
-            "proposed",
+            idea.demand_signal_assessments,
+            [],
+        )
+
+    def test_idea_score_defaults_to_zero(self):
+        idea = ProductIdea.objects.create(
+            name="Produit score test",
+            customer_problem="Probleme test",
+            target_customer="Client test",
+            reason_to_study="Raison test",
+            countries=["FR"],
         )
 
         self.assertEqual(
-            idea.countries,
-            [
-                "FR",
-                "BE",
-                "ES",
-            ],
+            idea.idea_score,
+            0,
         )
 
-        self.assertFalse(
-            idea.is_validated
+    def test_selection_source_defaults_to_empty_string(self):
+        idea = ProductIdea.objects.create(
+            name="Produit selection test",
+            customer_problem="Probleme test",
+            target_customer="Client test",
+            reason_to_study="Raison test",
+            countries=["FR"],
         )
 
-        self.assertIsNotNone(
-            idea.created_at
+        self.assertEqual(
+            idea.selection_source,
+            "",
         )

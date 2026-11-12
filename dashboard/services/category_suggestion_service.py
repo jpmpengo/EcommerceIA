@@ -5,12 +5,23 @@ class CategorySuggestionService:
 
     @staticmethod
     def suggest(opportunity):
+        product_idea = getattr(getattr(opportunity, "supplier_offer", None), "product_idea", None)
+
+        category_path = getattr(product_idea, "category_path", []) or []
+        for category_name in reversed(category_path):
+            category = Category.objects.filter(name__iexact=category_name).first()
+            if category is not None:
+                return category
+
+        product_idea_name = getattr(product_idea, "name", "")
         text = (
             f"{opportunity.name} "
-            f"{opportunity.description}"
+            f"{opportunity.description} "
+            f"{product_idea_name}"
         ).lower()
 
         rules = [
+            (["jardin", "jardinage"], "Jardin"),
             (
                 [
                     "ordinateur",

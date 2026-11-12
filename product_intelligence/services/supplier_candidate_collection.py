@@ -3,14 +3,20 @@ class SupplierCandidateCollectionService:
     def __init__(
         self,
         search_service,
+        visual_matching_service=None,
+        fallback_service=None,
     ):
         self.search_service = search_service
+        self.visual_matching_service = (
+            visual_matching_service
+        )
+        self.fallback_service = fallback_service
 
     def collect(
         self,
         product_idea,
     ):
-        if product_idea.status != "selected":
+        if product_idea.status not in {"selected", "validated"}:
             raise ValueError(
                 (
                     "La catégorie doit être "
@@ -25,6 +31,17 @@ class SupplierCandidateCollectionService:
                 product_idea=product_idea,
             )
         )
+
+        if not offers and self.fallback_service is not None:
+            offers = self.fallback_service.run(
+                product_idea=product_idea,
+                eu_offer_results=[],
+            )
+
+        if self.visual_matching_service is not None:
+            self.visual_matching_service.match(
+                offers
+            )
 
         offers_by_supplier = {}
 
@@ -56,5 +73,10 @@ class SupplierCandidateCollectionService:
             ),
             "offers_by_supplier": (
                 offers_by_supplier
+            ),
+            "suppliers_unavailable": getattr(
+                self.search_service,
+                "supplier_failures",
+                {},
             ),
         }

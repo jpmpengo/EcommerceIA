@@ -14,6 +14,7 @@ from product_intelligence.models import (
 )
 
 from unittest.mock import Mock
+from uuid import uuid4
 
 from products.models import Product
 
@@ -539,6 +540,137 @@ class SupplierOfferOpportunityServiceTests(TestCase):
             product,
         )
 
+    def test_creates_analyzed_opportunity_with_converted_costs(self):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Produit analyse",
+            purchase_price=Decimal("5.00"),
+            shipping_cost=Decimal("4.00"),
+            currency="USD",
+            stock=100,
+        )
+        service = SupplierOfferOpportunityService()
+        opportunity = service.create_analyzed_opportunity(
+            offer=offer,
+            decision_price=Decimal("19.90"),
+            base_cost_result={
+                "purchase_converted": Decimal("4.30"),
+                "shipping_converted": Decimal("3.40"),
+            },
+            cost_result={
+                "projected_profit": Decimal("5.00"),
+                "vat_amount": Decimal("2.00"),
+                "import_duty": Decimal("0.50"),
+                "payment_fee": Decimal("0.30"),
+                "return_reserve": Decimal("0.40"),
+                "safety_reserve": Decimal("0.60"),
+            },
+        )
+        self.assertEqual(opportunity.supplier_price, Decimal("4.30"))
+        self.assertEqual(opportunity.shipping_cost, Decimal("3.40"))
+        self.assertEqual(opportunity.other_costs, Decimal("3.80"))
+        self.assertEqual(opportunity.market_price, Decimal("19.90"))
+        self.assertEqual(opportunity.recommended_price, Decimal("19.90"))
+
+    def test_analyzed_opportunity_sets_competition_score_from_market_summary(self):
+        supplier = Supplier.objects.create(name="CJdropshipping", country="CN", website="https://example.com", supplier_type="dropshipper")
+        offer = SupplierOffer.objects.create(supplier=supplier, product_name="Produit analyse", purchase_price=Decimal("5.00"), shipping_cost=Decimal("4.00"), currency="USD", stock=100)
+        service = SupplierOfferOpportunityService()
+        opportunity = service.create_analyzed_opportunity(offer=offer, decision_price=Decimal("19.90"), base_cost_result={"purchase_converted": Decimal("4.30"), "shipping_converted": Decimal("3.40")}, cost_result={"projected_profit": Decimal("5.00"), "vat_amount": Decimal("2.00"), "import_duty": Decimal("0.50"), "payment_fee": Decimal("0.30"), "return_reserve": Decimal("0.40"), "safety_reserve": Decimal("0.60")}, market_summary={"retained_count": 3, "source_domain_count": 3})
+        self.assertEqual(opportunity.competition_score, 50)
+
+    def test_analyzed_opportunity_sets_demand_score_from_product_idea(self):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+        from product_intelligence.models import ProductIdea
+        idea = ProductIdea.objects.create(
+            name="Produit tendance",
+            customer_problem="Probleme",
+            target_customer="Client",
+            reason_to_study="Raison",
+            countries=["FR"],
+            demand_signal_assessments=[
+                {"type": "trend"},
+                {"type": "need"},
+            ],
+        )
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_idea=idea,
+            product_name="Produit analyse",
+            purchase_price=Decimal("5.00"),
+            shipping_cost=Decimal("4.00"),
+            currency="USD",
+            stock=100,
+        )
+        service = SupplierOfferOpportunityService()
+        opportunity = service.create_analyzed_opportunity(
+            offer=offer,
+            decision_price=Decimal("19.90"),
+            base_cost_result={
+                "purchase_converted": Decimal("4.30"),
+                "shipping_converted": Decimal("3.40"),
+            },
+            cost_result={
+                "projected_profit": Decimal("5.00"),
+                "vat_amount": Decimal("2.00"),
+                "import_duty": Decimal("0.50"),
+                "payment_fee": Decimal("0.30"),
+                "return_reserve": Decimal("0.40"),
+                "safety_reserve": Decimal("0.60"),
+            },
+        )
+        self.assertEqual(opportunity.demand_score, 87)
+
+    def test_analyzed_opportunity_keeps_market_collection_batch_id(self):
+        batch_id = uuid4()
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Produit analyse",
+            purchase_price=Decimal("5.00"),
+            shipping_cost=Decimal("4.00"),
+            currency="USD",
+            stock=100,
+        )
+        service = SupplierOfferOpportunityService()
+        opportunity = service.create_analyzed_opportunity(
+            offer=offer,
+            decision_price=Decimal("19.90"),
+            base_cost_result={
+                "purchase_converted": Decimal("4.30"),
+                "shipping_converted": Decimal("3.40"),
+            },
+            cost_result={
+                "projected_profit": Decimal("5.00"),
+                "vat_amount": Decimal("2.00"),
+                "import_duty": Decimal("0.50"),
+                "payment_fee": Decimal("0.30"),
+                "return_reserve": Decimal("0.40"),
+                "safety_reserve": Decimal("0.60"),
+            },
+            market_collection_batch_id=batch_id,
+        )
+        self.assertEqual(
+            opportunity.market_collection_batch_id,
+            batch_id,
+        )
+
     def test_does_not_create_opportunity_when_shipping_cost_is_unknown(
         self,
     ):
@@ -573,3 +705,11 @@ class SupplierOfferOpportunityServiceTests(TestCase):
             ProductOpportunity.objects.count(),
             0,
         )
+    def test_analyzed_opportunity_waits_for_commercial_score(self):
+        supplier = Supplier.objects.create(name="Fournisseur test score", country="CN", website="https://example.com", supplier_type="dropshipper")
+        offer = SupplierOffer.objects.create(supplier=supplier, product_name="Produit rentable", purchase_price=Decimal("5.00"), shipping_cost=Decimal("3.00"), currency="EUR", stock=100)
+        service = SupplierOfferOpportunityService(minimum_score=80)
+        opportunity = service.create_analyzed_opportunity(offer=offer, decision_price=Decimal("30.00"), base_cost_result={"purchase_converted": Decimal("5.00"), "shipping_converted": Decimal("3.00")}, cost_result={"projected_profit": Decimal("10.00"), "vat_amount": Decimal("5.00"), "import_duty": Decimal("1.00"), "payment_fee": Decimal("1.00"), "return_reserve": Decimal("1.00"), "safety_reserve": Decimal("1.00")})
+        self.assertIsNotNone(opportunity)
+        self.assertIsNone(opportunity.opportunity_score)
+        self.assertEqual(ProductOpportunity.objects.count(), 1)

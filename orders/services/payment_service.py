@@ -1,7 +1,9 @@
 from django.db import transaction
 
-from orders.models import Order
+from orders.models import Order, OrderProcessingEvent
 from products.models import Product
+
+from .invoice_service import InvoiceService
 
 
 class OrderPaymentService:
@@ -16,11 +18,11 @@ class OrderPaymentService:
             .get(id=order_id)
         )
 
-        # Important :
-        # Stripe peut envoyer plusieurs fois le même événement.
-        # Une commande déjà payée ne doit jamais retirer
-        # le stock une deuxième fois.
+        # Stripe peut envoyer plusieurs fois le meme evenement.
+        # Une commande deja payee ne doit jamais retirer
+        # le stock une deuxieme fois.
         if order.paid:
+            InvoiceService.create_for_paid_order(order)
             return order
 
         for item in order.items.all():
@@ -30,15 +32,11 @@ class OrderPaymentService:
 
             if item.quantity > product.stock:
                 raise ValueError(
-                    (
-                        f"Stock insuffisant pour "
-                        f"« {product.name} »."
-                    )
+                    f"Stock insuffisant pour {product.name}."
                 )
 
             product.stock -= item.quantity
             product.is_available = product.stock > 0
-
             product.save(
                 update_fields=[
                     "stock",
@@ -50,9 +48,7 @@ class OrderPaymentService:
         order.status = "paid"
 
         if stripe_session_id:
-            order.stripe_checkout_session_id = (
-                stripe_session_id
-            )
+            order.stripe_checkout_session_id = stripe_session_id
 
         order.save(
             update_fields=[
@@ -62,6 +58,11 @@ class OrderPaymentService:
             ]
         )
 
-        return order
+        OrderProcessingEvent.objects.create(
+            order=order,
+            event_type="customer_payment_received",
+            source="automatic",
+        )
+        InvoiceService.create_for_paid_order(order)
 
-        
+        return order

@@ -109,6 +109,7 @@ class PrintfulSupplierSearcherTests(
             supplier=supplier,
             product=printful_product,
             variant=variants[0],
+            supplier_search_keyword="Gaming Mouse Pad",
             market_observation=market_observation,
         )
 
@@ -116,6 +117,7 @@ class PrintfulSupplierSearcherTests(
             supplier=supplier,
             product=printful_product,
             variant=variants[1],
+            supplier_search_keyword="Gaming Mouse Pad",
             market_observation=market_observation,
         )
 
@@ -191,6 +193,7 @@ class PrintfulSupplierSearcherTests(
             supplier=supplier,
             product=printful_product,
             variant=variant,
+            supplier_search_keyword="custom desk mat",
             product_idea=idea,
         )
 

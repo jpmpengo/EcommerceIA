@@ -1,0 +1,659 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Mes commandes | EcommerceIA
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-list-page {
+        padding: 3.5rem 0 5rem;
+    }
+
+    .order-list-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .order-list-eyebrow {
+        margin-bottom: 0.45rem;
+        color: #2563eb;
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .order-list-title {
+        margin: 0 0 0.55rem;
+        color: #0f172a;
+        font-size: clamp(2.4rem, 5vw, 3.6rem);
+        font-weight: 850;
+        letter-spacing: -0.055em;
+    }
+
+    .order-list-intro {
+        max-width: 42rem;
+        margin: 0;
+        color: #64748b;
+        line-height: 1.65;
+    }
+
+    .order-list-count {
+        color: #64748b;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .order-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .order-card {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1fr)
+            auto;
+        gap: 1.5rem;
+        padding: 1.35rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.15rem;
+        background: #ffffff;
+        box-shadow:
+            0 14px 36px rgba(15, 23, 42, 0.06);
+        transition:
+            transform 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .order-card:hover {
+        transform: translateY(-2px);
+        border-color: #bfdbfe;
+        box-shadow:
+            0 20px 42px rgba(15, 23, 42, 0.09);
+    }
+
+    .order-card-main {
+        min-width: 0;
+    }
+
+    .order-card-heading {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .order-card-number {
+        margin: 0;
+        color: #0f172a;
+        font-size: 1.3rem;
+        font-weight: 850;
+    }
+
+    .order-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        min-height: 1.9rem;
+        padding: 0.35rem 0.65rem;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 800;
+    }
+
+    .order-status-dot {
+        width: 0.48rem;
+        height: 0.48rem;
+        border-radius: 999px;
+        background: currentColor;
+    }
+
+    .order-status-paid {
+        color: #166534;
+        border-color: #bbf7d0;
+        background: #dcfce7;
+    }
+
+    .order-status-pending {
+        color: #92400e;
+        border-color: #fde68a;
+        background: #fef3c7;
+    }
+
+    .order-status-expired {
+        color: #475569;
+        border-color: #cbd5e1;
+        background: #f1f5f9;
+    }
+
+    .order-status-cancelled {
+        color: #991b1b;
+        border-color: #fecaca;
+        background: #fee2e2;
+    }
+
+    .order-card-meta {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.55rem 1.25rem;
+        margin-bottom: 1rem;
+        color: #64748b;
+        font-size: 0.84rem;
+    }
+
+    .order-products-preview {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+    .order-product-preview {
+        width: 3.4rem;
+        height: 3.4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        background: #f8fafc;
+    }
+
+    .order-product-preview img {
+        width: 100%;
+        height: 100%;
+        padding: 0.3rem;
+        object-fit: contain;
+    }
+
+    .order-product-placeholder {
+        color: #94a3b8;
+    }
+
+    .order-product-summary {
+        margin-left: 0.35rem;
+        color: #475569;
+        font-size: 0.84rem;
+        line-height: 1.45;
+    }
+
+    .order-card-side {
+        min-width: 11rem;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .order-card-total-label {
+        display: block;
+        margin-bottom: 0.2rem;
+        color: #94a3b8;
+        text-align: right;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .order-card-total {
+        color: #0f172a;
+        text-align: right;
+        font-size: 1.35rem;
+        font-weight: 850;
+        letter-spacing: -0.025em;
+    }
+
+    .order-card-button {
+        min-height: 2.7rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding-right: 1rem;
+        padding-left: 1rem;
+        font-weight: 800;
+    }
+
+    .order-empty {
+        padding: 5rem 1.5rem;
+        border: 1px dashed #cbd5e1;
+        border-radius: 1.25rem;
+        text-align: center;
+        background: #ffffff;
+    }
+
+    .order-empty-icon {
+        width: 5rem;
+        height: 5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        border-radius: 1.3rem;
+        color: #2563eb;
+        background: #eff6ff;
+    }
+
+    .order-empty-title {
+        margin-bottom: 0.55rem;
+        color: #0f172a;
+        font-size: 1.65rem;
+        font-weight: 850;
+    }
+
+    .order-empty-text {
+        max-width: 32rem;
+        margin: 0 auto 1.5rem;
+        color: #64748b;
+        line-height: 1.65;
+    }
+
+    @media (max-width: 767.98px) {
+        .order-list-page {
+            padding-top: 2.5rem;
+        }
+
+        .order-list-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .order-card {
+            grid-template-columns: 1fr;
+        }
+
+        .order-card-side {
+            min-width: 0;
+            align-items: stretch;
+        }
+
+        .order-card-total-label,
+        .order-card-total {
+            text-align: left;
+        }
+
+        .order-card-button {
+            width: 100%;
+        }
+    }
+ .order-list-page{background:#f8f9fc;padding:2.5rem 0 5rem;min-height:80vh} .order-list-page .container{max-width:1440px} .order-list-eyebrow{color:#f97345} .order-list-title{font-size:clamp(2rem,3vw,2.8rem);letter-spacing:-.035em} .order-list-header{align-items:center} .order-card{border-color:#edf0f4;box-shadow:0 4px 18px rgba(15,23,42,.035)} .order-card:hover{border-color:#fdba9a;box-shadow:0 8px 24px rgba(15,23,42,.06)} .order-list-page .btn-primary{background:#f97345;border-color:#f97345} .order-list-page .btn-outline-primary{color:#e76539;border-color:#f3c6b5} .order-list-page .btn-outline-primary:hover{background:#f97345;border-color:#f97345;color:white} 
+.operator-kpi-grid .card{background:#fff;border:1px solid #edf0f4!important;border-radius:18px!important;box-shadow:0 4px 18px rgba(15,23,42,.035)!important;transition:transform .2s ease,box-shadow .2s ease}.operator-kpi-grid .card:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(15,23,42,.07)!important}.operator-kpi-grid .card-body{padding:1.3rem!important}.operator-kpi-grid .fs-2{color:#f97345;font-size:2rem!important;font-weight:800!important}.operator-kpi-grid .text-muted{color:#718096!important;font-size:.8rem!important;font-weight:600;min-height:2.5rem}
+.operator-analysis-panel{background:#fff;border:1px solid #edf0f4;border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 18px rgba(15,23,42,.035)}.operator-analysis-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}.operator-analysis-heading h2{font-size:1.25rem;font-weight:800;color:#172033;margin:0 0 .4rem}.operator-analysis-heading p{font-size:.85rem;color:#718096;margin:0}.operator-analysis-period{background:#fff4ee;color:#e76539;border-radius:10px;padding:.55rem .85rem;font-size:.8rem;font-weight:700}.operator-analysis-chart{min-height:280px;margin-top:1.5rem;background:linear-gradient(180deg,#fff 0%,#fffaf7 100%);border-radius:12px}
+.operator-analysis-summary{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1.5rem}.operator-analysis-summary>div{display:flex;flex-direction:column;gap:.4rem;min-width:190px;padding:1rem 1.25rem;background:#fff8f4;border:1px solid #ffeadf;border-radius:14px}.operator-analysis-summary span{color:#718096;font-size:.8rem;font-weight:600}.operator-analysis-summary strong{color:#e76539;font-size:1.65rem;font-weight:800}
+.operator-shipment-panel{background:#fff;border:1px solid #edf0f4;border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 4px 18px rgba(15,23,42,.035)}.operator-shipment-panel h2{font-size:1.25rem;font-weight:800;color:#172033;margin:0 0 1.25rem}.operator-shipment-item{border:1px solid #edf0f4;border-left:3px solid #f97345;border-radius:12px;padding:1rem;margin-bottom:.85rem;background:#fff}.operator-shipment-item strong{color:#172033;font-size:.95rem}.operator-shipment-item p{font-size:.8rem;color:#718096;margin:.4rem 0;overflow-wrap:anywhere}.operator-shipment-item p:first-of-type{display:inline-block;background:#fff1e9;color:#df683d;border-radius:8px;padding:.2rem .55rem;font-weight:700}
+.operator-dashboard-main{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr);gap:1.25rem;align-items:start}.operator-dashboard-main>.operator-analysis-panel,.operator-dashboard-main>.operator-shipment-panel{min-width:0;margin-bottom:1.5rem}@media(max-width:991px){.operator-dashboard-main{grid-template-columns:1fr}}
+/* operator-shipment-scroll-fix */ .operator-dashboard-main>.operator-shipment-panel{max-height:570px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#f3b69d #f8f9fc}.operator-dashboard-main>.operator-shipment-panel::-webkit-scrollbar{width:7px}.operator-dashboard-main>.operator-shipment-panel::-webkit-scrollbar-thumb{background:#f3b69d;border-radius:10px}@media(max-width:991px){.operator-dashboard-main>.operator-shipment-panel{max-height:none;overflow:visible}}
+.operator-heading-icon{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;margin-right:9px;vertical-align:middle;background:#fff1e9;color:#e76539;border-radius:9px}.operator-heading-icon svg{width:19px;height:19px}
+.operator-orders-heading{margin:1.5rem 0 1rem}.operator-orders-heading h2{display:flex;align-items:center;margin:0;color:#172033;font-size:1.25rem;font-weight:800}
+.operator-orders-table-wrap{overflow-x:auto;background:#fff;border:1px solid #edf0f4;border-radius:18px;margin-bottom:1.5rem}.operator-orders-table{width:100%;border-collapse:collapse;min-width:850px}.operator-orders-table th{text-align:left;padding:1rem;color:#718096;font-size:.8rem;font-weight:700;background:#fffaf7;border-bottom:1px solid #edf0f4}
+.operator-orders-table td{padding:1rem;border-bottom:1px solid #edf0f4;color:#334155;font-size:.83rem;vertical-align:middle}.operator-orders-table tbody tr:last-child td{border-bottom:0}.operator-orders-table tbody tr:hover{background:#fffaf7}.operator-table-status{display:inline-block;background:#fff1e9;color:#df683d;padding:.3rem .6rem;border-radius:8px;font-weight:700}.operator-orders-table td small{display:block;color:#718096;margin-top:.4rem}.operator-table-action{color:#e76539;font-weight:700;text-decoration:none;white-space:nowrap}.operator-table-action:hover{text-decoration:underline}
+.order-list-page .order-list{display:none}
+.operator-orders-table td .operator-delivery-alert{display:inline-block;color:#b42318;background:#fff0ee;border:1px solid #ffd5d0;border-radius:7px;padding:4px 8px;font-weight:700;margin-top:6px}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section class="order-list-page">
+    <div class="container">
+
+        <header class="order-list-header">
+            <div>
+                <div class="order-list-eyebrow">
+                    {% if operator_view %}
+                        Suivi des ventes
+                    {% else %}
+                        Votre historique
+                    {% endif %}
+                </div>
+
+                <h1 class="order-list-title">
+                    {% if operator_view %}
+                        Commandes clients
+                    {% else %}
+                        Mes commandes
+                    {% endif %}
+                </h1>
+
+                <p class="order-list-intro">
+                    {% if operator_view %}
+                        Consultez les commandes et leurs informations de livraison.
+                    {% else %}
+                        Retrouvez vos commandes, consultez leur statut
+                        et reprenez un paiement en attente.
+                    {% endif %}
+                </p>
+            </div>
+
+            {% if orders %}
+
+                <div class="order-list-count">
+                    {{ orders|length }}
+                    commande{{ orders|length|pluralize }}
+                </div>
+
+            {% endif %}
+        </header>
+
+        {% if operator_view %}
+            <div class="row g-3 mb-4 operator-kpi-grid">
+                {% for label, value in dashboard_stats.items %}
+                    <div class="col-6 col-lg-4 col-xl-2">
+                        <div class="card h-100 border-0 shadow-sm rounded-4">
+                            <div class="card-body p-3">
+                                <div class="text-muted small mb-2">{% if label == "total" %}Total commandes{% elif label == "paid" %}Payées à traiter{% elif label == "processing" %}En préparation{% elif label == "shipped" %}Expédiées{% elif label == "delivered" %}Livrées{% elif label == "incidents" %}Incidents fournisseurs{% endif %}</div>
+                                <div class="fs-2 fw-bold">{{ value }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <p class="small text-muted mb-4"><strong>Mode sandbox CJ :</strong> certaines commandes expédiées ou livrées correspondent à des simulations. Aucun transport ni paiement fournisseur réel n est effectué dans ce mode.</p>
+        {% endif %}
+
+        {% if operator_view %}
+        <div class="operator-dashboard-main">
+        <section class="operator-analysis-panel" aria-label="Analyse des commandes">
+            <div class="operator-analysis-heading">
+                <div><h2><span class="operator-heading-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 3 8-9M16 5h5v5"/></svg></span>Analyse des commandes</h2><p>Evolution des commandes et du chiffre d affaires sur les 30 derniers jours.</p></div>
+                <span class="operator-analysis-period">30 derniers jours</span>
+            </div>
+            <div class="operator-analysis-summary"><div><span>Commandes sur 30 jours</span><strong id="operator-chart-total-orders">-</strong></div><div><span>Chiffre d affaires sur 30 jours</span><strong id="operator-chart-total-revenue">-</strong></div></div><div class="operator-analysis-chart" id="operator-orders-chart"><svg id="operator-orders-svg" viewBox="0 0 900 280" role="img" aria-label="Evolution quotidienne du nombre de commandes" style="width:100%;height:280px"><g id="operator-chart-grid"></g><polyline id="operator-chart-line" fill="none" stroke="#f97345" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points=""></polyline><g id="operator-chart-points"></g></svg></div>{{ order_chart_data|json_script:"operator-chart-data" }}
+        </section>
+        {% endif %}
+
+        {% if operator_view %}
+        <section class="operator-shipment-panel">
+            <h2><span class="operator-heading-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 5h12v12H3zM15 9h4l3 4v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>Suivi des livraisons</h2>
+            {% for shipment in shipment_overview %}
+            <article class="operator-shipment-item">
+                <strong>Commande #{{ shipment.order_id }}</strong>
+                <p>Mode : {{ shipment.mode }}</p>
+                <p>Statut : {{ shipment.supplier_status|default:shipment.status }}</p>
+                <p>Transporteur : {{ shipment.tracking_provider|default_if_none:shipment.status }}</p>
+                {% if shipment.tracking_number %}<p>Suivi : {{ shipment.tracking_number }}</p>{% endif %}
+                {% if shipment.last_synced_at %}<p>Synchronisation : {{ shipment.last_synced_at|date:"d/m/Y H:i" }}</p>{% endif %}
+            </article>
+            {% empty %}<p>Aucun dossier fournisseur disponible.</p>{% endfor %}
+        </section>
+        </div>
+        {% endif %}
+
+        {% if operator_view %}
+            <nav class="d-flex flex-wrap gap-2 mb-4" aria-label="Filtrer les commandes">
+                <a class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=all">Toutes</a>
+                <a class="btn {% if status_filter == 'paid' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=paid">Payées à traiter</a>
+                <a class="btn {% if status_filter == 'processing' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=processing">En préparation</a>
+                <a class="btn {% if status_filter == 'shipped' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=shipped">Expédiées</a>
+                <a class="btn {% if status_filter == 'delivered' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=delivered">Livrées</a>
+                <a class="btn {% if status_filter == 'incidents' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?status=incidents">Incidents</a>
+            </nav>
+        {% endif %}
+
+        {% if orders %}
+
+            <div class="operator-orders-heading"><h2><span class="operator-heading-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5h6M9 10h6M9 14h6M9 18h4"/></svg></span>Liste des commandes</h2></div>
+            <div class="operator-orders-table-wrap"><table class="operator-orders-table"><thead><tr><th scope="col">Commande</th><th scope="col">Client</th><th scope="col">Produits</th><th scope="col">Date</th><th scope="col">Montant</th><th scope="col">Statut</th><th scope="col">Actions</th></tr></thead><tbody>
+{% for order in orders %}
+<tr class="operator-order-row">
+<td><strong>#{{ order.id }}</strong></td>
+<td>{{ order.first_name }} {{ order.last_name }}</td>
+<td>{% for item in order.items.all|slice:":2" %}{{ item.product.name }}{% if not forloop.last %}, {% endif %}{% empty %}Aucun produit{% endfor %}{% if order.items.count > 2 %}...{% endif %}</td>
+<td>{{ order.created_at|date:"d/m/Y" }}</td>
+<td><strong>{{ order.get_total_price }} €</strong></td>
+<td><span class="operator-table-status">{{ order.get_status_display }}</span>{% if order.reception_disputed_at %}<small class="operator-delivery-alert">Réclamation livraison</small>{% elif order.customer_received_at %}<small>Réception confirmée</small>{% elif order.reception_assumed_at %}<small>Réception présumée</small>{% endif %}{% if order.incident_type %}<small>Incident fournisseur</small>{% endif %}</td>
+<td><a class="operator-table-action" href="{% url 'orders:operator_order_detail' order.id %}">Voir le détail</a></td>
+</tr>
+{% empty %}<tr><td colspan="7">Aucune commande pour ce filtre.</td></tr>{% endfor %}
+</tbody></table></div>
+            <div class="order-list">
+
+                {% for order in orders %}
+
+                    <article class="order-card">
+
+                        <div class="order-card-main">
+
+                            <div class="order-card-heading">
+
+                                <h2 class="order-card-number">
+                                    Commande #{{ order.id }}
+                                </h2>
+
+                                {% if order.status == "paid" %}
+
+                                    <span class="order-status order-status-paid">
+                                        <span class="order-status-dot"></span>
+                                        Payée
+                                    </span>
+
+                                {% elif order.status == "processing" %}
+
+                                    <span class="order-status order-status-paid">
+                                        <span class="order-status-dot"></span>
+                                        En préparation
+                                    </span>
+
+                                {% elif order.status == "shipped" %}
+
+                                    <span class="order-status order-status-paid">
+                                        <span class="order-status-dot"></span>
+                                        Expédiée
+                                    </span>
+
+                                {% elif order.status == "delivered" %}
+
+                                    <span class="order-status order-status-paid">
+                                        <span class="order-status-dot"></span>
+                                        Livrée
+                                    </span>
+                                    {% if order.reception_disputed_at %}
+                                        <span class="order-status order-status-cancelled">Problème de livraison signalé</span>
+                                    {% elif order.customer_received_at %}
+                                        <span class="order-status order-status-paid">Réception confirmée</span>
+                                    {% elif order.reception_assumed_at %}
+                                        <span class="order-status order-status-paid">Réception présumée</span>
+                                    {% elif order.delivered_at %}
+                                        <span class="order-status order-status-pending">En attente de confirmation</span>
+                                    {% endif %}
+
+                                {% elif order.status == "pending" %}
+
+                                    <span class="order-status order-status-pending">
+                                        <span class="order-status-dot"></span>
+                                        En attente de paiement
+                                    </span>
+
+                                {% elif order.status == "expired" %}
+
+                                    <span class="order-status order-status-expired">
+                                        <span class="order-status-dot"></span>
+                                        Expirée
+                                    </span>
+
+                                {% elif order.status == "cancelled" %}
+
+                                    <span class="order-status order-status-cancelled">
+                                        <span class="order-status-dot"></span>
+                                        Annulée
+                                    </span>
+
+                                {% endif %}
+                                {% if operator_view %}
+                                    {% if order.incident_type == "preparation_failed" %}
+                                        <span class="badge bg-warning text-dark">Échec de préparation</span>
+                                    {% elif order.incident_type == "supplier_failed" %}
+                                        <span class="badge bg-danger">Échec fournisseur</span>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+
+                            <div class="order-card-meta">
+                                <span>
+                                    Commandée le
+                                    {{ order.created_at|date:"d/m/Y à H:i" }}
+                                </span>
+
+                                <span>
+                                    {{ order.items.count }}
+                                    produit{{ order.items.count|pluralize }}
+                                </span>
+                            </div>
+
+                            <div class="order-products-preview">
+
+                                {% for item in order.items.all|slice:":3" %}
+
+                                    <span
+                                        class="order-product-preview"
+                                        title="{{ item.product.name }}"
+                                    >
+                                        {% if item.product.image %}
+
+                                            <img
+                                                src="{{ item.product.image.url }}"
+                                                alt="{{ item.product.name }}"
+                                            >
+
+                                        {% else %}
+
+                                            <span
+                                                class="order-product-placeholder"
+                                                aria-hidden="true"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="21"
+                                                    height="21"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="1.7"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
+                                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                                    <polyline points="3.29 7 12 12 20.71 7"></polyline>
+                                                    <line x1="12" y1="22" x2="12" y2="12"></line>
+                                                </svg>
+                                            </span>
+
+                                        {% endif %}
+                                    </span>
+
+                                {% endfor %}
+
+                                <div class="order-product-summary">
+                                    {% with first_item=order.items.all.0 %}
+
+                                        {% if first_item %}
+
+                                            {{ first_item.product.name }}
+
+                                            {% if order.items.count > 1 %}
+                                                et autres produits
+                                            {% endif %}
+
+                                        {% endif %}
+
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="order-card-side">
+
+                            <div>
+                                <span class="order-card-total-label">
+                                    Total
+                                </span>
+
+                                <div class="order-card-total">
+                                    {{ order.get_total_price }} €
+                                </div>
+                            </div>
+
+                            <a
+                                {% if operator_view %}
+                                    href="{% url 'orders:operator_order_detail' order.id %}"
+                                {% else %}
+                                    href="{% url 'orders:order_detail' order.id %}"
+                                {% endif %}
+                                class="btn btn-outline-primary order-card-button"
+                            >
+                                Voir la commande
+                                <span aria-hidden="true">→</span>
+                            </a>
+                        </div>
+
+                    </article>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="order-empty">
+
+                <span
+                    class="order-empty-icon"
+                    aria-hidden="true"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="34"
+                        height="34"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d="M6 2l1 4"></path>
+                        <path d="M18 2l-1 4"></path>
+                        <path d="M3 6h18l-2 15H5L3 6z"></path>
+                        <path d="M9 10v6"></path>
+                        <path d="M15 10v6"></path>
+                    </svg>
+                </span>
+
+                <h2 class="order-empty-title">
+                    {% if operator_view %}Aucune commande pour ce filtre{% else %}Aucune commande pour le moment{% endif %}
+                </h2>
+
+                {% if operator_view %}
+                    <p class="order-empty-text">Aucune commande ne correspond au filtre sélectionné. Essayez un autre filtre.</p>
+                {% else %}
+                <p class="order-empty-text">
+                    Parcourez notre sélection et ajoutez les produits
+                    qui vous intéressent à votre panier.
+                </p>
+
+                <a
+                    href="{% url 'products:product_list' %}"
+                    class="btn btn-primary btn-lg"
+                >
+                    Découvrir les produits
+                </a>
+                {% endif %}
+            </div>
+
+        {% endif %}
+    </div>
+</section>
+
+<script>(function(){const node=document.getElementById("operator-chart-data"),svg=document.getElementById("operator-orders-svg");if(!node||!svg)return;const data=JSON.parse(node.textContent);if(!data.length)return;const count=data.reduce((sum,d)=>sum+d.orders,0),revenue=data.reduce((sum,d)=>sum+d.revenue,0);document.getElementById("operator-chart-total-orders").textContent=count;document.getElementById("operator-chart-total-revenue").textContent=new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(revenue);const ns="http://www.w3.org/2000/svg",grid=document.getElementById("operator-chart-grid"),dots=document.getElementById("operator-chart-points"),max=Math.max(1,...data.map(d=>d.orders)),left=45,right=875,top=25,bottom=235;function el(tag,attrs,parent){const e=document.createElementNS(ns,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));parent.appendChild(e);return e}for(let i=0;i<=4;i++){let y=top+(bottom-top)*i/4;el("line",{x1:left,y1:y,x2:right,y2:y,stroke:"#e9edf3","stroke-width":1},grid)}for(let i=0;i<=4;i++){let y=top+(bottom-top)*i/4;let t=el("text",{x:left-12,y:y+4,"text-anchor":"end",fill:"#8490a3","font-size":12},grid);t.textContent=String(Math.round(max*(4-i)/4))}for(let i=0;i<data.length;i+=5){let x=left+(right-left)*i/Math.max(1,data.length-1);let t=el("text",{x:x,y:bottom+25,"text-anchor":"middle",fill:"#8490a3","font-size":12},grid);t.textContent=data[i].date}const points=data.map((d,i)=>{let x=left+(right-left)*i/Math.max(1,data.length-1),y=bottom-d.orders/max*(bottom-top);if(d.orders>0){let c=el("circle",{cx:x,cy:y,r:5,fill:"#f97345",stroke:"white","stroke-width":2},dots);el("title",{},c).textContent=d.date+" : "+d.orders+" commande(s)"}return x+","+y});document.getElementById("operator-chart-line").setAttribute("points",points.join(" "));})();</script>
+{% endblock %}

@@ -8,34 +8,32 @@ from dashboard.services.emma_summary_service import (
 
 class EmmaSummaryServiceTests(TestCase):
 
-    def test_returns_summary_for_action_required(self):
+    def test_returns_summary_when_opportunities_wait_for_review(self):
         summary = EmmaSummaryService.build(
-            EmmaState.ACTION_REQUIRED
+            EmmaState.REVIEW_REQUIRED
         )
 
         self.assertEqual(
             summary["title"],
-            "Votre attention est requise",
+            "Des opportunites sont pretes a etre examinees",
         )
 
         self.assertIn(
-            "conseille",
+            "assistants",
             summary["message"],
         )
 
-    def test_returns_summary_for_all_clear(self):
+    def test_returns_summary_when_no_opportunity_waits_for_review(self):
         summary = EmmaSummaryService.build(
             EmmaState.ALL_CLEAR
         )
 
         self.assertEqual(
             summary["title"],
-            "Tout est sous contrôle",
+            "Aucune opportunite a examiner",
         )
 
         self.assertIn(
-            "traitées",
+            "opportunite",
             summary["message"],
         )
-
-        

@@ -5,6 +5,9 @@ from unittest.mock import (
 
 from django.test import SimpleTestCase
 
+from product_intelligence.services.aw_shipping_estimator import (
+    AWShippingEstimator,
+)
 from product_intelligence.services.cj_shipping_estimator import (
     CJShippingEstimator,
 )
@@ -65,6 +68,7 @@ class SupplierShippingFactoryTests(
             printful_api_token=(
                 "test-printful-token"
             ),
+            maximum_shipping_days=20,
         )
 
         self.assertIsInstance(
@@ -80,6 +84,14 @@ class SupplierShippingFactoryTests(
         self.assertIsInstance(
             service.estimators[0],
             CJShippingEstimator,
+        )
+
+        self.assertEqual(
+            (
+                service.estimators[0]
+                .maximum_shipping_days
+            ),
+            20,
         )
 
         self.assertIsInstance(
@@ -118,3 +130,19 @@ class SupplierShippingFactoryTests(
             service.estimators,
             [],
         )
+
+    def test_builds_aw_shipping_estimator_when_configured(self):
+        service = SupplierShippingFactory.build(
+            http_client=Mock(),
+            aw_api_token="aw-test-token",
+        )
+
+        self.assertEqual(
+            len(service.estimators),
+            1,
+        )
+        self.assertIsInstance(
+            service.estimators[0],
+            AWShippingEstimator,
+        )
+

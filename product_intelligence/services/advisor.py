@@ -39,11 +39,7 @@ class OpportunityAdvisor:
             )
         )
 
-        score = (
-            OpportunityAnalyzer.opportunity_score(
-                opportunity
-            )
-        )
+        score = opportunity.opportunity_score
 
         margin_is_reliable = (
             OpportunityAnalyzer
@@ -64,7 +60,7 @@ class OpportunityAdvisor:
         elif margin_percent >= 50:
             reasons.append(
                 (
-                    "Marge élevée : "
+                    "Rendement sur coût élevé : "
                     f"{margin_percent:.1f} %."
                 )
             )
@@ -72,7 +68,7 @@ class OpportunityAdvisor:
         elif margin_percent >= 30:
             reasons.append(
                 (
-                    "Marge intéressante : "
+                    "Rendement sur coût intéressant : "
                     f"{margin_percent:.1f} %."
                 )
             )
@@ -80,7 +76,7 @@ class OpportunityAdvisor:
         else:
             reasons.append(
                 (
-                    "Marge limitée : "
+                    "Rendement sur coût limité : "
                     f"{margin_percent:.1f} %."
                 )
             )
@@ -105,27 +101,28 @@ class OpportunityAdvisor:
                 "Demande faible."
             )
 
-        if opportunity.competition_score <= 0:
-            reasons.append(
-                "Concurrence non renseignée."
-            )
-
-        elif opportunity.competition_score <= 30:
-            reasons.append(
-                "Concurrence faible."
-            )
-
-        elif opportunity.competition_score <= 60:
-            reasons.append(
-                "Concurrence modérée."
-            )
-
+        if opportunity.saturation_level in ("high", "very_high"):
+            reasons.append("Concurrence forte.")
+        elif opportunity.saturation_level == "moderate":
+            reasons.append("Concurrence moyenne.")
+        elif opportunity.saturation_level in ("low", "very_low"):
+            reasons.append("Concurrence faible.")
         else:
-            reasons.append(
-                "Concurrence élevée."
-            )
+            reasons.append("Concurrence non evaluee.")
 
-        if score >= 80:
+        market_scores_are_missing = (
+            opportunity.demand_score <= 0
+            or opportunity.competition_score <= 0
+        )
+
+        if market_scores_are_missing or score is None:
+            decision = (
+                "Les données de demande et de concurrence "
+                "doivent être complétées avant recommandation."
+            )
+            level = "warning"
+
+        elif score >= 80:
             decision = (
                 "Je recommande d'examiner ce produit."
             )
@@ -151,6 +148,9 @@ class OpportunityAdvisor:
 
         return {
             "score": score,
+            "analysis_complete": (
+                not market_scores_are_missing and score is not None
+            ),
             "estimated_margin": estimated_margin,
             "margin_percent": margin_percent,
             "margin_is_reliable": (
@@ -170,19 +170,15 @@ class OpportunityAdvisor:
         calculé par OpportunityAnalyzer.
         """
 
-        return (
-            OpportunityAnalyzer.opportunity_score(
-                opportunity
-            )
-        )
+        return opportunity.opportunity_score
 
     @staticmethod
     def rank_opportunities(opportunities):
         return sorted(
             opportunities,
-            key=(
-                OpportunityAdvisor
-                .calculate_priority
+            key=lambda opportunity: (
+                OpportunityAdvisor.calculate_priority(opportunity) is not None,
+                OpportunityAdvisor.calculate_priority(opportunity) if OpportunityAdvisor.calculate_priority(opportunity) is not None else -1,
             ),
             reverse=True,
         )

@@ -129,7 +129,10 @@ class SupplierOfferEvaluationService:
                 delivery_result["reason"]
             )
 
-        if delivery_status == "slow":
+        if delivery_status in {
+            "slow",
+            "fallback",
+        }:
             warnings.append(
                 delivery_result["reason"]
             )

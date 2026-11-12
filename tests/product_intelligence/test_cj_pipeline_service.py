@@ -562,6 +562,9 @@ class CJPipelineServiceTests(TestCase):
         }
 
         class FakeVariantCJClient:
+            def get_product_detail(self, product_id):
+                return {}
+
             def get_variant_stock(self, variant_id):
                 return 14759
 
@@ -826,6 +829,9 @@ class CJPipelineServiceTests(TestCase):
         }
 
         class FakeCJClient:
+            def get_product_detail(self, product_id):
+                return {}
+
             def get_variant_stock(self, variant_id):
                 self.variant_id = variant_id
                 return 20000

@@ -26,3 +26,11 @@ db.sqlite3-journal
 Thumbs.db
 
 data/*.csv
+.env.*
+*.bak
+*.bak_*
+*.sqlite3
+*.sqlite3-*
+*.log
+logs/
+supplier_pipeline_v2_cache/

@@ -533,11 +533,11 @@
     <div class="decision-shell">
 
         <a
-            href="{% url 'dashboard:home' %}"
+            href="{% url 'recommendations:list' %}"
             class="decision-back"
         >
             <span aria-hidden="true">←</span>
-            Retour au pilotage
+            Retour à la synthèse
         </a>
 
         <header class="decision-header">
@@ -548,14 +548,26 @@
                 </p>
 
                 <h1 class="decision-title">
-                    {{ opportunity.name }}
+                    {% if suggested_name %}{{ suggested_name }}{% else %}{{ opportunity.name }}{% endif %}
                 </h1>
             </div>
 
-            {% if is_restock %}
+            {% if opportunity.status == "review" %}
+
+                <span class="decision-status decision-status-preparation">
+                    Décision requise
+                </span>
+
+            {% elif is_restock %}
 
                 <span class="decision-status decision-status-restock">
                     Réapprovisionnement
+                </span>
+
+            {% elif not recommendation.analysis_complete %}
+
+                <span class="decision-status decision-status-preparation">
+                    Analyse à compléter
                 </span>
 
             {% elif readiness.ready %}
@@ -642,7 +654,26 @@
                     </div>
                 </section>
 
-                {% if is_restock %}
+                {% if opportunity.status == "review" %}
+
+                    <section class="decision-card">
+                        <div class="decision-card-body">
+                            <p class="decision-section-label">
+                                Votre décision
+                            </p>
+                            <h2 class="decision-section-title">
+                                Vérifier avant approbation
+                            </h2>
+                            <p class="decision-copy">
+                                Cette opportunité n’est pas encore approuvée.
+                                Contrôlez notamment le délai de livraison,
+                                la comparabilité et la rentabilité avant de
+                                prendre votre décision.
+                            </p>
+                        </div>
+                    </section>
+
+                {% elif is_restock %}
 
                     <section
                         id="restock"
@@ -766,19 +797,123 @@
                                 être complétés avant sa publication.
                             </p>
 
-                            <div class="decision-missing">
 
-                                {% for missing in readiness.missing %}
 
-                                    <span class="decision-missing-item">
-                                        {{ missing.label }}
-                                    </span>
+                            <article class="decision-suggestion">
 
-                                {% endfor %}
+                                <h3 class="decision-suggestion-title">
+                                    Informations commerciales
+                                </h3>
 
-                            </div>
+                                <p class="decision-suggestion-copy">
+                                    Emma a préparé les informations commerciales et attribué la catégorie. Vous pouvez corriger le nom, la description et le stock initial avant publication.
+                                </p>
 
-                            {% if suggested_category %}
+                                <form id="commercial-preparation-form"
+                                    method="post"
+                                    action="{% url 'recommendations:update_preparation' opportunity.id %}"
+                                    enctype="multipart/form-data"
+                                >
+                                    {% csrf_token %}
+
+                                    <label for="preparation-name">
+                                        Nom commercial
+                                    </label>
+                                    <input
+                                        id="preparation-name"
+                                        name="name"
+                                        type="text"
+                                        maxlength="255"
+                                        value="{{ preparation_draft.name|default:opportunity.name }}"
+                                        class="form-control mb-3"
+                                        required
+                                    >
+
+                                    <label for="preparation-description">
+                                        Description
+                                    </label>
+                                    <textarea
+                                        id="preparation-description"
+                                        name="description"
+                                        rows="6"
+                                        minlength="50"
+                                        class="form-control mb-3"
+                                        required
+                                    >{{ preparation_draft.description|default:opportunity.description|default:suggested_description }}</textarea>
+
+                                    <label for="preparation-stock">Stock initial</label>
+                                    <input id="preparation-stock" name="initial_stock" type="number" min="1" value="{{ opportunity.initial_stock|default:suggested_stock }}" class="form-control mb-3" required>
+
+                                    
+
+
+
+                                </form>
+
+                            </article>
+
+                            {% if suggested_name and suggested_name != opportunity.name %}
+
+                                <article class="decision-suggestion">
+
+                                    <h3 class="decision-suggestion-title">
+                                        Nom commercial proposé
+                                    </h3>
+
+                                    <p class="decision-suggestion-copy">
+                                        <strong>{{ suggested_name }}</strong>
+                                    </p>
+
+                                    <form
+                                        method="post"
+                                        action="{% url "recommendations:apply_name" opportunity.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="btn decision-action decision-action-primary"
+                                        >
+                                            Utiliser ce nom
+                                        </button>
+                                    </form>
+
+                                </article>
+
+                            {% endif %}
+
+                            {% if opportunity.category %}
+                                <article class="decision-suggestion">
+                                    <h3 class="decision-suggestion-title">Categorie definitive attribuee par Emma</h3>
+                                    <p class="decision-suggestion-copy">
+                                        {% if opportunity.category.parent and opportunity.category.parent.parent %}
+                                            {{ opportunity.category.parent.parent.name }} &rarr; {{ opportunity.category.parent.name }} &rarr; <strong>{{ opportunity.category.name }}</strong>
+                                        {% else %}
+                                            <strong>{{ opportunity.category.name }}</strong>
+                                        {% endif %}
+                                    </p>
+                                </article>
+                            {% endif %}
+
+                            {% if proposed_category_path and not opportunity.category %}
+                                <article class="decision-suggestion">
+                                    <h3 class="decision-suggestion-title">Arborescence proposée par Emma</h3>
+                                    <ol>
+                                        {% for item in proposed_category_path %}
+                                            <li>
+                                                <strong>{{ item.proposed }}</strong>
+                                                {% if item.needs_approval %}
+                                                    <span>— Nouvelle catégorie identifiée par Emma</span>
+                                                {% else %}
+                                                    <span>— Catégorie existante : {{ item.matched_name }}</span>
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    </ol>
+                                </article>
+                            {% endif %}
+
+                            {% if suggested_category and not opportunity.category %}
 
                                 <article class="decision-suggestion">
 
@@ -787,63 +922,19 @@
                                     </h3>
 
                                     <p class="decision-suggestion-copy">
-                                        Emma suggère la catégorie
+                                        Catégorie identifiée par Emma :
                                         <strong>
                                             {{ suggested_category.name }}
                                         </strong>.
                                     </p>
 
-                                    <form
-                                        method="post"
-                                        action="{% url 'recommendations:apply_category' opportunity.id %}"
-                                    >
-                                        {% csrf_token %}
-
-                                        <button
-                                            type="submit"
-                                            class="btn decision-action decision-action-primary"
-                                        >
-                                            Utiliser cette catégorie
-                                        </button>
-
-                                    </form>
+                                    
 
                                 </article>
 
                             {% endif %}
 
-                            {% if suggested_description %}
-
-                                <article class="decision-suggestion">
-
-                                    <h3 class="decision-suggestion-title">
-                                        Description proposée
-                                    </h3>
-
-                                    <p class="decision-suggestion-copy">
-                                        {{ suggested_description }}
-                                    </p>
-
-                                    <form
-                                        method="post"
-                                        action="{% url 'recommendations:apply_description' opportunity.id %}"
-                                    >
-                                        {% csrf_token %}
-
-                                        <button
-                                            type="submit"
-                                            class="btn decision-action decision-action-primary"
-                                        >
-                                            Utiliser cette description
-                                        </button>
-
-                                    </form>
-
-                                </article>
-
-                            {% endif %}
-
-                            {% if image_missing %}
+                            {% if image_missing or opportunity.image %}
 
                                 <article class="decision-suggestion">
 
@@ -857,7 +948,10 @@
                                         la boutique.
                                     </p>
 
-                                    {% if suggested_image_url %}
+                                    {% if opportunity.image %}
+                                        <img src="{{ opportunity.image.url }}" alt="{{ opportunity.name }}" class="decision-suggestion-image">
+                                        <p class="decision-suggestion-copy"><strong>Image du produit confirmée</strong></p>
+                                    {% elif suggested_image_url %}
 
                                         <img
                                             src="{{ suggested_image_url }}"
@@ -871,123 +965,28 @@
                                             exactement à la variante étudiée.
                                         </p>
 
-                                        <form
-                                            method="post"
-                                            action="{% url 'recommendations:apply_supplier_image' opportunity.id %}"
-                                            class="mb-3"
-                                        >
-                                            {% csrf_token %}
 
-                                            <button
-                                                type="submit"
-                                                class="btn decision-action decision-action-primary"
-                                            >
-                                                Utiliser l’image fournisseur
-                                            </button>
-
-                                        </form>
 
                                     {% endif %}
 
-                                    <form
-                                        method="post"
-                                        enctype="multipart/form-data"
-                                        action="{% url 'recommendations:apply_image' opportunity.id %}"
+                                    <label for="preparation-image">Remplacer la photo fournisseur (facultatif)</label>
+<input id="preparation-image" form="commercial-preparation-form" type="file" name="image" accept="image/*" class="form-control mb-3">
+
+                                    <button form="commercial-preparation-form"
+                                        type="submit"
+                                        class="btn decision-action decision-action-primary"
                                     >
-                                        {% csrf_token %}
+                                        Enregistrer les modifications
+                                    </button>
 
-                                        <label
-                                            for="opportunity-image"
-                                            class="decision-form-label"
-                                        >
-                                            Choisir une autre image
-                                        </label>
 
-                                        <input
-                                            id="opportunity-image"
-                                            type="file"
-                                            name="image"
-                                            accept="image/*"
-                                            required
-                                            class="form-control mb-3"
-                                        >
-
-                                        <button
-                                            type="submit"
-                                            class="btn btn-outline-primary decision-action"
-                                        >
-                                            Envoyer cette image
-                                        </button>
-
-                                    </form>
+                                    
 
                                 </article>
 
                             {% endif %}
 
-                            {% if stock_missing %}
 
-                                <article class="decision-suggestion">
-
-                                    <h3 class="decision-suggestion-title">
-                                        Stock initial
-                                    </h3>
-
-                                    <p class="decision-suggestion-copy">
-                                        Définissez la quantité disponible
-                                        au moment de la publication.
-
-                                        {% if suggested_stock %}
-
-                                            Emma propose
-                                            <strong>
-                                                {{ suggested_stock }}
-                                            </strong>
-                                            unité(s).
-
-                                        {% endif %}
-                                    </p>
-
-                                    <form
-                                        method="post"
-                                        action="{% url 'recommendations:apply_stock' opportunity.id %}"
-                                    >
-                                        {% csrf_token %}
-
-                                        <div class="row g-2">
-
-                                            <div class="col-sm-7">
-
-                                                <input
-                                                    type="number"
-                                                    name="initial_stock"
-                                                    min="1"
-                                                    class="form-control"
-                                                    value="{{ suggested_stock|default_if_none:'' }}"
-                                                    required
-                                                    aria-label="Stock initial"
-                                                >
-
-                                            </div>
-
-                                            <div class="col-sm-5">
-
-                                                <button
-                                                    type="submit"
-                                                    class="btn decision-action decision-action-primary w-100 h-100"
-                                                >
-                                                    Utiliser ce stock
-                                                </button>
-
-                                            </div>
-
-                                        </div>
-
-                                    </form>
-
-                                </article>
-
-                            {% endif %}
 
                         </div>
                     </section>
@@ -1009,6 +1008,28 @@
                 </div>
 
                 <div class="decision-finance-body">
+
+                    {% if opportunity.supplier_offer %}
+
+                        <div class="decision-finance-line">
+                            <span>Fournisseur</span>
+                            <strong>
+                                {{ opportunity.supplier_offer.supplier.name }}
+                            </strong>
+                        </div>
+
+                        <div class="decision-finance-line">
+                            <span>Origine</span>
+                            <strong>
+                                {% if opportunity.supplier_offer.stock_country %}
+                                    {{ opportunity.supplier_offer.stock_country }}
+                                {% else %}
+                                    Origine non renseignée
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                    {% endif %}
 
                     <div class="decision-finance-line">
                         <span>Prix fournisseur</span>
@@ -1069,9 +1090,47 @@
                     <div class="decision-score">
                         <span>Score analytique</span>
                         <strong>
-                            {{ recommendation.score }}/100
+                            {% if recommendation.analysis_complete %}
+                                {{ recommendation.score }}/100
+                            {% else %}
+                                À compléter
+                            {% endif %}
                         </strong>
                     </div>
+
+                    {% if opportunity.supplier_offer %}
+
+                        <div class="decision-finance-line">
+                            <span>Délai de livraison</span>
+                            <strong>
+                                {% if opportunity.supplier_offer.shipping_days %}
+                                    {{ opportunity.supplier_offer.shipping_days }} jours
+                                {% else %}
+                                    Non renseigné
+                                {% endif %}
+                            </strong>
+                        </div>
+
+                        {% if opportunity.supplier_offer.shipping_days > 20 %}
+
+                            <div class="decision-warning">
+                                <span class="decision-warning-icon">!</span>
+                                <div>
+                                    <strong>
+                                        Livraison longue — offre de repli
+                                    </strong>
+                                    <span>
+                                        Cette offre est proposée faute d’une
+                                        offre rentable livrable en 20 jours.
+                                        Délai estimé :
+                                        {{ opportunity.supplier_offer.shipping_days }} jours.
+                                    </span>
+                                </div>
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
 
                 </div>
 
@@ -1079,7 +1138,36 @@
 
                     <div class="decision-separator"></div>
 
-                    {% if is_restock %}
+                    {% if opportunity.status == "review" and recommendation.analysis_complete %}
+
+                        <form
+                            method="post"
+                            action="{% url 'dashboard:approve_opportunity' opportunity.id %}"
+                        >
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="btn btn-success decision-action"
+                            >
+                                Approuver l’opportunité
+                            </button>
+                        </form>
+
+                        <form
+                            method="post"
+                            action="{% url 'dashboard:reject_opportunity' opportunity.id %}"
+                            onsubmit="return confirm('Voulez-vous vraiment refuser cette opportunité ?');"
+                        >
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="btn btn-outline-danger decision-action"
+                            >
+                                Refuser l’opportunité
+                            </button>
+                        </form>
+
+                    {% elif is_restock %}
 
                         <a
                             href="#restock"
@@ -1116,34 +1204,38 @@
 
                     {% endif %}
 
-                    <form
-                        method="post"
-                        action="{% url 'recommendations:postpone' opportunity.id %}"
-                    >
-                        {% csrf_token %}
+                    {% if opportunity.status == "approved" %}
 
-                        <button
-                            type="submit"
-                            class="btn btn-outline-warning decision-action"
+                        <form
+                            method="post"
+                            action="{% url 'recommendations:postpone' opportunity.id %}"
                         >
-                            Reporter
-                        </button>
-                    </form>
+                            {% csrf_token %}
 
-                    <form
-                        method="post"
-                        action="{% url 'recommendations:reject' opportunity.id %}"
-                        onsubmit="return confirm('Voulez-vous vraiment rejeter cette recommandation ?');"
-                    >
-                        {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="btn btn-outline-warning decision-action"
+                            >
+                                Reporter
+                            </button>
+                        </form>
 
-                        <button
-                            type="submit"
-                            class="btn btn-outline-danger decision-action"
+                        <form
+                            method="post"
+                            action="{% url 'recommendations:reject' opportunity.id %}"
+                            onsubmit="return confirm('Voulez-vous vraiment rejeter cette recommandation ?');"
                         >
-                            Rejeter
-                        </button>
-                    </form>
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-danger decision-action"
+                            >
+                                Rejeter
+                            </button>
+                        </form>
+
+                    {% endif %}
 
                 </div>
 

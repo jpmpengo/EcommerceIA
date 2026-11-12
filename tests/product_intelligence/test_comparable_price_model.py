@@ -69,3 +69,9 @@ class ComparablePriceModelTests(TestCase):
         self.assertIsNotNone(
             comparable_price.observed_at,
         )
+    def test_commercial_segment_defaults_to_unclassified(self):
+        field = ComparablePrice._meta.get_field("commercial_segment")
+        reason_field = ComparablePrice._meta.get_field("commercial_segment_reason")
+        self.assertEqual(field.get_default(), "unclassified")
+        self.assertTrue(reason_field.null)
+        self.assertTrue(reason_field.blank)

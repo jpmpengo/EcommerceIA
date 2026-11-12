@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 
 from products.models import Category
 from product_intelligence.models import ProductOpportunity
@@ -38,6 +39,7 @@ class OpportunityPublisherTests(TestCase):
             description="Très bon casque",
             category=self.category,
             initial_stock=10,
+            market_collection_batch_id=uuid4(),
         )
 
         self.opportunity.image = SimpleUploadedFile(
@@ -68,6 +70,17 @@ class OpportunityPublisherTests(TestCase):
             self.opportunity.published_product,
             product,
         )
+
+    def test_publish_requires_market_collection_batch_id(self):
+        self.opportunity.market_collection_batch_id = None
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "lot de prix comparables",
+        ):
+            OpportunityPublisher.publish(
+                self.opportunity
+            )
 
     def test_publish_requires_category(self):
         self.opportunity.category = None
@@ -166,6 +179,15 @@ class OpportunityPublisherTests(TestCase):
             str(context.exception),
         )
 
+    def test_publish_refuses_known_loss(self):
+        self.opportunity.supplier_price = Decimal("50.00")
+        self.opportunity.shipping_cost = Decimal("10.00")
+        self.opportunity.other_costs = Decimal("5.00")
+        self.opportunity.recommended_price = Decimal("60.00")
+
+        with self.assertRaisesMessage(ValueError, "vendu à perte"):
+            OpportunityPublisher.publish(self.opportunity)
+
     def test_publish_moves_image_to_product_and_removes_opportunity_image(
         self,
     ):
@@ -196,6 +218,7 @@ class OpportunityPublisherTests(TestCase):
                     image=image,
                     initial_stock=10,
                     status="approved",
+                    market_collection_batch_id=uuid4(),
                 )
 
                 old_image_name = opportunity.image.name

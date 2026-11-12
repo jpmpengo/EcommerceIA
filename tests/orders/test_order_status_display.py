@@ -67,6 +67,7 @@ class OrderStatusDisplayTests(TestCase):
             address="1 rue du Test",
             postal_code="75000",
             city="Paris",
+            country="FR",
             status="paid",
             paid=True,
         )
@@ -202,6 +203,7 @@ class OrderStatusDisplayTests(TestCase):
             address="1 rue du Test",
             postal_code="75000",
             city="Paris",
+            country="FR",
             status="paid",
             paid=True,
         )
@@ -227,6 +229,14 @@ class OrderStatusDisplayTests(TestCase):
             response,
             "Payée",
         )
+
+        self.assertContains(response, "Adresse de livraison")
+        self.assertContains(response, "Jean Test")
+        self.assertContains(response, "1 rue du Test")
+        self.assertContains(response, "75000 Paris")
+        self.assertContains(response, "France (FR)")
+        self.assertContains(response, "jean@example.com")
+        self.assertContains(response, "0102030405")
 
         self.assertNotContains(
             response,

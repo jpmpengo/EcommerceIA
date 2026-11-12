@@ -11,25 +11,28 @@ class CJAuthClient:
             "/api2.0/v1/authentication/getAccessToken"
         )
 
-        response = self.http_client.post(
-            url,
-            json={
-                "apiKey": self.api_key,
-            },
-            headers={
-                "Content-Type": "application/json",
-            },
-        )
-
-        data = response.json()
-
-        token = data.get("data", {}).get("accessToken")
-
-        if not token:
-            raise ValueError(
-                "CJ access token missing from response."
+        for attempt in range(2):
+            response = self.http_client.post(
+                url,
+                json={
+                    "apiKey": self.api_key,
+                },
+                headers={
+                    "Content-Type": "application/json",
+                },
             )
 
-        return token
+            data = response.json() or {}
+            token = (
+                (data.get("data") or {})
+                .get("accessToken")
+            )
+
+            if token:
+                return token
+
+        raise ValueError(
+            "CJ access token missing from response."
+        )
 
 

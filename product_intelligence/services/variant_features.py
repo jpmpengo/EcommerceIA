@@ -43,11 +43,26 @@ class VariantFeaturesService:
             )
         )
 
+        apparel_size = self._extract_apparel_size(size)
+
         return {
             "dimensions_mm": dimensions_mm,
             "capacity_ml": capacity_ml,
             "color": color,
+            "size": apparel_size,
         }
+
+    @staticmethod
+    def _extract_apparel_size(value):
+        if not value:
+            return None
+
+        match = re.search(
+            r"(?<![A-Z0-9'])(?:[2-6]XL|XXXL|XXL|XL|XS|S|M|L)(?![A-Z0-9])",
+            unescape(str(value)).upper(),
+        )
+
+        return match.group(0) if match else None
 
     def _extract_dimensions_mm(
         self,

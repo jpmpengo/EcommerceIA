@@ -27,11 +27,12 @@
     .order-detail-header {
         display: flex;
         align-items: flex-end;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 1.5rem;
         margin-bottom: 2rem;
     }
 
+    .order-detail-header > .order-status:first-of-type { margin-left: auto; }
     .order-detail-eyebrow {
         margin-bottom: 0.45rem;
         color: #2563eb;
@@ -107,6 +108,93 @@
         background: #ffffff;
         box-shadow:
             0 18px 45px rgba(15, 23, 42, 0.07);
+    }
+
+    .order-delivery-card {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.2rem;
+        background: #ffffff;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.07);
+    }
+
+    .order-delivery-title {
+        margin: 0 0 1rem;
+        color: #0f172a;
+        font-size: 1.2rem;
+        font-weight: 850;
+    }
+
+    .order-delivery-address {
+        margin: 0;
+        color: #334155;
+        font-style: normal;
+        line-height: 1.75;
+    }
+
+    .order-delivery-contact {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e2e8f0;
+        color: #64748b;
+        font-size: 0.9rem;
+        line-height: 1.7;
+    }
+
+    .supplier-file-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem 1.5rem;
+        color: #334155;
+        font-size: 0.9rem;
+    }
+
+    .supplier-file-label {
+        display: block;
+        margin-bottom: 0.2rem;
+        color: #94a3b8;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .supplier-file-warning {
+        margin-top: 1rem;
+        padding: 0.8rem 1rem;
+        border-radius: 0.8rem;
+        color: #92400e;
+        background: #fef3c7;
+        font-size: 0.85rem;
+    }
+
+    .profitability-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.8rem;
+        margin-top: 1rem;
+    }
+
+    .profitability-box {
+        padding: 1rem;
+        border-radius: 0.9rem;
+        background: #f8fafc;
+    }
+
+    .profitability-box strong {
+        display: block;
+        margin-top: 0.3rem;
+        color: #0f172a;
+        font-size: 1.35rem;
+    }
+
+    .profitability-box-profit {
+        background: #dcfce7;
+    }
+
+    .profitability-box-profit strong {
+        color: #15803d;
     }
 
     .order-items-header {
@@ -324,6 +412,14 @@
         .order-item-total {
             text-align: left;
         }
+
+        .supplier-file-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .profitability-summary {
+            grid-template-columns: 1fr;
+        }
     }
 
     @media (max-width: 575.98px) {
@@ -345,11 +441,19 @@
     <div class="container">
 
         <a
-            href="{% url 'orders:order_list' %}"
+            {% if operator_view %}
+                href="{% url 'orders:operator_order_list' %}"
+            {% else %}
+                href="{% url 'orders:order_list' %}"
+            {% endif %}
             class="order-detail-back"
         >
             <span aria-hidden="true">←</span>
-            Retour à mes commandes
+            {% if operator_view %}
+                Retour aux commandes
+            {% else %}
+                Retour à mes commandes
+            {% endif %}
         </a>
 
         <header class="order-detail-header">
@@ -374,6 +478,36 @@
                     <span class="order-status-dot"></span>
                     Payée
                 </div>
+
+            {% elif order.status == "processing" %}
+
+                <div class="order-status order-status-paid">
+                    <span class="order-status-dot"></span>
+                    En préparation
+                </div>
+
+            {% elif order.status == "shipped" %}
+
+                <div class="order-status order-status-paid">
+                    <span class="order-status-dot"></span>
+                    Expédiée
+                </div>
+
+            {% elif order.status == "delivered" %}
+
+                <div class="order-status order-status-paid">
+                    <span class="order-status-dot"></span>
+                    Livrée
+                </div>
+                {% if order.reception_disputed_at %}
+                    <div class="order-status order-status-cancelled">Problème de livraison signalé</div>
+                {% elif order.customer_received_at %}
+                    <div class="order-status order-status-paid">Réception confirmée</div>
+                {% elif order.reception_assumed_at %}
+                    <div class="order-status order-status-paid">Réception présumée</div>
+                {% elif order.delivered_at %}
+                    <div class="order-status order-status-pending">En attente de confirmation</div>
+                {% endif %}
 
             {% elif order.status == "pending" %}
 
@@ -509,6 +643,388 @@
 
                     {% endfor %}
                 </div>
+
+                <section class="order-delivery-card">
+                    <h2 class="order-delivery-title">
+                        Adresse de livraison
+                    </h2>
+
+                    <address class="order-delivery-address">
+                        <strong>
+                            {{ order.first_name }} {{ order.last_name }}
+                        </strong><br>
+                        {{ order.address }}<br>
+                        {{ order.postal_code }} {{ order.city }}<br>
+                        {% if order.country %}
+                            {{ order.get_country_display }} ({{ order.country }})
+                        {% else %}
+                            <span class="text-warning">Pays non renseigné</span>
+                        {% endif %}
+                    </address>
+
+                    <div class="order-delivery-contact">
+                        <div>{{ order.email }}</div>
+                        <div>{{ order.phone }}</div>
+                    </div>
+                </section>
+
+                {% for supplier_order in order.supplier_orders.all %}
+                    {% if supplier_order.tracking_number or supplier_order.supplier_status %}
+                        <section class="order-delivery-card">
+                            <h2 class="order-delivery-title">Suivi de livraison</h2>
+                            <div class="supplier-file-grid">
+                                <div>
+                                    <span class="supplier-file-label">Statut</span>
+                                    {{ order.get_status_display }}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Transporteur</span>
+                                    {{ supplier_order.tracking_provider|default:"Suivi fournisseur" }}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Numéro de suivi</span>
+                                    {% if supplier_order.mode == "sandbox" and supplier_order.tracking_number %}
+                                        {{ supplier_order.tracking_number }} — fictif
+                                    {% else %}
+                                        {{ supplier_order.tracking_number|default:"En attente" }}
+                                    {% endif %}
+                                </div>
+                                {% if supplier_order.tracking_url %}
+                                    <div>
+                                        <span class="supplier-file-label">Lien de suivi</span>
+                                        {% if supplier_order.mode == "sandbox" %}
+                                            <span>Simulation — aucun suivi réel</span>
+                                        {% else %}
+                                            <a href="{{ supplier_order.tracking_url }}" target="_blank" rel="noopener">Suivre le colis</a>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </section>
+                    {% endif %}
+                {% endfor %}
+
+                {% if order.status == "delivered" %}
+                    <section class="order-delivery-card">
+                        <h2 class="order-delivery-title">Confirmation de réception</h2>
+                        {% if order.reception_disputed_at %}
+                        <p>Votre signalement de livraison est enregistré. La réception présumée est suspendue.</p>
+                        {% elif order.customer_received_at %}
+                        <p>Vous avez confirmé la réception de cette commande.</p>
+                        {% elif order.reception_assumed_at %}
+                        <p>La réception est présumée après sept jours sans réponse. Vous pouvez toujours confirmer la réception ou signaler un problème.</p>
+                        {% else %}
+                        <p>Le transporteur indique que votre commande a été livrée. Pouvez-vous confirmer sa réception ?</p>
+                        {% endif %}
+                        {% if not order.customer_received_at and not order.reception_disputed_at %}
+                        <form method="post" action="{% url 'orders:order_confirm_receipt' order.id %}">
+                            {% csrf_token %}
+                            <button type="submit">Je confirme avoir reçu ma commande</button>
+                        </form>
+
+                        {% endif %}
+                        {% if not order.reception_disputed_at %}
+                        <form method="post" action="{% url 'orders:order_report_delivery_issue' order.id %}">
+                            {% csrf_token %}
+                            <button type="submit">Signaler un problème de livraison</button>
+                        </form>
+                        {% endif %}
+                    </section>
+                {% endif %}
+
+                {% if operator_view %}
+                    <section class="order-delivery-card">
+                        <h2 class="order-delivery-title">Suivi du traitement</h2>
+                        {% for event in order.processing_events.all %}
+                            <div class="supplier-file-grid" style="margin-bottom:.75rem;">
+                                <div>
+                                    <span class="supplier-file-label">Étape</span>
+                                    {% if event.event_type == "customer_payment_received" %}
+                                        Paiement client reçu
+                                    {% elif event.event_type == "invoice_created" %}
+                                        Facture créée
+                                    {% elif event.event_type == "supplier_preparation_created" %}
+                                        Préparation fournisseur enregistrée
+                                    {% elif event.event_type == "supplier_order_submitted" %}
+                                        Commande fournisseur transmise
+                                    {% elif event.event_type == "supplier_order_confirmed" %}
+                                        Commande fournisseur confirmée
+                                    {% elif event.event_type == "supplier_payment_completed" %}
+                                        Paiement fournisseur effectué
+                                    {% elif event.event_type == "supplier_processing_started" %}
+                                        Préparation fournisseur démarrée
+                                    {% elif event.event_type == "supplier_shipped" %}
+                                        Commande fournisseur expédiée
+                                    {% elif event.event_type == "tracking_updated" %}
+                                        Suivi de livraison disponible
+                                    {% elif event.event_type == "supplier_delivered" %}
+                                        Commande livrée
+                                    {% else %}
+                                        {{ event.event_type }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Date</span>
+                                    {{ event.created_at|date:"d/m/Y à H:i" }}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Origine</span>
+                                    {{ event.get_source_display }}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="text-muted">Aucun événement de traitement enregistré.</div>
+                        {% endfor %}
+                    </section>
+
+                    {% if can_prepare_supplier_order or can_submit_supplier_order %}
+                        <section class="order-delivery-card">
+                            <h2 class="order-delivery-title">Actions de traitement</h2>
+                            {% if can_prepare_supplier_order %}
+                                <form method="post" action="{% url 'orders:operator_prepare_supplier_order' order.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary order-action-button">
+                                        Préparer en simulation
+                                    </button>
+                                </form>
+                            {% endif %}
+                            {% if can_submit_supplier_order %}
+                                <form method="post" action="{% url 'orders:operator_submit_supplier_order' order.id %}" style="margin-top:.75rem;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success order-action-button">
+                                        Transmettre au sandbox CJ
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </section>
+                    {% endif %}
+
+                    {% for supplier_order in order.supplier_orders.all %}
+                        <section class="order-delivery-card">
+                            <h2 class="order-delivery-title">
+                                Commande fournisseur — {{ supplier_order.supplier.name }}
+                            </h2>
+                            <div class="supplier-file-grid">
+                                <div>
+                                    <span class="supplier-file-label">Mode</span>
+                                    {% if supplier_order.mode == "sandbox" %}
+                                        Sandbox — test sans opération réelle
+                                    {% else %}
+                                        {{ supplier_order.get_mode_display }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Référence fournisseur</span>
+                                    {{ supplier_order.supplier_order_id|default:"Non transmise" }}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Transmission</span>
+                                    {{ supplier_order.get_status_display }}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Statut fournisseur</span>
+                                    {{ supplier_order.supplier_status|default:"Non renseigné" }}
+                                    {% if supplier_order.supplier_sub_status %}
+                                        / {{ supplier_order.supplier_sub_status }}
+                                    {% endif %}
+                                    {% if supplier_order.mode == "sandbox" %}
+                                        (simulation)
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Transport</span>
+                                    {{ supplier_order.tracking_provider|default:"Non renseigné" }}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Suivi</span>
+                                    {% if supplier_order.mode == "sandbox" and supplier_order.tracking_number %}
+                                        {{ supplier_order.tracking_number }} — fictif
+                                    {% else %}
+                                        {{ supplier_order.tracking_number|default:"En attente" }}
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Transmise le</span>
+                                    {% if supplier_order.submitted_at %}
+                                        {{ supplier_order.submitted_at|date:"d/m/Y à H:i" }}
+                                    {% else %}
+                                        Non transmise
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="supplier-file-label">Dernière synchronisation</span>
+                                    {% if supplier_order.last_synced_at %}
+                                        {{ supplier_order.last_synced_at|date:"d/m/Y à H:i" }}
+                                    {% else %}
+                                        Non synchronisée
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if operator_view and supplier_order.mode == "sandbox" and supplier_order.status == "submitted" %}
+                                <form method="post" action="{% url 'orders:operator_sync_supplier_order' order.id supplier_order.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-primary order-action-button">Synchroniser avec CJ</button>
+                                </form>
+                            {% endif %}
+                            {% if supplier_order.mode == "sandbox" %}
+                                <div class="supplier-file-warning" style="color:#166534;background:#dcfce7;">
+                                    <strong>Commande transmise à CJ en sandbox — aucun débit, aucune préparation et aucune expédition réels.</strong>
+                                </div>
+                            {% endif %}
+                        </section>
+                    {% endfor %}
+                {% endif %}
+
+                {% if operator_view %}
+                    {% for item in order.items.all %}
+                        {% with opportunity=item.product.source_opportunity %}
+                            {% if opportunity and opportunity.supplier_offer %}
+                                {% with offer=opportunity.supplier_offer %}
+                                    <section class="order-delivery-card">
+                                        <h2 class="order-delivery-title">
+                                            Dossier fournisseur — {{ item.product.name }}
+                                        </h2>
+
+                                        <div class="supplier-file-grid">
+                                            <div>
+                                                <span class="supplier-file-label">Fournisseur</span>
+                                                {{ offer.supplier.name }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">Offre</span>
+                                                #{{ offer.id }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">VID / variante</span>
+                                                {{ offer.supplier_product_id|default:"Non renseigné" }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">PID / produit</span>
+                                                {{ offer.supplier_parent_product_id|default:"Non vérifié" }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">SKU</span>
+                                                {{ offer.supplier_sku|default:"Non vérifié" }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">Caractéristiques</span>
+                                                {{ offer.variant_features|default:"Non renseignées" }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">Prix fournisseur</span>
+                                                {{ offer.purchase_price }} {{ offer.currency }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">Stock fournisseur</span>
+                                                {{ offer.stock|default_if_none:"Inconnu" }}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">Dernière vérification CJ</span>
+                                                {% if offer.supplier_verified_at %}
+                                                    {{ offer.supplier_verified_at|date:"d/m/Y à H:i" }}
+                                                {% else %}
+                                                    Non vérifiée
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <span class="supplier-file-label">Mode</span>
+                                                Préparation financière — estimation des coûts
+                                            </div>
+                                        </div>
+
+                                        {% if not offer.supplier_verified_at %}
+                                            <div class="supplier-file-warning">
+                                                Vérifiez cette offre auprès du fournisseur avant toute préparation.
+                                            </div>
+                                        {% endif %}
+
+                                        {% with preparation=item.supplier_preparation %}
+                                            {% if preparation %}
+                                                <div class="supplier-file-warning" style="color:#166534;background:#dcfce7;">
+                                                    <strong>Préparation financière enregistrée — calculs estimatifs figés</strong>
+                                                </div>
+                                                <div class="supplier-file-grid" style="margin-top:1rem;">
+                                                    <div>
+                                                        <span class="supplier-file-label">Taux USD/EUR figé</span>
+                                                        {{ preparation.exchange_rate }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="supplier-file-label">Quantité</span>
+                                                        {{ preparation.quantity }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="supplier-file-label">Achat converti</span>
+                                                        {{ preparation.purchase_converted }} {{ preparation.target_currency }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="supplier-file-label">Livraison convertie</span>
+                                                        {{ preparation.shipping_converted }} {{ preparation.target_currency }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="supplier-file-label">Coût de base</span>
+                                                        {{ preparation.base_cost }} {{ preparation.target_currency }}
+                                                    </div>
+                                                    <div>
+                                                        <span class="supplier-file-label">Droits de douane estimés</span>
+                                                        {{ preparation.import_duty }} {{ preparation.target_currency }}
+                                                        {% if preparation.import_duty_method == "eu_temporary_flat_fee" %}
+                                                            ({{ preparation.import_duty_unit_amount }} EUR × {{ preparation.quantity }} article{{ preparation.quantity|pluralize }})
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        <span class="supplier-file-label">Coût rendu estimé</span>
+                                                        <strong>{{ preparation.landed_cost }} {{ preparation.target_currency }}</strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="supplier-file-label">Calcul figé le</span>
+                                                        {{ preparation.calculated_at|date:"d/m/Y à H:i" }}
+                                                    </div>
+                                                </div>
+
+                                                <h3 class="order-delivery-title" style="margin-top:1.5rem;">
+                                                    Rentabilité en un coup d’œil
+                                                </h3>
+
+                                                <div class="profitability-summary">
+                                                    <div class="profitability-box">
+                                                        <span class="supplier-file-label">Vente nette hors TVA</span>
+                                                        <strong>{{ preparation.net_revenue }} {{ preparation.target_currency }}</strong>
+                                                        <small>Vente TTC {{ preparation.sale_ttc }} − TVA {{ preparation.vat_amount }}</small>
+                                                    </div>
+                                                    <div class="profitability-box">
+                                                        <span class="supplier-file-label">Achats et charges</span>
+                                                        <strong>− {{ preparation.total_costs }} {{ preparation.target_currency }}</strong>
+                                                        <small>Achat, transport, douane, paiement et réserves</small>
+                                                    </div>
+                                                    <div class="profitability-box profitability-box-profit">
+                                                        <span class="supplier-file-label">Marge prévisionnelle</span>
+                                                        <strong>{{ preparation.projected_profit }} {{ preparation.target_currency }}</strong>
+                                                        <small>{{ preparation.projected_margin_rate }} % de la vente nette</small>
+                                                    </div>
+                                                </div>
+
+                                                <div class="supplier-file-grid" style="margin-top:1rem;">
+                                                    <div><span class="supplier-file-label">Achat + livraison</span>{{ preparation.base_cost }} {{ preparation.target_currency }}</div>
+                                                    <div><span class="supplier-file-label">Droits de douane</span>{{ preparation.import_duty }} {{ preparation.target_currency }}</div>
+                                                    <div><span class="supplier-file-label">IOSS</span>Non vérifié</div>
+                                                    <div><span class="supplier-file-label">Frais de dossier transporteur</span>Inconnus — non inclus</div>
+                                                    <div><span class="supplier-file-label">Frais de paiement</span>{{ preparation.payment_fee }} {{ preparation.target_currency }}</div>
+                                                    <div><span class="supplier-file-label">Réserve retours</span>{{ preparation.return_reserve }} {{ preparation.target_currency }}</div>
+                                                    <div><span class="supplier-file-label">Réserve sécurité</span>{{ preparation.safety_reserve }} {{ preparation.target_currency }}</div>
+                                                    <div><span class="supplier-file-label">TVA incluse dans la vente</span>{{ preparation.vat_amount }} {{ preparation.target_currency }}</div>
+                                                </div>
+                                            {% else %}
+                                                <div class="supplier-file-warning">
+                                                    Aucun dossier de préparation enregistré.
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </section>
+                                {% endwith %}
+                            {% endif %}
+                        {% endwith %}
+                    {% endfor %}
+                {% endif %}
             </div>
 
             <div class="col-lg-4">
@@ -527,17 +1043,7 @@
                         <span>Statut</span>
 
                         <span>
-                            {% if order.status == "paid" %}
-                                Payée
-                            {% elif order.status == "pending" %}
-                                En attente
-                            {% elif order.status == "expired" %}
-                                Expirée
-                            {% elif order.status == "cancelled" %}
-                                Annulée
-                            {% else %}
-                                {{ order.status }}
-                            {% endif %}
+                            {{ order.get_status_display }}
                         </span>
                     </div>
 
@@ -551,7 +1057,7 @@
 
                     <div class="order-actions">
 
-                        {% if order.status == "pending" and not order.paid %}
+                        {% if not operator_view and order.status == "pending" and not order.paid %}
 
                             <a
                                 href="{% url 'orders:payment_create' order.id %}"
@@ -578,16 +1084,27 @@
 
                         {% endif %}
 
-                        <a
-                            href="{% url 'products:product_list' %}"
-                            class="btn btn-outline-primary order-action-button"
-                        >
-                            Continuer mes achats
-                        </a>
+                        {% if not operator_view and order.paid %}
+                            <a
+                                href="{% url 'orders:invoice_detail' order.id %}"
+                                class="btn btn-primary order-action-button"
+                            >
+                                Voir la facture
+                            </a>
+                        {% endif %}
+
+                        {% if not operator_view %}
+                            <a
+                                href="{% url 'products:product_list' %}"
+                                class="btn btn-outline-primary order-action-button"
+                            >
+                                Continuer mes achats
+                            </a>
+                        {% endif %}
 
                     </div>
 
-                    {% if not user.is_authenticated %}
+                    {% if not operator_view and not user.is_authenticated %}
 
                         <p class="order-summary-note">
                             Cette commande reste accessible depuis

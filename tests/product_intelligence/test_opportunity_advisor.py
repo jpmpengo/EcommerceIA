@@ -104,10 +104,14 @@ class OpportunityAdvisorTests(TestCase):
             other_costs=Decimal("5.00"),
             demand_score=20,
             competition_score=90,
+            opportunity_score=20,
             status="approved",
             description="Faible opportunité",
             initial_stock=5,
         )
+
+        self.opportunity.opportunity_score = 80
+        self.opportunity.save(update_fields=["opportunity_score"])
 
         ranked = OpportunityAdvisor.rank_opportunities(
             ProductOpportunity.objects.all()
@@ -139,6 +143,7 @@ class OpportunityAdvisorTests(TestCase):
                 ),
                 demand_score=20,
                 competition_score=40,
+                opportunity_score=60,
                 status="approved",
                 description=(
                     "Produit nécessitant encore "
@@ -221,6 +226,19 @@ class OpportunityAdvisorTests(TestCase):
             recommendation["reasons"],
         )
 
+        self.assertEqual(
+            recommendation["level"],
+            "warning",
+        )
+
+        self.assertEqual(
+            recommendation["decision"],
+            (
+                "Les données de demande et de concurrence "
+                "doivent être complétées avant recommandation."
+            ),
+        )
+
     def test_recommendation_marks_margin_as_provisional_when_shipping_is_unknown(
         self,
     ):
@@ -267,3 +285,22 @@ class OpportunityAdvisorTests(TestCase):
             ),
             recommendation["reasons"],
         )
+
+    def test_incomplete_commercial_score_requires_analysis(self):
+        self.assertIsNone(self.opportunity.opportunity_score)
+        recommendation = OpportunityAdvisor.get_recommendation(self.opportunity)
+        self.assertIsNone(recommendation["score"])
+        self.assertFalse(recommendation["analysis_complete"])
+        self.assertEqual(recommendation["level"], "warning")
+
+    def test_calculate_priority_returns_none_when_score_is_missing(self):
+        self.assertIsNone(OpportunityAdvisor.calculate_priority(self.opportunity))
+
+    def test_rank_opportunities_places_missing_scores_last(self):
+        high = self.opportunity
+        high.opportunity_score = 80
+        high.save(update_fields=["opportunity_score"])
+        low = ProductOpportunity.objects.create(name="Produit score faible", source_name="Test", supplier_price=Decimal("10.00"), market_price=Decimal("30.00"), opportunity_score=40)
+        missing = ProductOpportunity.objects.create(name="Produit sans score", source_name="Test", supplier_price=Decimal("10.00"), market_price=Decimal("30.00"))
+        ranked = OpportunityAdvisor.rank_opportunities([missing, low, high])
+        self.assertEqual([item.pk for item in ranked], [high.pk, low.pk, missing.pk])

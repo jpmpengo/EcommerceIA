@@ -27,6 +27,7 @@ class CJSupplierOfferService:
                 "",
             ),
             product_name=product["name"],
+            product_description=product.get("product_description") or "",
             purchase_price=Decimal(
                 str(product["purchase_price"])
             ),
@@ -43,11 +44,18 @@ class CJSupplierOfferService:
                 ) is not None
                 else None
             ),
+            free_shipping=product.get(
+                "free_shipping"
+            ),
             currency=(
                 product.get("currency")
                 or "EUR"
             ),
             stock=product.get("stock"),
+            stock_country=product.get(
+                "stock_country",
+                "",
+            ),
             product_url=product.get(
                 "product_url",
                 "",
@@ -64,8 +72,10 @@ class CJSupplierOfferService:
         product,
         variant,
         stock,
+        stock_country="",
         market_observation=None,
         product_idea=None,
+        supplier_search_keyword="",
     ):
         variant_features = {}
 
@@ -113,6 +123,7 @@ class CJSupplierOfferService:
             SupplierOffer.objects.update_or_create(
                 **lookup,
                 defaults={
+                    "product_description": product.get("product_description") or "",
                     "product_name": (
                         variant.get(
                             "variantNameEn"
@@ -127,11 +138,72 @@ class CJSupplierOfferService:
                         )
                     ),
                     "shipping_cost": None,
+                    "free_shipping": product.get(
+                        "free_shipping"
+                    ),
                     "currency": (
                         product.get("currency")
                         or "USD"
                     ),
                     "stock": stock,
+                    "supplier_parent_product_id": (
+                        variant.get("pid")
+                        or product.get("external_id")
+                        or ""
+                    ),
+                    "supplier_sku": (
+                        variant.get("variantSku")
+                        or ""
+                    ),
+                    "shipping_weight_grams": (
+                        int(variant["variantWeight"])
+                        if variant.get("variantWeight") is not None
+                        else None
+                    ),
+                    "supplier_parent_product_id": (
+                        variant.get("pid")
+                        or product.get("external_id")
+                        or ""
+                    ),
+                    "supplier_sku": (
+                        variant.get("variantSku")
+                        or ""
+                    ),
+                    "shipping_weight_grams": (
+                        int(variant["variantWeight"])
+                        if variant.get("variantWeight") is not None
+                        else None
+                    ),
+                    "supplier_parent_product_id": (
+                        variant.get("pid")
+                        or product.get("external_id")
+                        or ""
+                    ),
+                    "supplier_sku": (
+                        variant.get("variantSku")
+                        or ""
+                    ),
+                    "shipping_weight_grams": (
+                        int(variant["variantWeight"])
+                        if variant.get("variantWeight") is not None
+                        else None
+                    ),
+                    "supplier_parent_product_id": (
+                        variant.get("pid")
+                        or product.get("external_id")
+                        or ""
+                    ),
+                    "supplier_sku": (
+                        variant.get("variantSku")
+                        or ""
+                    ),
+                    "shipping_weight_grams": (
+                        int(variant["variantWeight"])
+                        if variant.get("variantWeight") is not None
+                        else None
+                    ),
+                    "stock_country": stock_country,
+                    "supplier_search_keyword": supplier_search_keyword,
                     "product_url": product.get(
                         "product_url",
                         "",

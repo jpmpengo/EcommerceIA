@@ -61,7 +61,15 @@ class CollectComparablePricesCommandTests(
 
         runner.run.return_value = {
             "offers_processed": 5,
+            "offers_researched": 3,
+            "offers_incomplete": 1,
+            "offers_rejected": 1,
+            "offers_slow": 1,
+            "offers_fallback": 0,
             "comparable_prices_saved": 18,
+            "comparable_prices_examined": 18,
+            "comparable_prices_retained": 15,
+            "comparable_prices_rejected": 3,
         }
 
         output = StringIO()
@@ -90,7 +98,45 @@ class CollectComparablePricesCommandTests(
         )
 
         self.assertIn(
-            "18 prix comparable(s) enregistré(s)",
+            "3 offre(s) admise(s)",
+            command_output,
+        )
+
+        self.assertIn(
+            "1 offre(s) incomplète(s)",
+            command_output,
+        )
+
+        self.assertIn(
+            "1 offre(s) rejetée(s)",
+            command_output,
+        )
+
+        self.assertIn(
+            (
+                "18 prix comparable(s) créé(s) pendant "
+                "cette collecte"
+            ),
+            command_output,
+        )
+
+        self.assertIn(
+            "0 prix comparable(s) dans le(s) lot(s) actif(s)",
+            command_output,
+        )
+
+        self.assertIn(
+            "0 prix comparable(s) historique(s) conservé(s)",
+            command_output,
+        )
+
+        self.assertIn(
+            "15 prix comparable(s) retenu(s)",
+            command_output,
+        )
+
+        self.assertIn(
+            "3 prix comparable(s) rejeté(s)",
             command_output,
         )
 
@@ -109,7 +155,15 @@ class CollectComparablePricesCommandTests(
 
         runner.run.return_value = {
             "offers_processed": 0,
+            "offers_researched": 0,
+            "offers_incomplete": 0,
+            "offers_rejected": 0,
+            "offers_slow": 0,
+            "offers_fallback": 0,
             "comparable_prices_saved": 0,
+            "comparable_prices_examined": 0,
+            "comparable_prices_retained": 0,
+            "comparable_prices_rejected": 0,
         }
 
         call_command(

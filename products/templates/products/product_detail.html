@@ -264,7 +264,15 @@
 <section class="product-detail-section">
     <div class="container">
 
-        <nav
+        <a
+                            href="{% url 'products:product_list' %}"
+                            class="back-to-catalog"
+                        >
+                            <span aria-hidden="true">←</span>
+                            Retour au catalogue
+                        </a>
+
+<nav
             class="product-breadcrumb"
             aria-label="Fil d’Ariane"
         >
@@ -371,7 +379,15 @@
                             {{ product.price|floatformat:2 }} €
                         </div>
 
-                        {% if product.is_available and product.stock > 0 %}
+                        {% if can_access_emma %}
+
+                            <div class="alert alert-info" role="status">
+                                Aperçu opérateur : l’achat est désactivé dans
+                                le back-office. Utilisez une session client
+                                distincte pour tester une commande.
+                            </div>
+
+                        {% elif product.is_available and product.stock > 0 %}
 
                             <div class="product-availability">
                                 <span
@@ -380,10 +396,7 @@
                                 ></span>
 
                                 <span>
-                                    En stock —
-                                    {{ product.stock }}
-                                    article{{ product.stock|pluralize }}
-                                    disponible{{ product.stock|pluralize }}
+                                    En stock
                                 </span>
                             </div>
 
@@ -436,6 +449,25 @@
 
                         <div class="product-detail-points">
 
+                            {% if can_access_emma %}
+
+                                <div class="product-detail-point">
+                                    <span class="product-detail-point-mark">✓</span>
+                                    <span>Produit publié et visible dans la boutique.</span>
+                                </div>
+
+                                <div class="product-detail-point">
+                                    <span class="product-detail-point-mark">✓</span>
+                                    <span>Prix et disponibilité vérifiables en aperçu.</span>
+                                </div>
+
+                                <div class="product-detail-point">
+                                    <span class="product-detail-point-mark">✓</span>
+                                    <span>Achat désactivé pour cette session opérateur.</span>
+                                </div>
+
+                            {% else %}
+
                             <div class="product-detail-point">
                                 <span class="product-detail-point-mark">
                                     ✓
@@ -466,15 +498,11 @@
                                 </span>
                             </div>
 
+                            {% endif %}
+
                         </div>
 
-                        <a
-                            href="{% url 'products:product_list' %}"
-                            class="back-to-catalog"
-                        >
-                            <span aria-hidden="true">←</span>
-                            Retour au catalogue
-                        </a>
+
 
                     </div>
                 </div>

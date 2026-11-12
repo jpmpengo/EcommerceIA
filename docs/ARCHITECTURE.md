@@ -200,6 +200,30 @@ Les limites de catégories, de produits fournisseurs, de candidats et de
 résultats web sont des éléments de l'architecture, pas de simples options
 d'interface.
 
+## Références visuelles et recherche fournisseur
+
+Chaque idée produit conserve des `supplier_search_keywords` et des `ProductIdeaVisualReference` associés à ces mots-clés. Les références visuelles sont recherchées indépendamment des fournisseurs ; elles servent de repères du type de produit recherché et non de modèle exact à reproduire.
+
+Les recherches CJ, EPROLO, Printful et AW conservent sur chaque `SupplierOffer` le `supplier_search_keyword` qui a conduit à l'offre. Le contrôle visuel compare ensuite l'offre uniquement aux références liées à ce même mot-clé.
+
+Le résultat Vision est persisté sur `SupplierOffer`. Lorsqu'une idée possède des références visuelles, une offre classée `rejected` ou dépourvue de résultat Vision ne poursuit pas vers la livraison, les prix comparables ou l'analyse financière. Ses anciens prix comparables courants sont archivés et restent disponibles comme historique.
+
+Le fallback économique CJ vers le stock CN utilise exactement la même mécanique Vision que la collecte fournisseur principale. Il ne construit plus ses références à partir des images des `ComparablePrice`.
+
+Les prix comparables restent une étape aval. Leur collecte recherche plusieurs domaines marchands distincts afin que la qualification repose sur des sources indépendantes.
+
+
+## Livraison AW Dropship
+
+AW Dropship ne fournit pas de devis de livraison temps réel avant la création de commande. EcommerceIA calcule donc le shipping en amont à partir du poids du SKU et de la grille tarifaire AW connue pour la France.
+
+`AWShippingEstimator` utilise le poids total de la commande pour sélectionner la tranche tarifaire applicable. Le délai persistant est fixé de manière prudente à 6 jours ouvrés, correspondant à un jour maximum de préparation plus trois à cinq jours ouvrés de transport.
+
+La méthode persistée reste générique sous le nom `AW Standard`. Le système ne déduit pas un transporteur précis à partir du poids seul tant qu'AW ne fournit pas une règle explicite de sélection.
+
+Une offre AW sans poids exploitable reste incomplète et ne doit pas recevoir un coût de livraison inventé.
+
+
 ## Intelligence artificielle et calcul déterministe
 
 L'intelligence artificielle convient notamment à :
@@ -287,3 +311,78 @@ recherche web. Il est nécessaire de conserver ce qui justifie la décision.
 8. Conserver une source et une date pour chaque fait commercial utilisé.
 9. Ne jamais transformer une donnée inconnue en donnée certaine.
 10. Documenter toute décision qui modifie les frontières du système.
+
+## Commandes fournisseurs
+
+La commande client reste indépendante du fournisseur. Après paiement et
+préparation financière, ses articles sont regroupés par fournisseur dans des
+`SupplierOrder`. Chaque groupe est transmis par un adaptateur respectant le
+même contrat : construire un payload, le valider et le soumettre.
+
+`SupplierOrderAdapterFactory` sélectionne actuellement l'adaptateur CJ. Les
+autres fournisseurs sont refusés tant que leur adaptateur n'est pas disponible.
+La commande de gestion publique est `submit_supplier_order`; elle ne contient
+aucune règle CJ spécifique.
+
+En sandbox CJ, trois protections sont cumulées : option `--sandbox` obligatoire,
+adaptateur réel désactivé et vérification de `isSandbox=1` jusque dans le client
+HTTP. Le nom du transport choisi est persisté sur `SupplierOffer`. Les clés
+d'idempotence, requêtes, réponses et identifiants externes sont conservés dans
+le dossier fournisseur.
+
+La simulation suit le cycle réellement exposé par CJ : création, confirmation,
+paiement simulé, préparation, expédition puis livraison. Le statut CJ reste
+stocké dans `SupplierOrder`, tandis qu'un service de synchronisation traduit
+les états utiles vers le statut métier de `Order`.
+
+Le transporteur et le suivi sont des données persistantes. Une réponse
+incomplète ne remplace pas une valeur connue par une chaîne vide. Les suivis
+sandbox sont marqués comme fictifs et ne génèrent aucun lien externe actif dans
+l'espace client.
+
+Le même contrat doit accueillir BigBuy, Printful ou un autre fournisseur. Un
+fournisseur sans adaptateur explicite est refusé : aucune branche implicite ne
+doit envoyer une commande en utilisant le protocole CJ.
+
+## Estimation douanière
+
+`CustomsDutyService` applique une règle datée selon l'origine, la destination,
+la valeur intrinsèque, la quantité et la date. La première règle couvre le
+droit européen temporaire de 3 EUR par article applicable aux petits envois
+admissibles du 1er juillet 2026 au 30 juin 2028.
+
+La préparation distingue la TVA, les droits estimés, le statut IOSS non vérifié
+et les frais de dossier du transporteur. Ces derniers restent inconnus et non
+inclus tant qu'aucune donnée fiable n'est disponible.
+
+## Protection contre la vente à perte
+
+`SupplierOfferAnalysisPipeline` calcule la rentabilité après conversion,
+livraison et estimation douanière. Il ne crée aucune opportunité si le bénéfice
+connu est nul ou négatif, ou si la marge nette est inférieure au seuil de
+sécurité configuré. `OpportunityPublisher` répète le contrôle de perte juste
+avant la publication afin d'empêcher un contournement du parcours normal.
+
+Le contrôle ne transforme pas un coût inconnu en zéro certain. L'IOSS et les
+frais de dossier inconnus restent visibles et devront devenir vérifiés avant
+l'activation future des commandes fournisseurs réelles.
+
+## Livraison gratuite CJ
+
+CJ normalise le champ fournisseur `addMarkStatus` dans `SupplierOffer.free_shipping` : `1` signifie livraison explicitement gratuite, `0` signifie explicitement non gratuite et l'absence du champ reste inconnue (`None`).
+
+`free_shipping=True` ne suffit pas à établir un coût de livraison de `0 USD` pour une destination donnée. La disponibilité logistique doit également être confirmée pour cette destination. En particulier, `postageAmount=0` avec `logisticsMiss=True` signifie qu'aucune méthode logistique exploitable n'est attachée à la commande et ne constitue pas une preuve de livraison gratuite.
+
+Le délai de livraison reste indépendant du coût. Lorsque le coût, la route ou `free_shipping` ne permettent pas de conclure de manière fiable, EcommerceIA conserve l'information comme inconnue plutôt que de fabriquer une valeur de zéro.
+
+Cette règle correspond à la décision D017 de `DECISIONS.md`.
+
+## Origine des offres CJ
+
+Depuis la décision D018 du 22 septembre 2026, la recherche fournisseur CJ du pipeline actif interroge directement la Chine (`CN`). L'ancienne stratégie de recherche Europe suivie d'un fallback vers CN est retirée du flux actif. `CJCountryFallbackService` peut rester dans le code comme historique, mais n'est plus branché au pipeline.
+
+Les marchés cibles restent la France (`FR`), la Belgique (`BE`) et l'Espagne (`ES`). La recherche fournisseur détermine l'origine CN ; la prise en compte de chaque pays de destination appartient aux étapes aval de livraison et de coût rendu.
+
+Le prochain chantier CJ doit établir le Landed Cost `CN -> FR/BE/ES` en distinguant le prix produit, le transport, les droits éventuels, la TVA/IOSS et les frais IOSS. Le chantier commande et facturation CJ vient ensuite.
+
+Cette architecture correspond à la décision D018 de `DECISIONS.md`.

@@ -117,6 +117,29 @@ class OpportunityRecommendationServiceTests(SimpleTestCase):
             },
         )
 
+    def test_service_does_not_call_ai_when_analysis_is_incomplete(self):
+        engine = FakeAIEngine()
+        service = OpportunityRecommendationService(engine=engine)
+
+        result = service.recommend(
+            product_data={
+                "name": "Support ordinateur portable",
+                "current_price": Decimal("17.50"),
+                "currency": "EUR",
+            },
+            score_data={
+                "score": Decimal("40.00"),
+                "reasons": [
+                    "Demande non renseignée.",
+                    "Concurrence non renseignée.",
+                ],
+                "analysis_complete": False,
+            },
+        )
+
+        self.assertIsNone(engine.received_context)
+        self.assertEqual(result["decision"], "study")
+
     def test_service_rejects_ai_response_without_decision(self):
         engine = InvalidAIEngine()
 

@@ -25,6 +25,15 @@ class RecommendationDecisionServiceTests(TestCase):
             initial_stock=5,
         )
 
+    def test_publish_refuses_without_market_collection_batch_id(self):
+        with self.assertRaisesMessage(
+            ValueError,
+            "lot de prix comparables",
+        ):
+            RecommendationDecisionService.publish(
+                self.opportunity
+            )
+
     def test_postpone_sets_future_date_without_publishing(self):
         before = timezone.now()
 

@@ -3,22 +3,38 @@ class SupplierDeliveryPolicyService:
     def __init__(
         self,
         preferred_maximum_days=10,
-        absolute_maximum_days=20,
+        absolute_maximum_days=50,
         slow_score_penalty=15,
+        priority_maximum_days=20,
     ):
         if (
             preferred_maximum_days
-            > absolute_maximum_days
+            > priority_maximum_days
         ):
             raise ValueError(
                 (
                     "Le délai préféré ne peut pas "
+                    "dépasser le délai prioritaire."
+                )
+            )
+
+        if (
+            priority_maximum_days
+            > absolute_maximum_days
+        ):
+            raise ValueError(
+                (
+                    "Le délai prioritaire ne peut pas "
                     "dépasser le délai maximum."
                 )
             )
 
         self.preferred_maximum_days = (
             preferred_maximum_days
+        )
+
+        self.priority_maximum_days = (
+            priority_maximum_days
         )
 
         self.absolute_maximum_days = (
@@ -56,6 +72,22 @@ class SupplierDeliveryPolicyService:
                     "jours."
                 ),
                 "score_penalty": None,
+            }
+
+        if (
+            shipping_days
+            > self.priority_maximum_days
+        ):
+            return {
+                "status": "fallback",
+                "reason": (
+                    "Délai de livraison de "
+                    f"{shipping_days} jours : "
+                    "offre de repli uniquement."
+                ),
+                "score_penalty": (
+                    self.slow_score_penalty
+                ),
             }
 
         if (

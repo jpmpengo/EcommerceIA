@@ -12,6 +12,7 @@ class OpportunityDecisionService:
     ):
         if (
             self.minimum_score is not None
+            and opportunity.opportunity_score is not None
             and opportunity.opportunity_score
             >= self.minimum_score
         ):

@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest.mock import Mock
+from uuid import uuid4
 
 from django.test import SimpleTestCase
 
@@ -108,6 +109,36 @@ class SupplierOfferEvaluationServiceTests(
         self.assertEqual(
             dossier["market"]["maximum_price"],
             Decimal("17.99"),
+        )
+
+    def test_keeps_market_collection_batch_id_in_dossier(
+        self,
+    ):
+        supplier_offer = self._build_offer()
+        batch_id = uuid4()
+        summary = self._build_summary()
+        summary["collection_batch_id"] = batch_id
+
+        summary_service = Mock()
+        summary_service.summarize.return_value = summary
+
+        reference_service = Mock()
+        reference_service.select.return_value = Decimal("10.62")
+
+        service = SupplierOfferEvaluationService(
+            summary_service=summary_service,
+            reference_service=reference_service,
+            price_policy="minimum",
+        )
+
+        dossier = service.prepare(
+            supplier_offer=supplier_offer,
+            market_currency="EUR",
+        )
+
+        self.assertEqual(
+            dossier["market"]["collection_batch_id"],
+            batch_id,
         )
 
     def test_marks_dossier_incomplete_when_cost_data_is_missing(
@@ -251,7 +282,7 @@ class SupplierOfferEvaluationServiceTests(
         supplier_offer = self._build_offer(
             currency="USD",
             shipping_cost=Decimal("5.06"),
-            shipping_days=50,
+            shipping_days=51,
         )
 
         summary_service = Mock()
@@ -290,8 +321,8 @@ class SupplierOfferEvaluationServiceTests(
             [
                 (
                     "Délai de livraison de "
-                    "50 jours supérieur au "
-                    "maximum accepté de 20 jours."
+                    "51 jours supérieur au "
+                    "maximum accepté de 50 jours."
                 ),
             ],
         )

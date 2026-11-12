@@ -25,9 +25,12 @@ class ComparablePriceCollectionService:
     def collect(
         self,
         supplier_offer,
+        study_blockers=None,
+        activate=True,
     ):
         result = self.search_service.search(
-            supplier_offer
+            supplier_offer,
+            study_blockers=study_blockers,
         )
 
         comparables = result.get(
@@ -47,4 +50,5 @@ class ComparablePriceCollectionService:
                 supplier_offer.product_name
             ),
             model_name=self.model_name,
+            activate=activate,
         )

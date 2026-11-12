@@ -74,6 +74,10 @@ Une opportunité détectée est analysée selon les données disponibles :
 Le commerçant peut approuver une opportunité lorsqu'elle mérite une décision
 de publication.
 
+### Réanalyse après approbation
+
+Une opportunité en `review` devenue `unprofitable` ou `incomplete` est écartée de la décision courante. Une opportunité déjà `approved` qui devient `unprofitable` ou `incomplete` revient en `review` : les conditions ayant changé, le commerçant doit l'approuver de nouveau avant toute publication. Une opportunité encore en `review` et toujours viable peut voir ses données financières actualisées ; une opportunité déjà `approved` et toujours viable n'est pas réécrite silencieusement par la réanalyse.
+
 ### Décisions possibles
 
 #### Publier

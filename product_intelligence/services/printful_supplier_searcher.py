@@ -119,7 +119,9 @@ class PrintfulSupplierSearcher:
                 if not variant.get("id"):
                     continue
 
-                offer_context = {}
+                offer_context = {
+                    "supplier_search_keyword": keyword,
+                }
 
                 if market_observation is not None:
                     offer_context[

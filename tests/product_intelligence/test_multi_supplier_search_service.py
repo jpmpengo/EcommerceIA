@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+import httpx
+
 from django.test import SimpleTestCase
 
 from product_intelligence.services.multi_supplier_search import (
@@ -151,4 +153,62 @@ class MultiSupplierSearchServiceTests(
 
         printful_searcher.search_for_idea.assert_called_once_with(
             product_idea=idea,
+        )
+
+    def test_continues_with_other_suppliers_after_http_error_for_idea(self):
+        idea = Mock()
+        failed_searcher = Mock()
+        failed_searcher.supplier.name = "AW Dropship"
+        request = httpx.Request("GET", "https://supplier.example/products")
+        response = httpx.Response(403, request=request)
+        failed_searcher.search_for_idea.side_effect = httpx.HTTPStatusError(
+            "Supplier unavailable",
+            request=request,
+            response=response,
+        )
+
+        expected_offer = Mock()
+        active_searcher = Mock()
+        active_searcher.search_for_idea.return_value = [expected_offer]
+
+        service = MultiSupplierSearchService(
+            supplier_searchers=[failed_searcher, active_searcher],
+        )
+
+        offers = service.search_for_idea(product_idea=idea)
+
+        self.assertEqual(offers, [expected_offer])
+        failed_searcher.search_for_idea.assert_called_once_with(product_idea=idea)
+        active_searcher.search_for_idea.assert_called_once_with(product_idea=idea)
+        self.assertEqual(
+            service.supplier_failures,
+            {"AW Dropship": "HTTP 403"},
+        )
+
+    def test_continues_with_other_suppliers_after_http_error_for_observation(self):
+        observation = Mock()
+        failed_searcher = Mock()
+        failed_searcher.can_handle.return_value = True
+        request = httpx.Request("GET", "https://supplier.example/products")
+        response = httpx.Response(503, request=request)
+        failed_searcher.search_offers.side_effect = httpx.HTTPStatusError(
+            "Supplier unavailable",
+            request=request,
+            response=response,
+        )
+
+        expected_offer = Mock()
+        active_searcher = Mock()
+        active_searcher.can_handle.return_value = True
+        active_searcher.search_offers.return_value = [expected_offer]
+
+        service = MultiSupplierSearchService(
+            supplier_searchers=[failed_searcher, active_searcher],
+        )
+
+        offers = service.search(market_observation=observation)
+
+        self.assertEqual(offers, [expected_offer])
+        active_searcher.search_offers.assert_called_once_with(
+            market_observation=observation,
         )

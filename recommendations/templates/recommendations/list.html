@@ -454,17 +454,15 @@ Centre de recommandations | Emma
 
             <div>
                 <p class="recommendation-eyebrow">
-                    Centre de décision
+                    Espace de publication
                 </p>
 
                 <h1 class="recommendation-title">
-                    Recommandations
+                    Publication des produits
                 </h1>
 
                 <p class="recommendation-intro">
-                    Emma a réuni les opportunités les plus prometteuses.
-                    Consultez son analyse avant de préparer, reporter ou
-                    écarter une proposition.
+                    Préparez les opportunités approuvées, puis décidez de leur publication dans la boutique EcommerceIA.
                 </p>
             </div>
 
@@ -476,7 +474,7 @@ Centre de recommandations | Emma
                     </strong>
 
                     <span>
-                        recommandation{{ recommendations|length|pluralize }}
+                        opportunité{{ recommendations|length|pluralize }} à publier
                     </span>
                 </div>
 
@@ -529,7 +527,7 @@ Centre de recommandations | Emma
                                     </p>
 
                                     <h2 class="recommendation-card-title">
-                                        {{ item.opportunity.name }}
+                                        {{ item.opportunity.ai_recommendation.commercial_name|default:item.opportunity.name }}
                                     </h2>
                                 </div>
 
@@ -539,10 +537,20 @@ Centre de recommandations | Emma
                                 >
                                     <div>
                                         <strong>
-                                            {{ item.priority }}
+                                            {% if item.recommendation.analysis_complete %}
+                                                {{ item.priority }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
                                         </strong>
 
-                                        <span>sur 100</span>
+                                        <span>
+                                            {% if item.recommendation.analysis_complete %}
+                                                sur 100
+                                            {% else %}
+                                                à compléter
+                                            {% endif %}
+                                        </span>
                                     </div>
                                 </div>
 

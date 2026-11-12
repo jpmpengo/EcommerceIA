@@ -5,31 +5,19 @@ class EmmaSummaryService:
 
     @staticmethod
     def build(state):
-        if state == EmmaState.ACTION_REQUIRED:
+        if state == EmmaState.REVIEW_REQUIRED:
             return {
-                "title": "Votre attention est requise",
+                "title": "Des opportunites sont pretes a etre examinees",
                 "message": (
-                    "Voici l'action que je vous conseille "
-                    "de traiter maintenant."
+                    "Les assistants ont prepare des opportunites "
+                    "qui attendent maintenant votre examen."
                 ),
             }
 
-        if state == EmmaState.PREPARATION_REQUIRED:
-            return {
-                "title": "Des produits restent à préparer",
-                "message": (
-                    "Toutes les opportunités prêtes ont été traitées. "
-                    "Il reste cependant quelques produits à préparer "
-                    "avant leur publication."
-                ),
-            }
-   
         return {
-            "title": "Tout est sous contrôle",
+            "title": "Aucune opportunite a examiner",
             "message": (
-                "Toutes les opportunités prêtes ont été traitées."
+                "Aucune opportunite produite par les assistants "
+                "n attend actuellement votre examen."
             ),
         }
-
-
-        

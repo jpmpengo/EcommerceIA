@@ -468,3 +468,28 @@ class PrintfulSupplierOfferServiceTests(TestCase):
         self.assertIsNone(
             offer.market_observation,
         )
+
+    def test_create_offer_from_variant_stores_supplier_search_keyword(self):
+        supplier = Supplier.objects.create(
+            name="Printful",
+            country="US",
+            website="https://www.printful.com",
+            supplier_type="print_on_demand",
+        )
+        offer = PrintfulSupplierOfferService().create_offer_from_variant(
+            supplier=supplier,
+            product={
+                "title": "Gaming Mouse Pad",
+                "currency": "USD",
+            },
+            variant={
+                "id": 583,
+                "name": "Gaming Mouse Pad 36x18",
+                "price": "19.33",
+            },
+            supplier_search_keyword="gaming mouse pad",
+        )
+        self.assertEqual(
+            offer.supplier_search_keyword,
+            "gaming mouse pad",
+        )

@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 
 from django.db import transaction
 
@@ -19,8 +20,16 @@ class ComparablePricePersistenceService:
         results,
         search_query,
         model_name,
+        activate=True,
     ):
         saved_prices = []
+        batch_id = uuid4()
+
+        if activate:
+            ComparablePrice.objects.filter(
+                supplier_offer=supplier_offer,
+                is_current=True,
+            ).update(is_current=False)
 
         for result in results[
             :cls.MAXIMUM_COMPARABLE_PRICES
@@ -29,46 +38,34 @@ class ComparablePricePersistenceService:
                 "source_url"
             ]
 
-            comparable_price, _ = (
+            comparable_price = (
                 ComparablePrice.objects
-                .update_or_create(
+                .create(
                     supplier_offer=(
                         supplier_offer
                     ),
                     source_url=source_url,
-                    defaults={
-                        "product_name": (
-                            result[
-                                "product_name"
-                            ]
-                        ),
-                        "observed_price": (
-                            Decimal(
-                                str(
-                                    result[
-                                        "observed_price"
-                                    ]
-                                )
-                            )
-                        ),
-                        "currency": (
-                            result["currency"]
-                        ),
-                        "source_title": (
-                            result[
-                                "source_title"
-                            ]
-                        ),
-                        "search_query": (
-                            search_query
-                        ),
-                        "evidence": (
-                            result["evidence"]
-                        ),
-                        "model_name": (
-                            model_name
-                        ),
-                    },
+                    image_url=result.get("image_url") or "",
+                    shipping_days_min=result.get("shipping_days_min"),
+                    shipping_days_max=result.get("shipping_days_max"),
+                    shipping_cost=Decimal(str(result["shipping_cost"])) if result.get("shipping_cost") is not None else None,
+                    shipping_currency=result.get("shipping_currency"),
+                    free_shipping=result.get("free_shipping"),
+                    shipping_destination_country=result.get("shipping_destination_country"),
+                    shipping_evidence=result.get("shipping_evidence"),
+                    product_name=result["product_name"],
+                    observed_price=Decimal(
+                        str(result["observed_price"])
+                    ),
+                    currency=result["currency"],
+                    source_title=result["source_title"],
+                    search_query=search_query,
+                    evidence=result["evidence"],
+                    model_name=model_name,
+                    commercial_segment=result.get('commercial_segment') or 'unclassified',
+                    commercial_segment_reason=result.get('commercial_segment_reason') or None,
+                    collection_batch_id=batch_id,
+                    is_current=activate,
                 )
             )
 

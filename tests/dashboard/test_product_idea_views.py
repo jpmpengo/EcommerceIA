@@ -14,6 +14,17 @@ from product_intelligence.models import (
 
 class ProductIdeaViewTests(TestCase):
 
+    def create_operator(self, username):
+        group, unused = Group.objects.get_or_create(
+            name="Emma Operators"
+        )
+        user = get_user_model().objects.create_user(
+            username=username,
+            password="test-password",
+        )
+        user.groups.add(group)
+        return user
+
     def test_ordinary_customer_cannot_access_product_ideas(
         self,
     ):
@@ -254,7 +265,7 @@ class ProductIdeaViewTests(TestCase):
             ),
         )
 
-    def test_fourth_product_idea_selection_is_refused_cleanly(
+    def test_sixth_product_idea_selection_is_refused_cleanly(
         self,
     ):
         group = Group.objects.create(
@@ -273,7 +284,7 @@ class ProductIdeaViewTests(TestCase):
             group
         )
 
-        for number in range(3):
+        for number in range(5):
             ProductIdea.objects.create(
                 name=f"Idée sélectionnée {number}",
                 customer_problem="Problème client.",
@@ -288,8 +299,8 @@ class ProductIdeaViewTests(TestCase):
                 status="selected",
             )
 
-        fourth_idea = ProductIdea.objects.create(
-            name="Quatrième idée",
+        sixth_idea = ProductIdea.objects.create(
+            name="Sixième idée",
             customer_problem="Problème client.",
             target_customer="Client cible.",
             reason_to_study="Raison.",
@@ -299,7 +310,7 @@ class ProductIdeaViewTests(TestCase):
                 "ES",
             ],
             search_keywords=[
-                "quatrième idée",
+                "sixième idée",
             ],
             status="proposed",
         )
@@ -312,15 +323,15 @@ class ProductIdeaViewTests(TestCase):
             reverse(
                 "dashboard:select_product_idea",
                 args=[
-                    fourth_idea.pk,
+                    sixth_idea.pk,
                 ],
             )
         )
 
-        fourth_idea.refresh_from_db()
+        sixth_idea.refresh_from_db()
 
         self.assertEqual(
-            fourth_idea.status,
+            sixth_idea.status,
             "proposed",
         )
 
@@ -460,6 +471,21 @@ class ProductIdeaViewTests(TestCase):
             "Idées retenues pour étude",
         )
 
+        self.assertContains(
+            response,
+            "Lancer l’étude",
+        )
+
+        self.assertContains(
+            response,
+            "Étude en cours",
+        )
+
+        self.assertContains(
+            response,
+            "analysis-wait-time",
+        )
+
     def test_pilotage_contains_product_ideas_link(
         self,
     ):
@@ -485,7 +511,7 @@ class ProductIdeaViewTests(TestCase):
 
         response = self.client.get(
             reverse(
-                "dashboard:home"
+                "dashboard:product_idea_list"
             )
         )
 
@@ -496,20 +522,84 @@ class ProductIdeaViewTests(TestCase):
 
         self.assertContains(
             response,
-            (
-                'href="'
-                + reverse(
-                    "dashboard:product_idea_list"
-                )
-                + '"'
-            ),
-            html=False,
+            "Pilotage",
         )
 
         self.assertContains(
             response,
             "Idées de produits",
         )
+
+    @patch(
+        "dashboard.views.ProductIdeaManualAnalysisService.run"
+    )
+    def test_operator_can_launch_selected_idea_analysis(
+        self,
+        run_analysis,
+    ):
+        user = self.create_operator("manual_analysis")
+        idea = ProductIdea.objects.create(
+            name="Idée à étudier",
+            customer_problem="Problème.",
+            target_customer="Client.",
+            reason_to_study="Raison.",
+            countries=["FR"],
+            status="selected",
+        )
+        run_analysis.return_value = {
+            "offers_analyzed": 3,
+            "opportunities_created": 1,
+        }
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse(
+                "dashboard:analyze_product_idea",
+                args=[idea.pk],
+            )
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("dashboard:product_idea_list"),
+        )
+        run_analysis.assert_called_once_with(
+            product_idea=idea
+        )
+
+    @patch(
+        "dashboard.views.ProductIdeaManualAnalysisService.run"
+    )
+    def test_customer_cannot_launch_idea_analysis(
+        self,
+        run_analysis,
+    ):
+        user = get_user_model().objects.create_user(
+            username="customer_analysis",
+            password="test-password",
+        )
+        idea = ProductIdea.objects.create(
+            name="Idée protégée",
+            customer_problem="Problème.",
+            target_customer="Client.",
+            reason_to_study="Raison.",
+            countries=["FR"],
+            status="selected",
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse(
+                "dashboard:analyze_product_idea",
+                args=[idea.pk],
+            )
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("products:product_list"),
+        )
+        run_analysis.assert_not_called()
 
     @patch(
         (

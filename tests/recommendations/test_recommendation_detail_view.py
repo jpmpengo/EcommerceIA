@@ -91,6 +91,123 @@ class RecommendationDetailViewTests(TestCase):
             10,
         )
 
+    def test_detail_exposes_suggested_commercial_name(self):
+        opportunity = ProductOpportunity.objects.create(
+            name=(
+                "F3 light USB bicycle headlights 3 t6 mountain bike "
+                "rechargeable light LED lights professional riding bike lights Black"
+            ),
+            source_name="CJdropshipping",
+            supplier_price=Decimal("10.00"),
+            market_price=Decimal("30.00"),
+            status="approved",
+        )
+
+        response = self.client.get(
+            reverse(
+                "recommendations:detail",
+                args=[opportunity.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["suggested_name"],
+            "Éclairage vélo rechargeable",
+        )
+
+    def test_detail_exposes_suggested_commercial_name(self):
+        opportunity = ProductOpportunity.objects.create(
+            name=(
+                "F3 light USB bicycle headlights 3 t6 mountain bike "
+                "rechargeable light LED lights professional riding bike lights Black"
+            ),
+            source_name="CJdropshipping",
+            supplier_price=Decimal("10.00"),
+            market_price=Decimal("30.00"),
+            status="approved",
+        )
+
+        response = self.client.get(
+            reverse(
+                "recommendations:detail",
+                args=[opportunity.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["suggested_name"],
+            "Éclairage vélo rechargeable",
+        )
+
+    def test_detail_displays_suggested_commercial_name(self):
+        opportunity = ProductOpportunity.objects.create(
+            name=(
+                "F3 light USB bicycle headlights 3 t6 mountain bike "
+                "rechargeable light LED lights professional riding bike lights Black"
+            ),
+            source_name="CJdropshipping",
+            supplier_price=Decimal("10.00"),
+            market_price=Decimal("30.00"),
+            status="approved",
+        )
+
+        response = self.client.get(
+            reverse(
+                "recommendations:detail",
+                args=[opportunity.id],
+            )
+        )
+
+        self.assertContains(response, "Nom commercial proposé")
+        self.assertContains(response, "Éclairage vélo rechargeable")
+
+    def test_apply_commercial_name_updates_opportunity(self):
+        opportunity = ProductOpportunity.objects.create(
+            name=(
+                "F3 light USB bicycle headlights 3 t6 mountain bike "
+                "rechargeable light LED lights professional riding bike lights Black"
+            ),
+            source_name="CJdropshipping",
+            supplier_price=Decimal("10.00"),
+            market_price=Decimal("30.00"),
+            status="approved",
+        )
+
+        response = self.client.post(
+            reverse(
+                "recommendations:apply_name",
+                args=[opportunity.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 302)
+        opportunity.refresh_from_db()
+        self.assertEqual(
+            opportunity.name,
+            "Éclairage vélo rechargeable",
+        )
+
+    def test_detail_shows_apply_commercial_name_action(self):
+        opportunity = ProductOpportunity.objects.create(
+            name="F3 light USB bicycle headlights rechargeable bike lights Black",
+            source_name="CJdropshipping",
+            supplier_price=Decimal("10.00"),
+            market_price=Decimal("30.00"),
+            status="approved",
+        )
+
+        response = self.client.get(
+            reverse("recommendations:detail", args=[opportunity.id])
+        )
+
+        self.assertContains(response, "Utiliser ce nom")
+        self.assertContains(
+            response,
+            reverse("recommendations:apply_name", args=[opportunity.id]),
+        )
+
     def test_detail_identifies_restock_opportunity(self):
         product = Product.objects.create(
             name="Wireless Charger",
@@ -378,3 +495,97 @@ class RecommendationDetailViewTests(TestCase):
             response,
             "Marge provisoire estimée",
         )
+
+    def test_review_detail_hides_approval_when_market_analysis_is_incomplete(self):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Produit incomplet",
+            purchase_price=Decimal("5.00"),
+            shipping_cost=Decimal("4.00"),
+            currency="EUR",
+            stock=100,
+        )
+        opportunity = ProductOpportunity.objects.create(
+            name="Produit incomplet",
+            source_name="CJdropshipping",
+            source_url="https://example.com/product",
+            supplier_price=Decimal("5.00"),
+            market_price=Decimal("20.00"),
+            demand_score=0,
+            competition_score=0,
+            supplier_offer=offer,
+            status="review",
+        )
+
+        response = self.client.get(
+            reverse("recommendations:detail", args=[opportunity.id])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Approuver l’opportunité")
+        self.assertContains(
+            response,
+            "Les données de demande et de concurrence doivent être complétées avant recommandation.",
+        )
+
+    def test_review_detail_shows_long_delivery_before_approval(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Organisateur sous évier",
+            purchase_price=Decimal("0.66"),
+            shipping_cost=Decimal("5.67"),
+            currency="EUR",
+            stock=100,
+            shipping_days=50,
+        )
+
+        opportunity = ProductOpportunity.objects.create(
+            name="Organisateur sous évier",
+            source_name="CJdropshipping",
+            source_url="https://example.com/product",
+            supplier_price=Decimal("0.66"),
+            market_price=Decimal("20.39"),
+            demand_score=80,
+            competition_score=50,
+            supplier_offer=offer,
+            status="review",
+        )
+
+        response = self.client.get(
+            reverse(
+                "recommendations:detail",
+                args=[opportunity.id],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Décision requise")
+        self.assertContains(response, "Délai de livraison")
+        self.assertContains(response, "50 jours")
+        self.assertContains(response, "Livraison longue")
+        self.assertContains(
+            response,
+            "Cette opportunité n’est pas encore approuvée",
+        )
+        self.assertContains(response, "Approuver l’opportunité")
+        self.assertContains(response, "Refuser l’opportunité")
+        self.assertNotContains(
+            response,
+            "Vous avez approuvé cette opportunité",
+        )
+        self.assertNotContains(response, ">Reporter<")

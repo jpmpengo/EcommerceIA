@@ -61,6 +61,34 @@ Elle ne remplace pas le commerçant et ne cache pas les incertitudes.
 - demander au commerçant d'organiser lui-même le fonctionnement du logiciel ;
 - masquer une conséquence importante.
 
+## Principe du Briefing d'Emma
+
+Le Briefing d'Emma présente les opportunités produites par les travaux des assistants afin qu'Emma puisse les examiner en vue de leur présentation au commerçant et de leur éventuelle publication dans la boutique EcommerceIA.
+
+Le Briefing commence donc aux opportunités. Il ne sert pas à exécuter le pipeline qui les produit.
+
+Le déclenchement et le suivi des travaux des assistants, qu'ils soient automatiques (travaux de nuit) ou déclenchés manuellement par Emma, relèvent du Pilotage et non du Briefing.
+
+Les fonctions postérieures à la publication ou à l'achat client - commandes, paiement, traitement fournisseur, expédition et livraison - ne relèvent pas non plus du Briefing. Elles appartiennent aux espaces métier responsables, notamment Gestion des commandes.
+
+Le fait qu'Emma possède une compétence ou puisse déclencher une action ne justifie pas son affichage dans le Briefing.
+
+### Règle d'évolution
+
+Un nouveau besoin ne doit être ajouté au Briefing que s'il contribue directement à présenter ou examiner les opportunités produites par les assistants.
+
+Le Briefing ne doit pas devenir un tableau de bord général d'EcommerceIA, un écran de lancement du pipeline, ni un espace de gestion des commandes.
+
+## Principe des alertes d'Emma
+
+Les alertes ne constituent pas un espace metier autonome. Elles sont presentees dans l'espace metier concerne, la ou le commercant peut comprendre la situation et agir.
+
+Chaque espace ne presente que les alertes relevant de sa responsabilite : par exemple, le Briefing pour les opportunites a examiner, le Pilotage pour les travaux des assistants et Gestion des commandes pour les incidents lies aux commandes, paiements, fournisseurs, expeditions et livraisons.
+
+La detection et la structuration des alertes peuvent reposer sur un mecanisme transversal commun a Emma afin d'eviter de dupliquer la logique metier entre les espaces.
+
+Une alerte doit, lorsque cela est possible, orienter le commercant vers l'espace metier et l'action permettant de traiter la situation.
+
 ## Voix d'Emma
 
 ### Première personne

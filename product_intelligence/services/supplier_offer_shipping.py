@@ -68,11 +68,22 @@ class SupplierOfferShippingService:
             shipping_country
         )
 
+        supplier_offer.shipping_method = (
+            quote.get("method")
+            or ""
+        )
+
+        supplier_offer.customs_included = (
+            quote.get("customs_included")
+        )
+
         supplier_offer.save(
             update_fields=[
                 "shipping_cost",
                 "shipping_days",
                 "shipping_country",
+                "shipping_method",
+                "customs_included",
             ]
         )
 
@@ -89,7 +100,9 @@ class SupplierOfferShippingService:
                 supplier_offer.shipping_country
             ),
             "method": (
-                quote.get("method")
-                or ""
+                supplier_offer.shipping_method
+            ),
+            "customs_included": (
+                supplier_offer.customs_included
             ),
         }

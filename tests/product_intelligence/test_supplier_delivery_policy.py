@@ -82,3 +82,23 @@ class SupplierDeliveryPolicyServiceTests(
                 "score_penalty": None,
             },
         )
+
+    def test_default_policy_marks_fifty_days_as_fallback(
+        self,
+    ):
+        service = SupplierDeliveryPolicyService()
+
+        self.assertEqual(
+            service.evaluate(50)["status"],
+            "fallback",
+        )
+
+    def test_default_policy_rejects_more_than_fifty_days(
+        self,
+    ):
+        service = SupplierDeliveryPolicyService()
+
+        self.assertEqual(
+            service.evaluate(51)["status"],
+            "rejected",
+        )

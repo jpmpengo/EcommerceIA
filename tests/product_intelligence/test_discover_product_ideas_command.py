@@ -11,6 +11,15 @@ class DiscoverProductIdeasCommandTests(
     TestCase
 ):
 
+    @patch("product_intelligence.management.commands.discover_product_ideas.perf_counter", side_effect=[10.0, 94.7])
+    @patch("product_intelligence.management.commands.discover_product_ideas.ProductIdeaGenerationService.generate")
+    def test_command_displays_generation_duration(self, mock_generate, mock_perf_counter):
+        mock_generate.return_value = 5
+        output = StringIO()
+        call_command("discover_product_ideas", model="test-model", stdout=output)
+        self.assertIn("84.7", output.getvalue())
+        self.assertIn("seconde", output.getvalue().lower())
+
     @patch(
         (
             "product_intelligence.management."

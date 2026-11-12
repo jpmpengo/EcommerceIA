@@ -49,7 +49,81 @@ class ProductIdeaSelectionServiceTests(
             "selected",
         )
 
-    def test_select_rejects_fourth_selected_idea(
+
+        self.assertEqual(
+            idea.selection_source,
+            "manual",
+        )
+
+    def test_select_can_mark_selection_as_automatic(self):
+        idea = ProductIdea.objects.create(
+            name="Idee automatique",
+            customer_problem="Probleme client.",
+            target_customer="Client cible.",
+            reason_to_study="Raison.",
+            countries=["FR", "BE", "ES"],
+        )
+
+        ProductIdeaSelectionService.select(
+            idea,
+            selection_source="automatic",
+        )
+
+        idea.refresh_from_db()
+
+        self.assertEqual(
+            idea.status,
+            "selected",
+        )
+        self.assertEqual(
+            idea.selection_source,
+            "automatic",
+        )
+
+    def test_select_rejects_invalid_selection_source(self):
+        idea = ProductIdea.objects.create(
+            name="Idee source invalide",
+            customer_problem="Probleme client.",
+            target_customer="Client cible.",
+            reason_to_study="Raison.",
+            countries=["FR"],
+        )
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "Origine de selection invalide.",
+        ):
+            ProductIdeaSelectionService.select(
+                idea,
+                selection_source="unknown",
+            )
+
+    def test_select_preserves_original_selection_source(self):
+        idea = ProductIdea.objects.create(
+            name="Idee deja selectionnee",
+            customer_problem="Probleme client.",
+            target_customer="Client cible.",
+            reason_to_study="Raison.",
+            countries=["FR"],
+        )
+
+        ProductIdeaSelectionService.select(
+            idea,
+            selection_source="manual",
+        )
+        ProductIdeaSelectionService.select(
+            idea,
+            selection_source="automatic",
+        )
+
+        idea.refresh_from_db()
+
+        self.assertEqual(
+            idea.selection_source,
+            "manual",
+        )
+
+    def test_select_rejects_sixth_selected_idea(
         self,
     ):
         ideas = [
@@ -79,11 +153,11 @@ class ProductIdeaSelectionServiceTests(
             )
             for index in range(
                 1,
-                5,
+                7,
             )
         ]
 
-        for idea in ideas[:3]:
+        for idea in ideas[:5]:
             (
                 ProductIdeaSelectionService
                 .select(
@@ -94,21 +168,21 @@ class ProductIdeaSelectionServiceTests(
         with self.assertRaisesMessage(
             ValueError,
             (
-                "Trois idées sont déjà "
+                "Cinq idées sont déjà "
                 "sélectionnées."
             ),
         ):
             (
                 ProductIdeaSelectionService
                 .select(
-                    ideas[3]
+                    ideas[5]
                 )
             )
 
-        ideas[3].refresh_from_db()
+        ideas[5].refresh_from_db()
 
         self.assertEqual(
-            ideas[3].status,
+            ideas[5].status,
             "proposed",
         )
 

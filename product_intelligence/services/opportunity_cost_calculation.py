@@ -1,6 +1,7 @@
 from decimal import (
     Decimal,
     ROUND_HALF_UP,
+    ROUND_CEILING,
 )
 
 
@@ -69,6 +70,7 @@ class OpportunityCostCalculationService:
         decision_price,
         base_cost,
         currency,
+        import_duty=None,
     ):
         if decision_price <= 0:
             raise ValueError(
@@ -99,10 +101,12 @@ class OpportunityCostCalculationService:
             - net_revenue
         )
 
-        import_duty = self._money(
-            base_cost
-            * self.import_duty_rate
-        )
+        if import_duty is None:
+            import_duty = self._money(base_cost * self.import_duty_rate)
+        elif import_duty < 0:
+            raise ValueError("Les droits de douane ne peuvent pas être négatifs.")
+        else:
+            import_duty = self._money(import_duty)
 
         payment_fee = self._money(
             (
@@ -168,6 +172,23 @@ class OpportunityCostCalculationService:
                 projected_margin_rate
             ),
         }
+
+    def calculate_break_even_price(self, base_cost, import_duty=None):
+        if base_cost < 0:
+            raise ValueError("Le cout de base ne peut pas etre negatif.")
+        duty = self._money(base_cost * self.import_duty_rate) if import_duty is None else self._money(import_duty)
+        if duty < 0:
+            raise ValueError("Les droits de douane ne peuvent pas etre negatifs.")
+        fixed_costs = base_cost + duty + self.payment_fixed_fee + self._money(base_cost * self.safety_reserve_rate)
+        coefficient = Decimal("1") / (Decimal("1") + self.vat_rate) - self.payment_rate - self.return_reserve_rate
+        if coefficient <= 0:
+            raise ValueError("Prix equilibre impossible avec les taux configures.")
+        price = (fixed_costs / coefficient).quantize(Decimal("0.01"), rounding=ROUND_CEILING)
+        return price
+
+    def calculate_minimum_profitable_price(self, base_cost, import_duty=None):
+        break_even_price = self.calculate_break_even_price(base_cost, import_duty)
+        return (break_even_price * Decimal("1.10")).quantize(self.MONEY_PRECISION, rounding=ROUND_CEILING)
 
     @classmethod
     def _money(

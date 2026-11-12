@@ -1,7 +1,14 @@
 import json
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+
+class StudyBlocker(BaseModel):
+    category: Literal["comparable_prices", "demand", "competition", "logistics", "other"] = "other"
+    blocker: str
+    research_action: str
+    resolution_criterion: str
 
 
 class OpportunityAIResponse(BaseModel):
@@ -12,6 +19,12 @@ class OpportunityAIResponse(BaseModel):
     ]
 
     summary: str
+    merchant_summary: str = ""
+    commercial_name: str = ""
+    commercial_description: str = ""
+    category_path: list[str] = Field(default_factory=list)
+    category_reason: str = ""
+    study_blockers: list[StudyBlocker] = []
 
 
 class OpenAIClient:

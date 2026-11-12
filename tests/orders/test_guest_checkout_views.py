@@ -42,6 +42,7 @@ class GuestCheckoutViewTests(TestCase):
             "address": "1 rue du Commerce",
             "postal_code": "75000",
             "city": "Paris",
+            "country": "FR",
         }
 
     def test_guest_checkout_redirects_to_stable_confirmation_page(
@@ -95,6 +96,19 @@ class GuestCheckoutViewTests(TestCase):
             refreshed_response.status_code,
             200,
         )
+
+    def test_checkout_requires_delivery_country(self):
+        data = dict(self.checkout_data)
+        data["country"] = ""
+
+        response = self.client.post(
+            "/commande/creer/",
+            data=data,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"]["country"].errors)
+        self.assertFalse(Order.objects.exists())
 
     def test_guest_can_view_order_created_in_same_session(
         self,
@@ -555,3 +569,93 @@ class GuestCheckoutViewTests(TestCase):
             response,
             "Payer maintenant",
         )
+
+    def test_checkout_copies_shipping_address_to_billing_by_default(self):
+        response = self.client.post(
+            "/commande/creer/",
+            data=self.checkout_data,
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        order = Order.objects.get()
+
+        self.assertTrue(order.billing_same_as_shipping)
+        self.assertEqual(order.billing_first_name, order.first_name)
+        self.assertEqual(order.billing_last_name, order.last_name)
+        self.assertEqual(order.billing_address, order.address)
+        self.assertEqual(order.billing_postal_code, order.postal_code)
+        self.assertEqual(order.billing_city, order.city)
+        self.assertEqual(order.billing_country, order.country)
+
+    def test_checkout_stores_separate_billing_address(self):
+        data = dict(self.checkout_data)
+        data.update({
+            "billing_same_as_shipping": False,
+            "billing_first_name": "Elese",
+            "billing_last_name": "Facturation",
+            "billing_address": "20 avenue Facturation",
+            "billing_postal_code": "69001",
+            "billing_city": "Lyon",
+            "billing_country": "FR",
+        })
+
+        response = self.client.post(
+            "/commande/creer/",
+            data=data,
+        )
+
+        self.assertEqual(response.status_code, 302)
+
+        order = Order.objects.get()
+
+        self.assertFalse(order.billing_same_as_shipping)
+        self.assertEqual(order.billing_first_name, "Elese")
+        self.assertEqual(order.billing_last_name, "Facturation")
+        self.assertEqual(order.billing_address, "20 avenue Facturation")
+        self.assertEqual(order.billing_postal_code, "69001")
+        self.assertEqual(order.billing_city, "Lyon")
+        self.assertEqual(order.billing_country, "FR")
+        self.assertEqual(order.address, "1 rue du Commerce")
+        self.assertEqual(order.city, "Paris")
+
+    def test_checkout_requires_billing_fields_when_address_is_different(self):
+        data = dict(self.checkout_data)
+        data.update({
+            "billing_same_as_shipping": False,
+            "billing_first_name": "",
+            "billing_last_name": "",
+            "billing_address": "",
+            "billing_postal_code": "",
+            "billing_city": "",
+            "billing_country": "",
+        })
+
+        response = self.client.post(
+            "/commande/creer/",
+            data=data,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Order.objects.exists())
+        self.assertTrue(response.context["form"]["billing_first_name"].errors)
+        self.assertTrue(response.context["form"]["billing_last_name"].errors)
+        self.assertTrue(response.context["form"]["billing_address"].errors)
+        self.assertTrue(response.context["form"]["billing_postal_code"].errors)
+        self.assertTrue(response.context["form"]["billing_city"].errors)
+        self.assertTrue(response.context["form"]["billing_country"].errors)
+
+
+    def test_guest_cannot_access_invoice_for_unpaid_order(self):
+        self.client.post(
+            "/commande/creer/",
+            data=self.checkout_data,
+        )
+
+        order = Order.objects.get()
+
+        response = self.client.get(
+            f"/commande/mes-commandes/{order.id}/facture/"
+        )
+
+        self.assertEqual(response.status_code, 404)

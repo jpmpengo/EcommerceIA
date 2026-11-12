@@ -1,5 +1,16 @@
+import time
+
 from product_intelligence.models import (
     Supplier,
+)
+from product_intelligence.services.aw_client import (
+    AWClient,
+)
+from product_intelligence.services.aw_supplier_offer import (
+    AWSupplierOfferService,
+)
+from product_intelligence.services.aw_supplier_searcher import (
+    AWSupplierSearcher,
 )
 from product_intelligence.services.cj_auth_client import (
     CJAuthClient,
@@ -22,6 +33,21 @@ from product_intelligence.services.printful_supplier_offer import (
 from product_intelligence.services.printful_supplier_searcher import (
     PrintfulSupplierSearcher,
 )
+from product_intelligence.services.eprolo_client import (
+    EproloClient,
+)
+from product_intelligence.services.eprolo_supplier_offer import (
+    EproloSupplierOfferService,
+)
+from product_intelligence.services.eprolo_supplier_searcher import (
+    EproloSupplierSearcher,
+)
+from product_intelligence.services.eprolo_category_resolver import (
+    EproloCategoryResolver,
+)
+from product_intelligence.services.eprolo_product_matching import (
+    EproloProductMatchingService,
+)
 from product_intelligence.services.supplier_category_matching import (
     SupplierCategoryMatchingService,
 )
@@ -43,6 +69,12 @@ class SupplierSearchFactory:
         http_client,
         cj_api_key=None,
         printful_api_token=None,
+        eprolo_api_key=None,
+        eprolo_api_secret=None,
+        eprolo_api_base_url=None,
+        eprolo_max_catalog_pages=5,
+        aw_api_token=None,
+        aw_api_base_url=None,
     ):
         searchers = []
 
@@ -61,6 +93,28 @@ class SupplierSearchFactory:
                     api_token=(
                         printful_api_token
                     ),
+                )
+            )
+
+        if eprolo_api_key and eprolo_api_secret:
+            searchers.append(
+                cls._build_eprolo_searcher(
+                    http_client=http_client,
+                    api_key=eprolo_api_key,
+                    api_secret=eprolo_api_secret,
+                    base_url=eprolo_api_base_url,
+                    max_catalog_pages=(
+                        eprolo_max_catalog_pages
+                    ),
+                )
+            )
+
+        if aw_api_token:
+            searchers.append(
+                cls._build_aw_searcher(
+                    http_client=http_client,
+                    api_token=aw_api_token,
+                    api_base_url=aw_api_base_url,
                 )
             )
 
@@ -118,6 +172,8 @@ class SupplierSearchFactory:
             category_matching_service=(
                 SupplierCategoryMatchingService()
             ),
+            sleep_func=time.sleep,
+            request_delay=1.3,
         )
 
     @classmethod
@@ -165,3 +221,72 @@ class SupplierSearchFactory:
                 cls.MAX_OFFERS_PER_SUPPLIER
             ),
         )
+
+    @classmethod
+    def _build_eprolo_searcher(
+        cls,
+        http_client,
+        api_key,
+        api_secret,
+        base_url=None,
+        max_catalog_pages=5,
+    ):
+        supplier, _ = Supplier.objects.get_or_create(
+            name="EPROLO",
+            defaults={
+                "country": "CN",
+                "website": "https://eprolo.com",
+                "supplier_type": "dropshipper",
+            },
+        )
+        client = EproloClient(
+            api_key=api_key,
+            api_secret=api_secret,
+            http_client=http_client,
+            base_url=base_url,
+        )
+        offer_service = EproloSupplierOfferService(
+            variant_features_service=(
+                VariantFeaturesService()
+            )
+        )
+        return EproloSupplierSearcher(
+            client=client,
+            supplier=supplier,
+            offer_service=offer_service,
+            matching_service=EproloProductMatchingService(),
+            category_resolver=EproloCategoryResolver(),
+            max_offers=cls.MAX_OFFERS_PER_SUPPLIER,
+            max_catalog_pages=max_catalog_pages,
+        )
+
+    @classmethod
+    def _build_aw_searcher(
+        cls,
+        http_client,
+        api_token,
+        api_base_url=None,
+    ):
+        supplier, _ = Supplier.objects.get_or_create(
+            name="AW Dropship",
+            defaults={
+                "country": "SK",
+                "website": "https://www.aw-dropship.com",
+                "supplier_type": "dropshipper",
+            },
+        )
+
+        client = AWClient(
+            api_token=api_token,
+            api_base_url=api_base_url,
+            http_client=http_client,
+        )
+
+        return AWSupplierSearcher(
+            client=client,
+            supplier=supplier,
+            offer_service=AWSupplierOfferService(),
+            matching_service=EproloProductMatchingService(),
+            max_offers=cls.MAX_OFFERS_PER_SUPPLIER,
+        )
+

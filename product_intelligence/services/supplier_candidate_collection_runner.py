@@ -10,6 +10,12 @@ from product_intelligence.services.multi_supplier_search import (
 from product_intelligence.services.supplier_candidate_collection import (
     SupplierCandidateCollectionService,
 )
+from product_intelligence.services.product_visual_matching_factory import (
+    ProductVisualMatchingFactory,
+)
+from product_intelligence.services.supplier_offer_visual_matching import (
+    SupplierOfferVisualMatchingService,
+)
 from product_intelligence.services.supplier_search_factory import (
     SupplierSearchFactory,
 )
@@ -32,9 +38,28 @@ class SupplierCandidateCollectionRunner:
             "",
         )
 
+        aw_api_token = os.getenv(
+            "AW_API_TOKEN",
+            "",
+        )
+
+        eprolo_api_key = os.getenv(
+            "EPROLO_API_KEY",
+            "",
+        )
+        eprolo_api_secret = os.getenv(
+            "EPROLO_API_SECRET",
+            "",
+        )
+
         if (
             not cj_api_key
             and not printful_api_token
+            and not aw_api_token
+            and not (
+                eprolo_api_key
+                and eprolo_api_secret
+            )
         ):
             raise ValueError(
                 (
@@ -58,6 +83,25 @@ class SupplierCandidateCollectionRunner:
                     printful_api_token=(
                         printful_api_token
                     ),
+                    aw_api_token=aw_api_token,
+                    aw_api_base_url=os.getenv(
+                        "AW_API_BASE_URL",
+                        "",
+                    ) or None,
+                    eprolo_api_key=eprolo_api_key,
+                    eprolo_api_secret=(
+                        eprolo_api_secret
+                    ),
+                    eprolo_api_base_url=os.getenv(
+                        "EPROLO_API_BASE_URL",
+                        "",
+                    ) or None,
+                    eprolo_max_catalog_pages=int(
+                        os.getenv(
+                            "EPROLO_MAX_CATALOG_PAGES",
+                            "5",
+                        )
+                    ),
                 )
             )
 
@@ -75,10 +119,28 @@ class SupplierCandidateCollectionRunner:
                 )
             )
 
+            product_visual_matching = (
+                ProductVisualMatchingFactory.build()
+            )
+
+            from product_intelligence.services.product_idea_visual_reference_collection_runner import ProductIdeaVisualReferenceCollectionRunner
+
+            visual_matching_service = (
+                SupplierOfferVisualMatchingService(
+                    matching_service=(
+                        product_visual_matching
+                    ),
+                    reference_collector=ProductIdeaVisualReferenceCollectionRunner.collect,
+                )
+            )
+
             collection_service = (
                 SupplierCandidateCollectionService(
                     search_service=(
                         search_service
+                    ),
+                    visual_matching_service=(
+                        visual_matching_service
                     ),
                 )
             )

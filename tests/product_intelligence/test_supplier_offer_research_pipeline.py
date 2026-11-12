@@ -132,6 +132,42 @@ class SupplierOfferResearchPipelineTests(
             3,
         )
 
+    def test_searches_prices_for_fallback_offer(self):
+        supplier_offer = Mock()
+        shipping_service = Mock()
+        shipping_service.enrich.return_value = {
+            "status": "estimated",
+            "shipping_days": 50,
+        }
+        delivery_policy = Mock()
+        delivery_policy.evaluate.return_value = {
+            "status": "fallback",
+            "reason": "Offre de repli.",
+            "score_penalty": 15,
+        }
+        comparable_price_collection = Mock()
+        comparable_price_collection.collect.return_value = [
+            Mock(),
+        ]
+        pipeline = SupplierOfferResearchPipeline(
+            shipping_service=shipping_service,
+            delivery_policy=delivery_policy,
+            comparable_price_collection=(
+                comparable_price_collection
+            ),
+        )
+
+        result = pipeline.process(
+            supplier_offer=supplier_offer,
+            destination_country="FR",
+        )
+
+        self.assertEqual(result["status"], "researched")
+        self.assertEqual(
+            result["delivery_status"],
+            "fallback",
+        )
+
     def test_stops_when_shipping_quote_is_unavailable(
         self,
     ):

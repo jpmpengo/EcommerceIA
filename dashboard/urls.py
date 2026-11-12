@@ -44,6 +44,12 @@ urlpatterns = [
     ),
 
     path(
+        "product-ideas/<int:idea_id>/analyze/",
+        views.analyze_product_idea,
+        name="analyze_product_idea",
+    ),
+
+    path(
         "product-ideas/generate/",
         views.generate_product_ideas,
         name="generate_product_ideas",

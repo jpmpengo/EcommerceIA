@@ -126,6 +126,32 @@ class SupplierOfferTests(TestCase):
             "Black",
         )
 
+    def test_supplier_offer_stores_shipping_weight_grams(
+        self,
+    ):
+        supplier = Supplier.objects.create(
+            name="Test Supplier Weight",
+            country="FR",
+            website="https://example.com",
+            supplier_type="dropshipper",
+        )
+
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="Macrame Pot Holder",
+            purchase_price=Decimal("10.96"),
+            shipping_cost=None,
+            currency="EUR",
+            shipping_weight_grams=230,
+        )
+
+        offer.refresh_from_db()
+
+        self.assertEqual(
+            offer.shipping_weight_grams,
+            230,
+        )
+
     def test_supplier_offer_can_be_linked_to_product_idea(
         self,
     ):
@@ -195,3 +221,43 @@ class SupplierOfferTests(TestCase):
         )
 
 
+
+    def test_persists_visual_matching_result(self):
+        supplier = Supplier.objects.create(
+            name="CJdropshipping",
+            country="CN",
+            supplier_type="dropshipper",
+        )
+        offer = SupplierOffer.objects.create(
+            supplier=supplier,
+            product_name="USB Bike Light",
+            purchase_price="8.50",
+            currency="USD",
+            visual_match_classification="rejected",
+            visual_score=28,
+            same_product_probability=5,
+            visual_match_evidence="Phare avant seul.",
+            visual_match_differences=[
+                "Absence de feu arriere",
+            ],
+        )
+
+        offer.refresh_from_db()
+
+        self.assertEqual(
+            offer.visual_match_classification,
+            "rejected",
+        )
+        self.assertEqual(offer.visual_score, 28)
+        self.assertEqual(
+            offer.same_product_probability,
+            5,
+        )
+        self.assertEqual(
+            offer.visual_match_evidence,
+            "Phare avant seul.",
+        )
+        self.assertEqual(
+            offer.visual_match_differences,
+            ["Absence de feu arriere"],
+        )

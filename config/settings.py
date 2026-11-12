@@ -91,7 +91,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "db_ecommerceia_clean.sqlite3",
     }
 }
 
@@ -163,10 +163,32 @@ ETSY_SHARED_SECRET = os.getenv(
     "",
 )
 
-EMAIL_BACKEND = (
-    "django.core.mail.backends.console.EmailBackend"
-)
+SELLER_LEGAL_NAME = os.getenv("SELLER_LEGAL_NAME", "")
+SELLER_ADDRESS = os.getenv("SELLER_ADDRESS", "")
+SELLER_POSTAL_CODE = os.getenv("SELLER_POSTAL_CODE", "")
+SELLER_CITY = os.getenv("SELLER_CITY", "")
+SELLER_COUNTRY = os.getenv("SELLER_COUNTRY", "FR")
+SELLER_SIREN = os.getenv("SELLER_SIREN", "")
+SELLER_SIRET = os.getenv("SELLER_SIRET", "")
+SELLER_VAT_NUMBER = os.getenv("SELLER_VAT_NUMBER", "")
 
-DEFAULT_FROM_EMAIL = (
-    "EcommerceIA <no-reply@ecommerceia.local>"
-)
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+
+ORDER_RECOVERY_EMAIL_BACKEND = os.getenv('ORDER_RECOVERY_EMAIL_BACKEND', EMAIL_BACKEND)
+ORDER_RECEPTION_AUTO_EMAIL_ENABLED = os.getenv('ORDER_RECEPTION_AUTO_EMAIL_ENABLED', 'True').lower() == 'true'
+ORDER_RECEPTION_SITE_URL = os.getenv('ORDER_RECEPTION_SITE_URL', '')
+ORDER_RECEPTION_TEST_EMAIL = 'jpmpengo@yahoo.fr'
+ORDER_RECEPTION_TEST_MODE = os.getenv('ORDER_RECEPTION_TEST_MODE', 'False').lower() == 'true'
+
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'EcommerceIA <no-reply@ecommerceia.local>')
+
+# Delai entre reception et enquete de satisfaction (0=test, 7=production)
+ORDER_SATISFACTION_DELAY_DAYS = int(os.getenv("ORDER_SATISFACTION_DELAY_DAYS", "0"))
+
+NIGHTLY_PRODUCT_IDEAS_TIME = __import__("os").getenv("NIGHTLY_PRODUCT_IDEAS_TIME", "03:00")

@@ -51,6 +51,9 @@ class ComparablePricePersistenceServiceTests(
                 "source_url": (
                     "https://example.com/box"
                 ),
+                "image_url": (
+                    "https://example.com/box.jpg"
+                ),
                 "evidence": (
                     "Même fonction et format proche."
                 ),
@@ -103,8 +106,37 @@ class ComparablePricePersistenceServiceTests(
             comparable_price.model_name,
             "test-model",
         )
+        self.assertEqual(
+            comparable_price.image_url,
+            "https://example.com/box.jpg",
+        )
 
-    def test_does_not_duplicate_source_url_for_same_offer(
+    def test_converts_null_image_url_to_empty_string(
+        self,
+    ):
+        results = [
+            {
+                "product_name": "Kit eclairage velo",
+                "observed_price": "29.90",
+                "currency": "EUR",
+                "source_title": "Source test",
+                "source_url": "https://example.com/light",
+                "image_url": None,
+                "evidence": "Produit comparable.",
+            },
+        ]
+
+        ComparablePricePersistenceService.save(
+            supplier_offer=self.supplier_offer,
+            results=results,
+            search_query="bike light",
+            model_name="test-model",
+        )
+
+        comparable_price = ComparablePrice.objects.get()
+        self.assertEqual(comparable_price.image_url, "")
+
+    def test_preserves_previous_collection_as_history(
         self,
     ):
         results = [
@@ -136,9 +168,20 @@ class ComparablePricePersistenceServiceTests(
                 model_name="test-model",
             )
 
+        self.assertEqual(ComparablePrice.objects.count(), 2)
         self.assertEqual(
-            ComparablePrice.objects.count(),
+            ComparablePrice.objects.filter(is_current=True).count(),
             1,
+        )
+        self.assertEqual(
+            ComparablePrice.objects.filter(is_current=False).count(),
+            1,
+        )
+        self.assertEqual(
+            ComparablePrice.objects.values(
+                "collection_batch_id"
+            ).distinct().count(),
+            2,
         )
 
     def test_saves_at_most_five_comparable_prices(
@@ -192,3 +235,10 @@ class ComparablePricePersistenceServiceTests(
             ComparablePrice.objects.count(),
             5,
         )
+
+    def test_saves_commercial_segment_classification(self):
+        results = [{"product_name": "Bague connectee premium", "observed_price": "315.99", "currency": "EUR", "source_title": "Boutique test", "source_url": "https://example.com/ring", "evidence": "Fonctions comparables.", "commercial_segment": "different_segment", "commercial_segment_reason": "Positionnement premium documente."}]
+        ComparablePricePersistenceService.save(supplier_offer=self.supplier_offer, results=results, search_query="bague connectee", model_name="test-model")
+        comparable = ComparablePrice.objects.get()
+        self.assertEqual(comparable.commercial_segment, "different_segment")
+        self.assertEqual(comparable.commercial_segment_reason, "Positionnement premium documente.")

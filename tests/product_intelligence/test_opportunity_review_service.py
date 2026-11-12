@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 
 from django.test import TestCase
 
@@ -17,7 +18,10 @@ class OpportunityReviewServiceTests(TestCase):
             source_url="https://example.com/product",
             supplier_price=Decimal("4.53"),
             market_price=Decimal("27.90"),
+            demand_score=80,
+            competition_score=50,
             status="review",
+            market_collection_batch_id=uuid4(),
         )
 
         service = OpportunityReviewService()
@@ -37,6 +41,51 @@ class OpportunityReviewServiceTests(TestCase):
             result.status,
             "approved",
         )
+
+    def test_cannot_approve_when_market_analysis_is_incomplete(self):
+        opportunity = ProductOpportunity.objects.create(
+            name="Wireless Charger",
+            source_name="CJdropshipping",
+            source_url="https://example.com/product",
+            supplier_price=Decimal("4.53"),
+            market_price=Decimal("27.90"),
+            demand_score=0,
+            competition_score=50,
+            status="review",
+            market_collection_batch_id=uuid4(),
+        )
+
+        service = OpportunityReviewService()
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "demande et de concurrence",
+        ):
+            service.approve(opportunity)
+
+        opportunity.refresh_from_db()
+        self.assertEqual(opportunity.status, "review")
+
+    def test_cannot_approve_without_market_collection_batch_id(self):
+        opportunity = ProductOpportunity.objects.create(
+            name="Wireless Charger",
+            source_name="CJdropshipping",
+            source_url="https://example.com/product",
+            supplier_price=Decimal("4.53"),
+            market_price=Decimal("27.90"),
+            status="review",
+        )
+
+        service = OpportunityReviewService()
+
+        with self.assertRaisesMessage(
+            ValueError,
+            "lot de prix comparables",
+        ):
+            service.approve(opportunity)
+
+        opportunity.refresh_from_db()
+        self.assertEqual(opportunity.status, "review")
 
     def test_rejects_opportunity_in_review(self):
         opportunity = ProductOpportunity.objects.create(

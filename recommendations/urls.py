@@ -38,6 +38,16 @@ urlpatterns = [
         name="apply_category",
     ),
     path(
+        "<int:pk>/update-preparation/",
+        views.update_preparation,
+        name="update_preparation",
+    ),
+    path(
+        "<int:pk>/apply-name/",
+        views.apply_name,
+        name="apply_name",
+    ),
+    path(
         "<int:pk>/apply-description/",
         views.apply_description,
         name="apply_description",

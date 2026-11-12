@@ -36,6 +36,10 @@ from product_intelligence.services.product_idea_generation import (
     ProductIdeaGenerationService,
 )
 
+from product_intelligence.services.product_idea_manual_analysis import (
+    ProductIdeaManualAnalysisService,
+)
+
 @login_required
 def home(request):
     if not DashboardAccessService.can_access(
@@ -52,23 +56,12 @@ def home(request):
         request.user
     )
 
-    review_opportunities = (
-        ProductOpportunity.objects.filter(
-            status="review",
-        )
-        .order_by(
-            "-opportunity_score",
-            "-detected_at",
-        )
-    )
-
     return render(
         request,
         "dashboard/home.html",
         {
             "brief": brief,
             "briefing": briefing,
-            "review_opportunities": review_opportunities,
         },
     )
 
@@ -160,12 +153,19 @@ def product_idea_list(request):
         )
     )
 
+    analyzed_ideas = (
+        ProductIdea.objects
+        .filter(status="validated")
+        .order_by("-updated_at")[:10]
+    )
+
     return render(
         request,
         "dashboard/product_idea_list.html",
         {
             "product_ideas": product_ideas,
             "selected_ideas": selected_ideas,
+            "analyzed_ideas": analyzed_ideas,
         },
     )
 
@@ -232,6 +232,49 @@ def reject_product_idea(
     return redirect(
         "dashboard:product_idea_list"
     )
+
+
+@login_required
+@require_POST
+def analyze_product_idea(request, idea_id):
+    if not DashboardAccessService.can_access(
+        request.user
+    ):
+        return redirect("products:product_list")
+
+    idea = get_object_or_404(
+        ProductIdea,
+        pk=idea_id,
+    )
+
+    try:
+        result = ProductIdeaManualAnalysisService.run(
+            product_idea=idea
+        )
+    except ValueError as error:
+        messages.error(request, str(error))
+    except Exception:
+        messages.error(
+            request,
+            (
+                "L’étude a été interrompue par une erreur "
+                "technique. L’idée reste sélectionnée et "
+                "peut être relancée."
+            ),
+        )
+    else:
+        messages.success(
+            request,
+            (
+                "Étude terminée : "
+                f"{result['offers_analyzed']} offre(s) "
+                "analysée(s) et "
+                f"{result['opportunities_created']} "
+                "opportunité(s) créée(s)."
+            ),
+        )
+
+    return redirect("dashboard:product_idea_list")
 
 @login_required
 @require_POST
