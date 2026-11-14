@@ -78,7 +78,7 @@ class ProductIdeaManualAnalysisService:
             offers = offers.exclude(
                 visual_match_classification=""
             ).exclude(
-                visual_match_classification="rejected"
+                visual_match_classification__in=["rejected", "weak"]
             )
 
         for offer in offers:
