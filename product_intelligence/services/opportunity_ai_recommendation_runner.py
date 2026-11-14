@@ -48,7 +48,7 @@ class OpportunityAIRecommendationRunner:
             commercial_updates.append("description")
         if commercial_updates:
             opportunity.save(update_fields=commercial_updates)
-        if validated_category_path and result.get("category_reason", "").strip():
+        if result["decision"] == "recommend" and validated_category_path and result.get("category_reason", "").strip():
             from products.services.category_normalization import CategoryNormalizationService
             from products.services.opportunity_category_assignment import OpportunityCategoryAssignmentService
             matches = CategoryNormalizationService.propose(validated_category_path)

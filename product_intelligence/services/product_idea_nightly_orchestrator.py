@@ -8,7 +8,7 @@ class ProductIdeaNightlyOrchestratorService:
 
     @classmethod
     def get_pending_opportunities(cls):
-        return ProductOpportunity.objects.filter(status="review").filter(__import__("django.db.models", fromlist=["Q"]).Q(ai_recommendation__isnull=True) | __import__("django.db.models", fromlist=["Q"]).Q(ai_recommendation__decision="study")).order_by("pk")
+        return ProductOpportunity.objects.filter(status="review").filter(__import__("django.db.models", fromlist=["Q"]).Q(ai_recommendation__isnull=True) | __import__("django.db.models", fromlist=["Q"]).Q(ai_recommendation__decision="study") | __import__("django.db.models", fromlist=["Q"]).Q(ai_recommendation__decision="recommend", category__isnull=True)).order_by("pk")
 
     @classmethod
     def retry_pending_opportunities(cls):
@@ -19,6 +19,11 @@ class ProductIdeaNightlyOrchestratorService:
                 recommendation = getattr(opportunity, "ai_recommendation", None)
                 if recommendation is None:
                     recommendation = OpportunityAIRecommendationRunner.run_with_openai(opportunity)
+                if recommendation.decision == "recommend" and opportunity.category_id is None:
+                    from products.services.opportunity_category_assignment import OpportunityCategoryAssignmentService
+                    assigned = OpportunityCategoryAssignmentService.assign(opportunity, recommendation.category_path, recommendation.category_reason)
+                    if not assigned:
+                        raise ValueError("Categorisation automatique impossible pour opportunite recommandee")
                 OpportunityStudyCompletionService.run(opportunity, recommendation)
                 results["processed"].append(opportunity.pk)
             except Exception as exc:
@@ -35,7 +40,7 @@ class ProductIdeaNightlyOrchestratorService:
         retry_results = cls.retry_pending_opportunities() if idea_id is None else {"processed": [], "failures": []}
 
         generated_idea_ids = []
-        if idea_id is None and not ProductIdea.objects.filter(status__in=["proposed", "selected"]).exists():
+        if idea_id is None and not retry_results["failures"] and not ProductIdea.objects.filter(status__in=["proposed", "selected"]).exists():
             from product_intelligence.services.product_idea_generation import ProductIdeaGenerationService
             existing_idea_ids = set(ProductIdea.objects.values_list("pk", flat=True))
             ProductIdeaGenerationService.generate()

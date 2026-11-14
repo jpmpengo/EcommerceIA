@@ -15,10 +15,12 @@ class ComparablePriceLogisticsCompletionService:
         response = ComparablePriceLogisticsSearchService(client).search(comparables, destination_country)
         by_id = {c.id: c for c in comparables}
         updated = 0
+        evidence_found = False
         for result in response["results"]:
             comparable = by_id.get(result["comparable_id"])
             if comparable is None or not result.get("shipping_evidence") or result.get("shipping_destination_country") != destination_country:
                 continue
+            evidence_found = True
             fields = []
             for name in ("shipping_days_min", "shipping_days_max", "shipping_currency", "free_shipping", "shipping_destination_country", "shipping_evidence"):
                 value = result.get(name)
@@ -33,4 +35,4 @@ class ComparablePriceLogisticsCompletionService:
             if fields:
                 comparable.save(update_fields=fields)
                 updated += 1
-        return {"status": "updated" if updated else "unresolved", "updated": updated, "total": len(comparables)}
+        return {"status": "updated" if evidence_found else "unresolved", "updated": updated, "total": len(comparables), "verification_performed": True}

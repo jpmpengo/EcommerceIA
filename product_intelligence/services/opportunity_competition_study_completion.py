@@ -19,7 +19,7 @@ class OpportunityCompetitionStudyCompletionService:
             opportunity.save(update_fields=["status", "saturation_level", "opportunity_score", "saturation_evidence", "updated_at"])
             return {"status": "rejected", "reason": "Aucune preuve concurrentielle exploitable"}
         if result["level"] == "indeterminate":
-            return {"status": "unresolved", "evidence": result}
+            return {"status": "unresolved", "evidence": result, "verification_performed": True}
         opportunity.saturation_level = result["level"]
         summary = ComparablePriceSummaryService.summarize(opportunity.supplier_offer, "EUR")
         pricing = OpportunityCommercialRecalculationService.calculate(opportunity, market_summary=summary)

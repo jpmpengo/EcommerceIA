@@ -9,11 +9,11 @@ class ComparablePriceStudyCompletionService:
         collection_service = runner.research_pipeline.comparable_price_collection
         comparables = collection_service.collect(supplier_offer, study_blockers=study_blockers, activate=False)
         if not comparables:
-            return {"status": "no_results", "retained": 0}
+            return {"status": "no_results", "retained": 0, "verification_performed": True}
         batch_id = comparables[0].collection_batch_id
         qualification = runner.qualification_service.qualify(supplier_offer, collection_batch_id=batch_id)
         if qualification["retained"] == 0:
-            return {"status": "no_retained", "batch_id": str(batch_id), "retained": 0, "rejected": qualification["rejected"]}
+            return {"status": "no_retained", "batch_id": str(batch_id), "retained": 0, "rejected": qualification["rejected"], "verification_performed": True}
         retained = list(supplier_offer.comparable_prices.filter(collection_batch_id=batch_id, qualification_status="retained"))
         classification = runner.commercial_classification_service.classify_and_save(supplier_offer, retained, collection_batch_id=batch_id)
         integration = ComparablePriceStudyIntegrationService.integrate(supplier_offer, batch_id)

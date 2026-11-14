@@ -19,7 +19,7 @@ class OpportunityDemandStudyCompletionService:
             discovered = OpportunityDemandEvidenceSearchService.search(idea)
             pending = [dict(item) for item in discovered if item.get("metric") in ("search_trend", "sales_growth") and item.get("source_url") and item.get("value")]
             if not pending:
-                return {"status": "unresolved", "reason": "no_new_growth_evidence"}
+                return {"status": "unresolved", "reason": "no_new_growth_evidence", "verification_performed": True}
             discovered_new = True
         checked = ProductIdeaGenerationService._verify_growth_signals(pending)
         verified = 0
@@ -31,7 +31,7 @@ class OpportunityDemandStudyCompletionService:
                     original["is_verified"] = True
                 verified += 1
         if not verified:
-            return {"status": "unresolved", "reason": "no_new_verified_evidence"}
+            return {"status": "unresolved", "reason": "no_new_verified_evidence", "verification_performed": True}
         idea.demand_signal_assessments = signals
         idea.idea_score = ProductIdeaScoreService.calculate(signals, reference_date=timezone.localdate())
         idea.save(update_fields=["demand_signal_assessments", "idea_score"])
