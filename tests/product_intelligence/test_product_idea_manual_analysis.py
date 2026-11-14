@@ -224,7 +224,7 @@ class ProductIdeaManualAnalysisServiceTests(TestCase):
             product_idea=self.idea,
         )
 
-    def test_does_not_run_economic_fallback_when_cn_offer_already_exists(self):
+    def test_runs_economic_fallback_when_cn_offer_is_unprofitable(self):
         offer = self.make_offer("CN-ALREADY-TESTED", "8.00", 12)
         offer.stock_country = "CN"
         offer.save(update_fields=["stock_country"])
@@ -245,6 +245,7 @@ class ProductIdeaManualAnalysisServiceTests(TestCase):
         }
 
         economic_fallback = Mock()
+        economic_fallback.run.return_value = []
 
         ProductIdeaManualAnalysisService.run(
             product_idea=self.idea,
@@ -254,7 +255,7 @@ class ProductIdeaManualAnalysisServiceTests(TestCase):
             economic_fallback=economic_fallback,
         )
 
-        economic_fallback.run.assert_not_called()
+        economic_fallback.run.assert_called_once_with(product_idea=self.idea)
 
     def test_runs_cj_economic_fallback_when_other_supplier_is_viable(self):
         cj_offer = self.make_offer("CJ-EU", "20.00", 3)

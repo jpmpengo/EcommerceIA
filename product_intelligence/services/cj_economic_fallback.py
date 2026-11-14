@@ -38,7 +38,7 @@ class CJEconomicFallbackService:
                         offer,
                         "visual_match_classification",
                         "",
-                    ) != "rejected"
+                    ) not in ("rejected", "weak")
                     and (
                         not has_visual_references
                         or bool(

@@ -140,7 +140,6 @@ class ProductIdeaManualAnalysisService:
 
         if (
             not has_viable_cj_offer
-            and not has_cn_offer
         ):
             if fallback is None:
                 fallback = (
