@@ -12,14 +12,23 @@ class OpportunityDemandStudyCompletionService:
         if idea is None:
             return {"status": "skipped"}
         signals = list(idea.demand_signal_assessments or [])
+        discovered_new = False
         pending = [s for s in signals if s.get("metric") in ("search_trend", "sales_growth") and s.get("is_verified") is not True]
         if not pending:
-            return {"status": "unresolved", "reason": "no_pending_growth_evidence"}
+            from product_intelligence.services.opportunity_demand_evidence_search import OpportunityDemandEvidenceSearchService
+            discovered = OpportunityDemandEvidenceSearchService.search(idea)
+            pending = [dict(item) for item in discovered if item.get("metric") in ("search_trend", "sales_growth") and item.get("source_url") and item.get("value")]
+            if not pending:
+                return {"status": "unresolved", "reason": "no_new_growth_evidence"}
+            discovered_new = True
         checked = ProductIdeaGenerationService._verify_growth_signals(pending)
         verified = 0
         for original, result in zip(pending, checked):
             if result.get("is_verified") is True:
-                original["is_verified"] = True
+                if discovered_new:
+                    signals.append(result)
+                else:
+                    original["is_verified"] = True
                 verified += 1
         if not verified:
             return {"status": "unresolved", "reason": "no_new_verified_evidence"}

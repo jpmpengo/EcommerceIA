@@ -174,7 +174,7 @@ class ProductIdeaGenerationService:
         for signal in signals:
             item = dict(signal)
             value = str(item.get("value", "")).lower()
-            if (item.get("metric") == "search_trend" and "% growth" in value) or (item.get("metric") == "sales_growth"):
+            if item.get("metric") in ("search_trend", "sales_growth"):
                 item["is_verified"] = verifier.verify(item.get("source_url", ""), item["metric"], item["value"]).is_verified
             if item.get("metric") == "search_trend" and "is_verified" not in item:
                 item["is_verified"] = False
